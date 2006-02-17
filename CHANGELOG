@@ -1,0 +1,115 @@
+UNSTABLE
+---------------------------------------
+- support for new Trimaran 3.7 
+- post_install.sh script for easier workspace setup
+- moved common routines to common.cpp
+- cleaner class interfaces
+- wait_key() after each error condition
+- support for Fuzzy Genetic approach
+
+
+20050512
+---------------------------------------
+- PD_kernel.c: rewritten L1I cache reference code to avoid unlimited
+  growing of memory usage during simulation
+- PD_dinero.c: bus transitions are now computed here. No more huge
+  cache reference files and computational overhead. 
+- GA: user can now choose how often to write out a pareto report
+- added overall regalloc overhead report in detail estimation file
+- separate SUBSPACES directory into trimaran-workspace/epic-explorer
+- updated installing instructions
+- estimator.cpp: changed unsigned long -> unsigned long long in estimator sources
+- explorer.cpp: removed prefixed explorations functions (e.g.
+  test_explore_L1D()). The code has been moved to test() function to
+  create some example of Explorer class usage.
+- Reorganized README file
+
+20050207
+---------------------------------------
+- cleaner .est files, fixed IPC (ops/cyles) report
+- fixed a bug that did not allow to start a new exploration when 
+  the only difference from the previous was the value of H formation option
+- exit with error when trying to set an invalid value to a
+  configuration space parameter (prints debug info and doesn't prompt
+  anymore to manually set valid value)
+- changed some data variables from int to unsigned long to avoid
+  overflow with long running benchmarks
+
+20042212
+---------------------------------------
+- suppport for saving a file with details of each
+  configuration estimate
+- Fixed get_pareto() and save_simulations() bug when using energy instead of power
+- more explicit output file names
+- implemented more realistic L1 inst cache references in PD_kernel.c
+  Trimaran code
+- base directory changed to $HOME/trimaran-workspace/epic-explorer
+- created compile.sh script to compile everything in epic dir
+- renamed 'Interface_user_demo' class and files to 'User_interface'
+
+20040616
+---------------------------------------
+- added support for enabling/disabling hyperblock formation
+- added support for enabling/disabling autoclock frequency
+- solved edit space interface bug
+- restored original compilation flag for epic makefile
+- MOGA : usage of standard <sstream> headers
+
+20031205
+---------------------------------------
+- Added support for GA 3d exploration
+- Removed get_feasible_space() memory overflow
+- Changed compilation flags to optimize speed (-O2)
+
+20031120
+---------------------------------------
+- Automatic clock frequency optimization
+- Simulated spaces saving improved and added to options
+- Totally rewritten bus transition counter
+- Separated subspace and user settings files
+- Added save Trimaran PD_STATS option
+- Reorganized menu interface
+
+20030911
+---------------------------------------
+- Optimized GA exploration to avoid unnecessary recompilations
+- Saved simulations must show even the values of fixed params
+- PBSA support for 3d exploration
+- fixed NO_L2_SIZE_CHECK bug in second phase of PBSA
+- fixed build_cross_merge(...) feasible config bug
+
+
+20030905
+---------------------------------------
+- bug in L2 dynamic stats : L2 write miss was always 0.
+
+20030716
+---------------------------------------
+- rewritten address bus transition counter, much faster
+- more readable dynamic stats output
+- rescaled power densities from 2Ghz to 500Mhz clock
+- updated installation instructions
+
+20030620
+---------------------------------------
+- Scaled cache power model tech from 0.8um to 0.1um, to be more
+  consistent with the processor power model
+- Area models are now all to 0.35um
+- Clock frequency set to 500Mhz
+
+20030508
+---------------------------------------
+- Added GA exploration
+- Added DEPMOD exploration
+- Added RANDOM
+- Added exploration Scheduler
+- Added support for multi-function benchmarks
+- Added jpeg benchmark package
+- Added the possibility to choose between Power and Energy
+- Added exploration space editor
+- Added multiple exploration space saving
+- Fixed build_cross_merge bug : it did not discarded not feasible
+  configurations
+- Optimized simulate_space() to avoid repeat exploration over the
+  same space
+
