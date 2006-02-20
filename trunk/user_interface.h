@@ -47,24 +47,20 @@ private:
 	string word;
 	struct User_Settings user_settings;
 
-	Processor my_processor;
-	Mem_hierarchy  my_mem;
 	Trimaran_interface trimaran_interface;
 	Explorer * my_explorer;
-	Estimator my_estimator;
 
 	int show_menu();
 
 	void edit_user_settings();
 
 	void save_settings(string settings_file);
-	void save_subspace(string subspace_file);
 	void save_settings_wrapper();
-	void save_subspace_wrapper();
-	void load_settings_wrapper();
-	void load_subspace_wrapper();
 	void load_settings(string settings_file);
-	void load_subspace(string subspace_file);
+	void load_settings_wrapper();
+
+	void save_subspace_wrapper();
+	void load_subspace_wrapper();
 
 	void start_exploration_message();
 	void edit_exploration_space();

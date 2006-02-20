@@ -33,14 +33,14 @@
 #include "FuzzyApprox.h"
 
 // ---------------------------------------------------------------------------
-extern void go_until(const string& dest,ifstream& ifs);
-extern string current_subspace;
-
 
 class Explorer {
 public: 
+  Processor processor;
+  Mem_hierarchy mem_hierarchy;
+  Estimator estimator;
 
-  Explorer(Processor * processor,Mem_hierarchy * mem_hierarchy,Trimaran_interface * ti);
+  Explorer(Trimaran_interface * ti);
   Explorer();
 
   ~Explorer();
@@ -73,15 +73,16 @@ public:
 
   vector<Configuration> extract_space(const vector<Simulation>& sims) const;
 
-  vector<Configuration> build_space(const Space_mask& mask) const;
-  vector<Configuration> build_space(const Space_mask& mask,enum Space_opt opt) const;
-  vector<Configuration> build_space(const Space_mask& mask,Configuration base_config) const;
-  vector<Configuration> build_space(const Space_mask& mask,Configuration base_config, Space_opt opt) const;
+  vector<Configuration> build_space(const Space_mask& mask);
+  vector<Configuration> build_space(const Space_mask& mask,enum Space_opt opt);
+  vector<Configuration> build_space(const Space_mask& mask,Configuration base_config);
+  vector<Configuration> build_space(const Space_mask& mask,Configuration base_config, Space_opt opt);
   vector<Configuration> build_space_cross_merge(const vector<Configuration>& s1,
 						const vector<Configuration>& s2,
 						const Space_mask& mask1,
-						const Space_mask& mask2);
+						const Space_mask& mask2) const;
   bool equivalent_spaces(const vector<Configuration>& s1,const vector<Configuration>& s2) const;
+
   double get_space_size() const;
   double get_space_size(const Space_mask& mask) const;
   double get_feasible_size() const;
@@ -152,6 +153,10 @@ public:
 
   void set_fuzzy(bool);
   void set_force_simulation(bool);
+  void set_space_name(const string& space_name);
+  void load_space_file(const string& space_name);
+  void save_space_file(const string& space_name);
+
 
 private:
 
@@ -167,9 +172,6 @@ private:
 
   // private class variables
   Trimaran_interface  * trimaran_interface;
-  Processor *  processor;
-  Mem_hierarchy * mem_hierarchy;
-  Estimator estimator;
 
   Estimate estimate;
   Dynamic_stats dyn_stats;
@@ -179,6 +181,7 @@ private:
   bool force_simulation;
 
   string current_algo;
+  string current_space;
   int n_obj;
   struct User_Settings Options;
 
