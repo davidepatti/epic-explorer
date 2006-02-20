@@ -20,8 +20,6 @@
 #include "common.h"
 #include <signal.h>
 
-string current_subspace; //TODO: find a better place
-
 void test(void);
 
 int main(int argc, char *argv[])
@@ -34,7 +32,8 @@ int main(int argc, char *argv[])
 
 void test()
 {
-    Explorer my_explorer;
+    Trimaran_interface* interface = new Trimaran_interface();
+    Explorer my_explorer(interface);
 
     //suppose we want explore a space where only two particular
     //parameters can vary , for example , L1D size and  n. of integer_units .

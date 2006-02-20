@@ -27,16 +27,14 @@
 #include <values.h>
 
 //********************************************************************
-Explorer::Explorer(Processor * processor, Mem_hierarchy * mem_hierarchy, Trimaran_interface * ti)
+Explorer::Explorer(Trimaran_interface * ti)
 {
     this->trimaran_interface = ti;
-    this->processor = processor;
-    this->mem_hierarchy = mem_hierarchy;
     // when simulation is started these values will be calculated
     // to be more realistic
 
-    this->average_compilation_time = 15;
-    this->average_exec_time = 5;
+    average_compilation_time = 15;
+    average_exec_time = 5;
 
     // by default objectives include exec_time and average power 
     Options.objective_area = false;
@@ -52,32 +50,10 @@ Explorer::Explorer(Processor * processor, Mem_hierarchy * mem_hierarchy, Trimara
     fuzzy_enabled = false;
     force_simulation = false;
 
-    current_subspace = "ALL";
+    current_space = "SPACE_NOT_SET";
 }
 
 //********************************************************************
-Explorer::Explorer()
-{
-    trimaran_interface = new Trimaran_interface();
-    processor = new Processor();
-    mem_hierarchy = new Mem_hierarchy();
-    this->average_compilation_time = 15;
-    this->average_exec_time = 5;
-
-    // by default estimation includes area, exec_time and average power 
-    this->Options.objective_area = true;
-    this->Options.objective_power = true;
-    this->Options.objective_energy = false;
-    this->Options.objective_exec_time = true;
-
-    this->Options.save_spaces = false;
-    this->Options.save_PD_STATS = false;
-    Options.save_estimation = false;
-    Options.save_objectives_details = false;
-
-    fuzzy_enabled = false;
-    this->Options.auto_clock = false;
-}
 
 Explorer::~Explorer()
 {
@@ -139,28 +115,28 @@ void Explorer::start_RAND(int n)
 
     for(int i=0;i<n;i++)
     {
-	processor->config.integer_units.set_random();
-	processor->config.float_units.set_random();
-	processor->config.branch_units.set_random();
-	processor->config.memory_units.set_random();
-	processor->config.gpr_static_size.set_random();
-	processor->config.fpr_static_size.set_random();
-	processor->config.pr_static_size.set_random();
-	processor->config.cr_static_size.set_random();
-	processor->config.btr_static_size.set_random();
-	mem_hierarchy->L1D.size.set_random();
-	mem_hierarchy->L1D.block_size.set_random();
-	mem_hierarchy->L1D.associativity.set_random();
-	mem_hierarchy->L1I.size.set_random();
-	mem_hierarchy->L1I.block_size.set_random();
-	mem_hierarchy->L1I.associativity.set_random();
-	mem_hierarchy->L2U.size.set_random();
-	mem_hierarchy->L2U.block_size.set_random();
-	mem_hierarchy->L2U.associativity.set_random();
+	processor.config.integer_units.set_random();
+	processor.config.float_units.set_random();
+	processor.config.branch_units.set_random();
+	processor.config.memory_units.set_random();
+	processor.config.gpr_static_size.set_random();
+	processor.config.fpr_static_size.set_random();
+	processor.config.pr_static_size.set_random();
+	processor.config.cr_static_size.set_random();
+	processor.config.btr_static_size.set_random();
+	mem_hierarchy.L1D.size.set_random();
+	mem_hierarchy.L1D.block_size.set_random();
+	mem_hierarchy.L1D.associativity.set_random();
+	mem_hierarchy.L1I.size.set_random();
+	mem_hierarchy.L1I.block_size.set_random();
+	mem_hierarchy.L1I.associativity.set_random();
+	mem_hierarchy.L2U.size.set_random();
+	mem_hierarchy.L2U.block_size.set_random();
+	mem_hierarchy.L2U.associativity.set_random();
 
-	Configuration temp_conf = create_configuration(*processor,*mem_hierarchy);
+	Configuration temp_conf = create_configuration(processor,mem_hierarchy);
 
-	if (mem_hierarchy->test_valid_config())
+	if (mem_hierarchy.test_valid_config())
 	{
 	    valid++;
 	    random_space.push_back(temp_conf);
@@ -174,8 +150,8 @@ void Explorer::start_RAND(int n)
     vector<Simulation> rand_sims = simulate_space(random_space);
     vector<Simulation> pareto_set = get_pareto(rand_sims);
 
-    save_simulations(rand_sims,Options.benchmark+"_RAND_"+current_subspace+".exp",SHOW_ALL);
-    save_simulations(pareto_set,Options.benchmark+"_RAND_"+current_subspace+".pareto.exp",SHOW_ALL);
+    save_simulations(rand_sims,Options.benchmark+"_RAND_"+current_space+".exp",SHOW_ALL);
+    save_simulations(pareto_set,Options.benchmark+"_RAND_"+current_space+".pareto.exp",SHOW_ALL);
     
 }
 //********************************************************************
@@ -196,7 +172,7 @@ void Explorer::start_DEP2()
 
     vector<Simulation> pareto_set;
 
-    string filename = Options.benchmark+"_DEP2_"+current_subspace;
+    string filename = Options.benchmark+"_DEP2_"+current_space;
 
     write_log("  -> Starting DEP2 simulation ");
 
@@ -346,7 +322,7 @@ void Explorer::start_DEP()
     char mess[55];
     int t;
 
-    string filename = Options.benchmark+"_DEP_"+current_subspace;
+    string filename = Options.benchmark+"_DEP_"+current_space;
 
     
     // explore c1 and c2 , separately .
@@ -810,7 +786,7 @@ void Explorer::start_DEPMOD()
     char mess[55];
     int t;
 
-    string filename = Options.benchmark+"_DEPMOD_"+current_subspace;
+    string filename = Options.benchmark+"_DEPMOD_"+current_space;
 
     
     // explore c1 and c2 , separately .
@@ -1236,7 +1212,7 @@ void Explorer::start_PBSA()
 
     string name = get_base_dir()+"/trimaran-workspace/epic-explorer/";
     if (Options.hyperblock) name+="H_";
-    name+= Options.benchmark+"_PBSA_"+current_subspace+"_sensitivity.stat";
+    name+= Options.benchmark+"_PBSA_"+current_space+"_sensitivity.stat";
 
     FILE * fp = fopen(name.c_str(),"w");
 
@@ -1321,11 +1297,11 @@ void Explorer::start_PBSA()
 
 	char temp[10];
 	sprintf(temp,"%d_",i);
-	string file_name = Options.benchmark+"_PBSA_stage"+string(temp)+current_subspace;
+	string file_name = Options.benchmark+"_PBSA_stage"+string(temp)+current_space;
 	save_simulations(pareto_set,file_name+".exp",SHOW_ALL);
     }
 
-    string file_name = Options.benchmark+"_PBSA_"+current_subspace;
+    string file_name = Options.benchmark+"_PBSA_"+current_space;
     save_simulations(pareto_set,file_name+".pareto.exp",SHOW_ALL);
 
     stats.end_time = time(NULL);
@@ -1528,7 +1504,7 @@ void Explorer::start_SAP()
 
     int n_par = 18;
 
-    string file_name = Options.benchmark+"_SAP_"+current_subspace;
+    string file_name = Options.benchmark+"_SAP_"+current_space;
     vector<double> sens;
     vector<int> sorted_index;
 
@@ -1560,7 +1536,7 @@ void Explorer::start_SAP()
     string path = get_base_dir()+"/trimaran-workspace/epic-explorer/";
     string name;
     if (Options.hyperblock) name = "H_";
-    name = path + name + Options.benchmark + "_SAP_"+current_subspace+"_sensitivity.stat";
+    name = path + name + Options.benchmark + "_SAP_"+current_space+"_sensitivity.stat";
     FILE * fp = fopen(name.c_str(),"w");
 
     fprintf(fp,"\n%.14f        %% L1D_size",sens[0]);        
@@ -1672,7 +1648,7 @@ void Explorer::start_SAPMOD()
     }
 
     string path = get_base_dir()+"/trimaran-workspace/epic-explorer/";
-    string file_name = Options.benchmark+"_SAP_"+current_subspace;
+    string file_name = Options.benchmark+"_SAP_"+current_space;
     char file[50];
     double sensitivity;
 
@@ -1739,7 +1715,7 @@ void Explorer::start_EXHA()
     vector<Simulation> simulations = simulate_space(space);
     vector<Simulation> pareto_set = get_pareto(simulations);
 
-    string filename = Options.benchmark+"_EXHA_"+current_subspace;
+    string filename = Options.benchmark+"_EXHA_"+current_space;
     save_simulations(simulations,filename+".exp",SHOW_ALL);
     save_simulations(pareto_set,filename+".pareto.exp",SHOW_ALL);
 
@@ -1870,7 +1846,7 @@ void Explorer::start_GA(const GA_parameters& parameters)
 
   init_GA(ga, &eud, &ga_parameters);
 
-  string file_name = Options.benchmark+"_GA_"+current_subspace;
+  string file_name = Options.benchmark+"_GA_"+current_space;
 
   while ( !ga.done() )
     {
@@ -1937,7 +1913,7 @@ void Explorer::start_GA_Fuzzy(const GA_parameters& parameters)
 
   init_GA_Fuzzy(ga, &eud, &ga_parameters);
 
-  string file_name = Options.benchmark+"_FUZZY_"+current_subspace;
+  string file_name = Options.benchmark+"_FUZZY_"+current_space;
 
   //---- FuzzyApprox
   fuzzy_approx.Init(2.0f, getParameterRanges(), 2);
@@ -1988,28 +1964,28 @@ void Explorer::init_GA(SPEA& ga, ExportUserData* eud,GA_parameters* ga_parameter
   ga.minimize(); /* minimization of the objectives */
   vector<vector<AlleleString::Allele> > alleles;
   // memory hierarchy parameters
-  alleles.push_back(values2alleles(mem_hierarchy->L1D.block_size.get_values()));
-  alleles.push_back(values2alleles(mem_hierarchy->L1D.size.get_values()));
-  alleles.push_back(values2alleles(mem_hierarchy->L1D.associativity.get_values()));
+  alleles.push_back(values2alleles(mem_hierarchy.L1D.block_size.get_values()));
+  alleles.push_back(values2alleles(mem_hierarchy.L1D.size.get_values()));
+  alleles.push_back(values2alleles(mem_hierarchy.L1D.associativity.get_values()));
 
-  alleles.push_back(values2alleles(mem_hierarchy->L1I.block_size.get_values()));
-  alleles.push_back(values2alleles(mem_hierarchy->L1I.size.get_values()));
-  alleles.push_back(values2alleles(mem_hierarchy->L1I.associativity.get_values()));
+  alleles.push_back(values2alleles(mem_hierarchy.L1I.block_size.get_values()));
+  alleles.push_back(values2alleles(mem_hierarchy.L1I.size.get_values()));
+  alleles.push_back(values2alleles(mem_hierarchy.L1I.associativity.get_values()));
   
-  alleles.push_back(values2alleles(mem_hierarchy->L2U.block_size.get_values()));
-  alleles.push_back(values2alleles(mem_hierarchy->L2U.size.get_values()));
-  alleles.push_back(values2alleles(mem_hierarchy->L2U.associativity.get_values()));
+  alleles.push_back(values2alleles(mem_hierarchy.L2U.block_size.get_values()));
+  alleles.push_back(values2alleles(mem_hierarchy.L2U.size.get_values()));
+  alleles.push_back(values2alleles(mem_hierarchy.L2U.associativity.get_values()));
 
   // processor parameters
-  alleles.push_back(values2alleles(processor->config.integer_units.get_values()));
-  alleles.push_back(values2alleles(processor->config.float_units.get_values()));
-  alleles.push_back(values2alleles(processor->config.memory_units.get_values()));
-  alleles.push_back(values2alleles(processor->config.branch_units.get_values()));
-  alleles.push_back(values2alleles(processor->config.gpr_static_size.get_values()));
-  alleles.push_back(values2alleles(processor->config.fpr_static_size.get_values()));
-  alleles.push_back(values2alleles(processor->config.cr_static_size.get_values()));
-  alleles.push_back(values2alleles(processor->config.pr_static_size.get_values()));
-  alleles.push_back(values2alleles(processor->config.btr_static_size.get_values()));
+  alleles.push_back(values2alleles(processor.config.integer_units.get_values()));
+  alleles.push_back(values2alleles(processor.config.float_units.get_values()));
+  alleles.push_back(values2alleles(processor.config.memory_units.get_values()));
+  alleles.push_back(values2alleles(processor.config.branch_units.get_values()));
+  alleles.push_back(values2alleles(processor.config.gpr_static_size.get_values()));
+  alleles.push_back(values2alleles(processor.config.fpr_static_size.get_values()));
+  alleles.push_back(values2alleles(processor.config.cr_static_size.get_values()));
+  alleles.push_back(values2alleles(processor.config.pr_static_size.get_values()));
+  alleles.push_back(values2alleles(processor.config.btr_static_size.get_values()));
 
   IND individual(alleles, GA_Evaluator, eud);
   individual.metric(DefaultObjectiveDistance);
@@ -2032,28 +2008,28 @@ void Explorer::init_GA_Fuzzy(SPEA& ga, ExportUserData* eud,GA_parameters* ga_par
   ga.minimize(); /* minimization of the objectives */
   vector<vector<AlleleString::Allele> > alleles;
   // memory hierarchy parameters
-  alleles.push_back(values2alleles(mem_hierarchy->L1D.block_size.get_values()));
-  alleles.push_back(values2alleles(mem_hierarchy->L1D.size.get_values()));
-  alleles.push_back(values2alleles(mem_hierarchy->L1D.associativity.get_values()));
+  alleles.push_back(values2alleles(mem_hierarchy.L1D.block_size.get_values()));
+  alleles.push_back(values2alleles(mem_hierarchy.L1D.size.get_values()));
+  alleles.push_back(values2alleles(mem_hierarchy.L1D.associativity.get_values()));
 
-  alleles.push_back(values2alleles(mem_hierarchy->L1I.block_size.get_values()));
-  alleles.push_back(values2alleles(mem_hierarchy->L1I.size.get_values()));
-  alleles.push_back(values2alleles(mem_hierarchy->L1I.associativity.get_values()));
+  alleles.push_back(values2alleles(mem_hierarchy.L1I.block_size.get_values()));
+  alleles.push_back(values2alleles(mem_hierarchy.L1I.size.get_values()));
+  alleles.push_back(values2alleles(mem_hierarchy.L1I.associativity.get_values()));
   
-  alleles.push_back(values2alleles(mem_hierarchy->L2U.block_size.get_values()));
-  alleles.push_back(values2alleles(mem_hierarchy->L2U.size.get_values()));
-  alleles.push_back(values2alleles(mem_hierarchy->L2U.associativity.get_values()));
+  alleles.push_back(values2alleles(mem_hierarchy.L2U.block_size.get_values()));
+  alleles.push_back(values2alleles(mem_hierarchy.L2U.size.get_values()));
+  alleles.push_back(values2alleles(mem_hierarchy.L2U.associativity.get_values()));
 
   // processor parameters
-  alleles.push_back(values2alleles(processor->config.integer_units.get_values()));
-  alleles.push_back(values2alleles(processor->config.float_units.get_values()));
-  alleles.push_back(values2alleles(processor->config.memory_units.get_values()));
-  alleles.push_back(values2alleles(processor->config.branch_units.get_values()));
-  alleles.push_back(values2alleles(processor->config.gpr_static_size.get_values()));
-  alleles.push_back(values2alleles(processor->config.fpr_static_size.get_values()));
-  alleles.push_back(values2alleles(processor->config.cr_static_size.get_values()));
-  alleles.push_back(values2alleles(processor->config.pr_static_size.get_values()));
-  alleles.push_back(values2alleles(processor->config.btr_static_size.get_values()));
+  alleles.push_back(values2alleles(processor.config.integer_units.get_values()));
+  alleles.push_back(values2alleles(processor.config.float_units.get_values()));
+  alleles.push_back(values2alleles(processor.config.memory_units.get_values()));
+  alleles.push_back(values2alleles(processor.config.branch_units.get_values()));
+  alleles.push_back(values2alleles(processor.config.gpr_static_size.get_values()));
+  alleles.push_back(values2alleles(processor.config.fpr_static_size.get_values()));
+  alleles.push_back(values2alleles(processor.config.cr_static_size.get_values()));
+  alleles.push_back(values2alleles(processor.config.pr_static_size.get_values()));
+  alleles.push_back(values2alleles(processor.config.btr_static_size.get_values()));
 
   IND individual(alleles, GA_Fuzzy_Evaluator, eud);
   individual.metric(DefaultObjectiveDistance);
@@ -2692,16 +2668,16 @@ Configuration Explorer::create_configuration(const Processor& p,const Mem_hierar
 {
     Configuration conf;
 
-    conf.gpr_static_size = processor->config.gpr_static_size.get_val();
-    conf.fpr_static_size = processor->config.fpr_static_size.get_val();
-    conf.pr_static_size = processor->config.pr_static_size.get_val();
-    conf.cr_static_size = processor->config.cr_static_size.get_val();
-    conf.btr_static_size = processor->config.btr_static_size.get_val();
+    conf.gpr_static_size = processor.config.gpr_static_size.get_val();
+    conf.fpr_static_size = processor.config.fpr_static_size.get_val();
+    conf.pr_static_size = processor.config.pr_static_size.get_val();
+    conf.cr_static_size = processor.config.cr_static_size.get_val();
+    conf.btr_static_size = processor.config.btr_static_size.get_val();
 
-    conf.integer_units = processor->config.integer_units.get_val();
-    conf.float_units = processor->config.float_units.get_val();
-    conf.branch_units = processor->config.branch_units.get_val();
-    conf.memory_units = processor->config.memory_units.get_val();
+    conf.integer_units = processor.config.integer_units.get_val();
+    conf.float_units = processor.config.float_units.get_val();
+    conf.branch_units = processor.config.branch_units.get_val();
+    conf.memory_units = processor.config.memory_units.get_val();
 
     conf.L1D_size = mem.L1D.size.get_val();
     conf.L1D_block = mem.L1D.block_size.get_val();
@@ -2724,28 +2700,28 @@ Configuration Explorer::create_configuration() const
 
      Configuration default_config;
 
-     default_config.gpr_static_size = processor->config.gpr_static_size.get_default();
-     default_config.fpr_static_size = processor->config.fpr_static_size.get_default();
-     default_config.pr_static_size = processor->config.pr_static_size.get_default();
-     default_config.cr_static_size = processor->config.cr_static_size.get_default();
-     default_config.btr_static_size = processor->config.btr_static_size.get_default();
+     default_config.gpr_static_size = processor.config.gpr_static_size.get_default();
+     default_config.fpr_static_size = processor.config.fpr_static_size.get_default();
+     default_config.pr_static_size = processor.config.pr_static_size.get_default();
+     default_config.cr_static_size = processor.config.cr_static_size.get_default();
+     default_config.btr_static_size = processor.config.btr_static_size.get_default();
 
-     default_config.integer_units = processor->config.integer_units.get_default();
-     default_config.float_units = processor->config.float_units.get_default();
-     default_config.memory_units = processor->config.memory_units.get_default();
-     default_config.branch_units = processor->config.branch_units.get_default();
+     default_config.integer_units = processor.config.integer_units.get_default();
+     default_config.float_units = processor.config.float_units.get_default();
+     default_config.memory_units = processor.config.memory_units.get_default();
+     default_config.branch_units = processor.config.branch_units.get_default();
 
-     default_config.L1D_size = mem_hierarchy->L1D.size.get_default();
-     default_config.L1D_block = mem_hierarchy->L1D.block_size.get_default();
-     default_config.L1D_assoc = mem_hierarchy->L1D.associativity.get_default();
+     default_config.L1D_size = mem_hierarchy.L1D.size.get_default();
+     default_config.L1D_block = mem_hierarchy.L1D.block_size.get_default();
+     default_config.L1D_assoc = mem_hierarchy.L1D.associativity.get_default();
      
-     default_config.L1I_size = mem_hierarchy->L1I.size.get_default();
-     default_config.L1I_block = mem_hierarchy->L1I.block_size.get_default();
-     default_config.L1I_assoc = mem_hierarchy->L1I.associativity.get_default();
+     default_config.L1I_size = mem_hierarchy.L1I.size.get_default();
+     default_config.L1I_block = mem_hierarchy.L1I.block_size.get_default();
+     default_config.L1I_assoc = mem_hierarchy.L1I.associativity.get_default();
 
-     default_config.L2U_size = mem_hierarchy->L2U.size.get_default();
-     default_config.L2U_block = mem_hierarchy->L2U.block_size.get_default();
-     default_config.L2U_assoc = mem_hierarchy->L2U.associativity.get_default();
+     default_config.L2U_size = mem_hierarchy.L2U.size.get_default();
+     default_config.L2U_block = mem_hierarchy.L2U.block_size.get_default();
+     default_config.L2U_assoc = mem_hierarchy.L2U.associativity.get_default();
 
      return default_config;
 }
@@ -3198,7 +3174,7 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
 	char name[40];
 	sprintf(name,"_simulatedspace_%d",n_simulate_space_call);
 
-	string file_name = Options.benchmark+"_"+current_algo+"_"+current_subspace+string(name);
+	string file_name = Options.benchmark+"_"+current_algo+"_"+current_space+string(name);
 
 	// a pseudo vector<Simulation> must be created , because it's only
 	// available a save_simultation() function 
@@ -3315,26 +3291,26 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
 
 	temp_sim.config = space[i];
 
-	processor->config.integer_units.set_val(temp_sim.config.integer_units);
-	processor->config.float_units.set_val(temp_sim.config.float_units);
-	processor->config.branch_units.set_val(temp_sim.config.branch_units);
-	processor->config.memory_units.set_val(temp_sim.config.memory_units);
+	processor.config.integer_units.set_val(temp_sim.config.integer_units);
+	processor.config.float_units.set_val(temp_sim.config.float_units);
+	processor.config.branch_units.set_val(temp_sim.config.branch_units);
+	processor.config.memory_units.set_val(temp_sim.config.memory_units);
 
-	processor->config.gpr_static_size.set_val(temp_sim.config.gpr_static_size);
-	processor->config.fpr_static_size.set_val(temp_sim.config.fpr_static_size);
-	processor->config.pr_static_size.set_val(temp_sim.config.pr_static_size);
-	processor->config.cr_static_size.set_val(temp_sim.config.cr_static_size);
-	processor->config.btr_static_size.set_val(temp_sim.config.btr_static_size);
+	processor.config.gpr_static_size.set_val(temp_sim.config.gpr_static_size);
+	processor.config.fpr_static_size.set_val(temp_sim.config.fpr_static_size);
+	processor.config.pr_static_size.set_val(temp_sim.config.pr_static_size);
+	processor.config.cr_static_size.set_val(temp_sim.config.cr_static_size);
+	processor.config.btr_static_size.set_val(temp_sim.config.btr_static_size);
 
-	mem_hierarchy->L1D.size.set_val(temp_sim.config.L1D_size);
-	mem_hierarchy->L1D.block_size.set_val(temp_sim.config.L1D_block);
-	mem_hierarchy->L1D.associativity.set_val(temp_sim.config.L1D_assoc);
-	mem_hierarchy->L1I.size.set_val(temp_sim.config.L1I_size);
-	mem_hierarchy->L1I.block_size.set_val(temp_sim.config.L1I_block);
-	mem_hierarchy->L1I.associativity.set_val(temp_sim.config.L1I_assoc);
-	mem_hierarchy->L2U.size.set_val(temp_sim.config.L2U_size);
-	mem_hierarchy->L2U.block_size.set_val(temp_sim.config.L2U_block);
-	mem_hierarchy->L2U.associativity.set_val(temp_sim.config.L2U_assoc);
+	mem_hierarchy.L1D.size.set_val(temp_sim.config.L1D_size);
+	mem_hierarchy.L1D.block_size.set_val(temp_sim.config.L1D_block);
+	mem_hierarchy.L1D.associativity.set_val(temp_sim.config.L1D_assoc);
+	mem_hierarchy.L1I.size.set_val(temp_sim.config.L1I_size);
+	mem_hierarchy.L1I.block_size.set_val(temp_sim.config.L1I_block);
+	mem_hierarchy.L1I.associativity.set_val(temp_sim.config.L1I_assoc);
+	mem_hierarchy.L2U.size.set_val(temp_sim.config.L2U_size);
+	mem_hierarchy.L2U.block_size.set_val(temp_sim.config.L2U_block);
+	mem_hierarchy.L2U.associativity.set_val(temp_sim.config.L2U_assoc);
 
 
 
@@ -3372,7 +3348,7 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
 
 		time_t begin = time(NULL);
 
-		processor->save_config();
+		processor.save_config();
 		trimaran_interface->compile_hmdes_file();
 		trimaran_interface->compile_benchmark();
 
@@ -3381,7 +3357,7 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
 		average_compilation_time = (int)(difftime(end,begin));
 	    }
 
-	    mem_hierarchy->save_cache_config();
+	    mem_hierarchy.save_cache_config();
 
 	    time_t t1 = time(NULL);
 	    trimaran_interface->execute_benchmark();
@@ -3389,14 +3365,14 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
 	    average_exec_time = (int)(difftime(t2,t1));
 
 	    dyn_stats = trimaran_interface->get_dynamic_stats();
-	    estimate = estimator.get_estimate(dyn_stats,*mem_hierarchy,*processor);
+	    estimate = estimator.get_estimate(dyn_stats,mem_hierarchy,processor);
 
 	    if (fuzzy_enabled) fuzzy_approx.Learn(space[i],dyn_stats);
 	}
 	else 
 	{
 	    dyn_stats = fuzzy_approx.EstimateG(space[i]);
-	    estimate = estimator.get_estimate(dyn_stats,*mem_hierarchy,*processor);
+	    estimate = estimator.get_estimate(dyn_stats,mem_hierarchy,processor);
 	}
 	// -------------------------------------------------------------------
 
@@ -3436,13 +3412,13 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
 	{
 	    char temp[10];
 	    sprintf(temp,"%d",i);
-	    string filename= Options.benchmark+"_"+current_algo+"_"+current_subspace+"."+string(temp)+".est";
-	    save_estimation_file(dyn_stats,estimate,*processor, *mem_hierarchy,filename);
+	    string filename= Options.benchmark+"_"+current_algo+"_"+current_space+"."+string(temp)+".est";
+	    save_estimation_file(dyn_stats,estimate,processor, mem_hierarchy,filename);
 	}
 
 	//if (Options.save_objectives_details && do_simulation)
 	{
-	    string filename= Options.benchmark+"_"+current_algo+"_"+current_subspace+".details";
+	    string filename= Options.benchmark+"_"+current_algo+"_"+current_space+".details";
 	    save_objectives_details(dyn_stats,temp_sim.config,filename);
 	}
 
@@ -3451,22 +3427,22 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
     // when simultation is finished , all default values must be
     // restored
 
-    processor->set_to_default();
-    processor->load_config();
+    processor.set_to_default();
+    processor.load_config();
 
-    mem_hierarchy->L1D.size.set_to_default();
-    mem_hierarchy->L1D.block_size.set_to_default();
-    mem_hierarchy->L1D.associativity.set_to_default();
+    mem_hierarchy.L1D.size.set_to_default();
+    mem_hierarchy.L1D.block_size.set_to_default();
+    mem_hierarchy.L1D.associativity.set_to_default();
 
-    mem_hierarchy->L1I.size.set_to_default();
-    mem_hierarchy->L1I.block_size.set_to_default();
-    mem_hierarchy->L1I.associativity.set_to_default();
+    mem_hierarchy.L1I.size.set_to_default();
+    mem_hierarchy.L1I.block_size.set_to_default();
+    mem_hierarchy.L1I.associativity.set_to_default();
 
-    mem_hierarchy->L2U.size.set_to_default();
-    mem_hierarchy->L2U.block_size.set_to_default();
-    mem_hierarchy->L2U.associativity.set_to_default();
+    mem_hierarchy.L2U.size.set_to_default();
+    mem_hierarchy.L2U.block_size.set_to_default();
+    mem_hierarchy.L2U.associativity.set_to_default();
 
-    mem_hierarchy->save_cache_config();
+    mem_hierarchy.save_cache_config();
 
     sim_counter+=simulations.size();
 
@@ -3781,87 +3757,87 @@ vector<Configuration> Explorer::extract_space(const vector<Simulation>& sims) co
 // considered fixed to the default config passed as argument
 //----------------------------------------------------------------------------
 
-vector<Configuration> Explorer::build_space(const Space_mask& mask,Configuration base_conf, Space_opt opt) const
+vector<Configuration> Explorer::build_space(const Space_mask& mask,Configuration base_conf, Space_opt opt)
 {
     vector<Configuration> space;
 
-    processor->config.integer_units.set_to_first();
+    processor.config.integer_units.set_to_first();
     do {
-	if (mask.integer_units) base_conf.integer_units=processor->config.integer_units.get_val();
-	processor->config.float_units.set_to_first();
+	if (mask.integer_units) base_conf.integer_units=processor.config.integer_units.get_val();
+	processor.config.float_units.set_to_first();
 
 	do {
-	    if (mask.float_units) base_conf.float_units=processor->config.float_units.get_val();
-	    processor->config.memory_units.set_to_first();
+	    if (mask.float_units) base_conf.float_units=processor.config.float_units.get_val();
+	    processor.config.memory_units.set_to_first();
 
 	    do {
-		if (mask.memory_units) base_conf.memory_units=processor->config.memory_units.get_val();
-		processor->config.branch_units.set_to_first();
+		if (mask.memory_units) base_conf.memory_units=processor.config.memory_units.get_val();
+		processor.config.branch_units.set_to_first();
 
 		do {
-		    if (mask.branch_units) base_conf.branch_units=processor->config.branch_units.get_val();
-		    processor->config.gpr_static_size.set_to_first();
+		    if (mask.branch_units) base_conf.branch_units=processor.config.branch_units.get_val();
+		    processor.config.gpr_static_size.set_to_first();
 
 		    do {
-			if (mask.gpr_static_size) base_conf.gpr_static_size=processor->config.gpr_static_size.get_val();
+			if (mask.gpr_static_size) base_conf.gpr_static_size=processor.config.gpr_static_size.get_val();
 
-			processor->config.fpr_static_size.set_to_first();
+			processor.config.fpr_static_size.set_to_first();
 
 			do {
-			    if (mask.fpr_static_size) base_conf.fpr_static_size=processor->config.fpr_static_size.get_val();
+			    if (mask.fpr_static_size) base_conf.fpr_static_size=processor.config.fpr_static_size.get_val();
 
-			    processor->config.pr_static_size.set_to_first();
+			    processor.config.pr_static_size.set_to_first();
 
 			    do {
-				if (mask.pr_static_size) base_conf.pr_static_size=processor->config.pr_static_size.get_val();
-				processor->config.cr_static_size.set_to_first();
+				if (mask.pr_static_size) base_conf.pr_static_size=processor.config.pr_static_size.get_val();
+				processor.config.cr_static_size.set_to_first();
 
 				do {
-				    if (mask.cr_static_size) base_conf.cr_static_size=processor->config.cr_static_size.get_val();
-				    processor->config.btr_static_size.set_to_first();
+				    if (mask.cr_static_size) base_conf.cr_static_size=processor.config.cr_static_size.get_val();
+				    processor.config.btr_static_size.set_to_first();
 
 				    do {
-					if (mask.btr_static_size) base_conf.btr_static_size=processor->config.btr_static_size.get_val();
+					if (mask.btr_static_size) base_conf.btr_static_size=processor.config.btr_static_size.get_val();
 
-					mem_hierarchy->L1D.size.set_to_first();
+					mem_hierarchy.L1D.size.set_to_first();
 
 					do {
-					    if (mask.L1D_size) base_conf.L1D_size=mem_hierarchy->L1D.size.get_val();
+					    if (mask.L1D_size) base_conf.L1D_size=mem_hierarchy.L1D.size.get_val();
 
-					    mem_hierarchy->L1D.block_size.set_to_first();
+					    mem_hierarchy.L1D.block_size.set_to_first();
 					    do {
-						if (mask.L1D_block) base_conf.L1D_block=mem_hierarchy->L1D.block_size.get_val();
+						if (mask.L1D_block) base_conf.L1D_block=mem_hierarchy.L1D.block_size.get_val();
 
-						mem_hierarchy->L1D.associativity.set_to_first();
+						mem_hierarchy.L1D.associativity.set_to_first();
 						do {
-						    if (mask.L1D_assoc) base_conf.L1D_assoc=mem_hierarchy->L1D.associativity.get_val();
-						    mem_hierarchy->L1I.size.set_to_first();
+						    if (mask.L1D_assoc) base_conf.L1D_assoc=mem_hierarchy.L1D.associativity.get_val();
+						    mem_hierarchy.L1I.size.set_to_first();
 						    do {
-							if (mask.L1I_size) base_conf.L1I_size=mem_hierarchy->L1I.size.get_val();
-							mem_hierarchy->L1I.block_size.set_to_first();
+							if (mask.L1I_size) base_conf.L1I_size=mem_hierarchy.L1I.size.get_val();
+							mem_hierarchy.L1I.block_size.set_to_first();
 							do {
-							    if (mask.L1I_block) base_conf.L1I_block=mem_hierarchy->L1I.block_size.get_val();
-							    mem_hierarchy->L1I.associativity.set_to_first();
+							    if (mask.L1I_block) base_conf.L1I_block=mem_hierarchy.L1I.block_size.get_val();
+							    mem_hierarchy.L1I.associativity.set_to_first();
 							    do {
-								if (mask.L1I_assoc) base_conf.L1I_assoc=mem_hierarchy->L1I.associativity.get_val();
-								mem_hierarchy->L2U.size.set_to_first();
+								if (mask.L1I_assoc) base_conf.L1I_assoc=mem_hierarchy.L1I.associativity.get_val();
+								mem_hierarchy.L2U.size.set_to_first();
 								do {
-								    if (mask.L2U_size) base_conf.L2U_size=mem_hierarchy->L2U.size.get_val();
-								    mem_hierarchy->L2U.block_size.set_to_first();
+								    if (mask.L2U_size) base_conf.L2U_size=mem_hierarchy.L2U.size.get_val();
+								    mem_hierarchy.L2U.block_size.set_to_first();
 								    do {
-									if (mask.L2U_block) base_conf.L2U_block=mem_hierarchy->L2U.block_size.get_val();
-									mem_hierarchy->L2U.associativity.set_to_first();
+									if (mask.L2U_block) base_conf.L2U_block=mem_hierarchy.L2U.block_size.get_val();
+									mem_hierarchy.L2U.associativity.set_to_first();
 									do {
-									    if (mask.L2U_assoc) base_conf.L2U_assoc=mem_hierarchy->L2U.associativity.get_val();
+									    if (mask.L2U_assoc) base_conf.L2U_assoc=mem_hierarchy.L2U.associativity.get_val();
 
 //////////////////////////////////////////////////////////////////////////////////
 //  inner loop
 
     // if all cache parameters are valid
 
-    if ((mem_hierarchy->test_valid_cache(base_conf.L1D_size,base_conf.L1D_block,base_conf.L1D_assoc)) &&
-	(mem_hierarchy->test_valid_cache(base_conf.L1I_size,base_conf.L1I_block,base_conf.L1I_assoc)) &&
-	(mem_hierarchy->test_valid_cache(base_conf.L2U_size,base_conf.L2U_block,base_conf.L2U_assoc)) )
+    if ((mem_hierarchy.test_valid_cache(base_conf.L1D_size,base_conf.L1D_block,base_conf.L1D_assoc)) &&
+	(mem_hierarchy.test_valid_cache(base_conf.L1I_size,base_conf.L1I_block,base_conf.L1I_assoc)) &&
+	(mem_hierarchy.test_valid_cache(base_conf.L2U_size,base_conf.L2U_block,base_conf.L2U_assoc)) )
 	{
 	    // Admit or not all cache size combinations
 
@@ -3870,26 +3846,26 @@ vector<Configuration> Explorer::build_space(const Space_mask& mask,Configuration
 	    if (base_conf.L2U_size >= base_conf.L1D_size + base_conf.L1I_size) space.push_back(base_conf);
 	}
 //////////////////////////////////////////////////////////////////////////////////
-									}while ( (mask.L2U_assoc)&&(mem_hierarchy->L2U.associativity.increase()));
-								    }while ( (mask.L2U_block)&&(mem_hierarchy->L2U.block_size.increase() ));
-								}while ( (mask.L2U_size)&&(mem_hierarchy->L2U.size.increase()));
-							    }while ( (mask.L1I_assoc)&&(mem_hierarchy->L1I.associativity.increase()));
-							}while ( (mask.L1I_block)&&(mem_hierarchy->L1I.block_size.increase() ));
-						    }while ( (mask.L1I_size)&&(mem_hierarchy->L1I.size.increase()));
-						} while ( (mask.L1D_assoc)&&(mem_hierarchy->L1D.associativity.increase()));
-					    } while ( (mask.L1D_block)&&(mem_hierarchy->L1D.block_size.increase() ));
-					} while ( (mask.L1D_size)&&(mem_hierarchy->L1D.size.increase()));
-				    }while ( (mask.btr_static_size) && (processor->config.btr_static_size.increase() ) );
-				}while ( (mask.cr_static_size) && (processor->config.cr_static_size.increase() ) );
-			    }while ( (mask.pr_static_size) && (processor->config.pr_static_size.increase() ) );
-			} while ( (mask.fpr_static_size) && (processor->config.fpr_static_size.increase() ) );
-		    } while ( (mask.gpr_static_size) && (processor->config.gpr_static_size.increase() ) );
-		} while ( (mask.branch_units) && (processor->config.branch_units.increase()) );
-	    } while ( (mask.memory_units) && (processor->config.memory_units.increase()) ) ;
+									}while ( (mask.L2U_assoc)&&(mem_hierarchy.L2U.associativity.increase()));
+								    }while ( (mask.L2U_block)&&(mem_hierarchy.L2U.block_size.increase() ));
+								}while ( (mask.L2U_size)&&(mem_hierarchy.L2U.size.increase()));
+							    }while ( (mask.L1I_assoc)&&(mem_hierarchy.L1I.associativity.increase()));
+							}while ( (mask.L1I_block)&&(mem_hierarchy.L1I.block_size.increase() ));
+						    }while ( (mask.L1I_size)&&(mem_hierarchy.L1I.size.increase()));
+						} while ( (mask.L1D_assoc)&&(mem_hierarchy.L1D.associativity.increase()));
+					    } while ( (mask.L1D_block)&&(mem_hierarchy.L1D.block_size.increase() ));
+					} while ( (mask.L1D_size)&&(mem_hierarchy.L1D.size.increase()));
+				    }while ( (mask.btr_static_size) && (processor.config.btr_static_size.increase() ) );
+				}while ( (mask.cr_static_size) && (processor.config.cr_static_size.increase() ) );
+			    }while ( (mask.pr_static_size) && (processor.config.pr_static_size.increase() ) );
+			} while ( (mask.fpr_static_size) && (processor.config.fpr_static_size.increase() ) );
+		    } while ( (mask.gpr_static_size) && (processor.config.gpr_static_size.increase() ) );
+		} while ( (mask.branch_units) && (processor.config.branch_units.increase()) );
+	    } while ( (mask.memory_units) && (processor.config.memory_units.increase()) ) ;
 
-	} while( (mask.float_units) && (processor->config.float_units.increase()) );
+	} while( (mask.float_units) && (processor.config.float_units.increase()) );
 
-    } while ( (mask.integer_units) && (processor->config.integer_units.increase() ));
+    } while ( (mask.integer_units) && (processor.config.integer_units.increase() ));
 
     return space;
 
@@ -3903,7 +3879,7 @@ vector<Configuration> Explorer::build_space(const Space_mask& mask,Configuration
 // considered fixed to their default value and will not be explored.
 //----------------------------------------------------------------------------
 
-vector<Configuration> Explorer::build_space(const Space_mask& mask) const
+vector<Configuration> Explorer::build_space(const Space_mask& mask) 
 {
     Configuration default_conf = create_configuration();
 
@@ -3911,13 +3887,13 @@ vector<Configuration> Explorer::build_space(const Space_mask& mask) const
 }
 
 ////////////////////////////////////////////////////////////////////////////
-vector<Configuration> Explorer::build_space(const Space_mask& mask,Configuration base_conf) const
+vector<Configuration> Explorer::build_space(const Space_mask& mask,Configuration base_conf) 
 {
     return build_space(mask,base_conf,STANDARD);
 }
 
 ////////////////////////////////////////////////////////////////////////////
-vector<Configuration> Explorer::build_space(const Space_mask& mask,Space_opt opt) const
+vector<Configuration> Explorer::build_space(const Space_mask& mask,Space_opt opt) 
 {
     Configuration default_conf = create_configuration();
 
@@ -3947,7 +3923,7 @@ vector<Configuration> Explorer::build_space(const Space_mask& mask,Space_opt opt
 vector<Configuration> Explorer::build_space_cross_merge(const vector<Configuration>& s1,
 	                                                const vector<Configuration>& s2,
 							const Space_mask& mask1,
-							const Space_mask& mask2 )
+							const Space_mask& mask2 ) const
 {
     Configuration base_conf = create_configuration();
     
@@ -4006,9 +3982,9 @@ vector<Configuration> Explorer::build_space_cross_merge(const vector<Configurati
 	    // resulting combination of two configurations may result
 	    // in not feasible config
 
-    if ((mem_hierarchy->test_valid_cache(base_conf.L1D_size,base_conf.L1D_block,base_conf.L1D_assoc)) &&
-	(mem_hierarchy->test_valid_cache(base_conf.L1I_size,base_conf.L1I_block,base_conf.L1I_assoc)) &&
-	(mem_hierarchy->test_valid_cache(base_conf.L2U_size,base_conf.L2U_block,base_conf.L2U_assoc)) && 
+    if ((mem_hierarchy.test_valid_cache(base_conf.L1D_size,base_conf.L1D_block,base_conf.L1D_assoc)) &&
+	(mem_hierarchy.test_valid_cache(base_conf.L1I_size,base_conf.L1I_block,base_conf.L1I_assoc)) &&
+	(mem_hierarchy.test_valid_cache(base_conf.L2U_size,base_conf.L2U_block,base_conf.L2U_assoc)) && 
 	(base_conf.L2U_size>=base_conf.L1D_size+base_conf.L1I_size) &&
 	(!(configuration_present(base_conf,merged_space))) ) merged_space.push_back(base_conf);
 
@@ -4107,28 +4083,28 @@ double Explorer::get_space_size(const Space_mask& mask) const
     double size = 1;
 
 
-    if (mask.gpr_static_size) size = size*(processor->config.gpr_static_size.get_size());
-    if (mask.fpr_static_size) size = size*(processor->config.fpr_static_size.get_size());
-    if (mask.pr_static_size) size = size*(processor->config.pr_static_size.get_size());
-    if (mask.cr_static_size) size = size*(processor->config.cr_static_size.get_size());
-    if (mask.btr_static_size) size = size*(processor->config.btr_static_size.get_size());
+    if (mask.gpr_static_size) size = size*(processor.config.gpr_static_size.get_size());
+    if (mask.fpr_static_size) size = size*(processor.config.fpr_static_size.get_size());
+    if (mask.pr_static_size) size = size*(processor.config.pr_static_size.get_size());
+    if (mask.cr_static_size) size = size*(processor.config.cr_static_size.get_size());
+    if (mask.btr_static_size) size = size*(processor.config.btr_static_size.get_size());
 
-    if (mask.integer_units) size = size*(processor->config.integer_units.get_size());
-    if (mask.float_units) size = size*(processor->config.float_units.get_size());
-    if (mask.memory_units) size = size*(processor->config.memory_units.get_size());
-    if (mask.branch_units) size = size*(processor->config.branch_units.get_size());
+    if (mask.integer_units) size = size*(processor.config.integer_units.get_size());
+    if (mask.float_units) size = size*(processor.config.float_units.get_size());
+    if (mask.memory_units) size = size*(processor.config.memory_units.get_size());
+    if (mask.branch_units) size = size*(processor.config.branch_units.get_size());
 
-    if (mask.L1D_size) size = size*(mem_hierarchy->L1D.size.get_size());
-    if (mask.L1D_block) size = size*(mem_hierarchy->L1D.block_size.get_size());
-    if (mask.L1D_assoc) size = size*(mem_hierarchy->L1D.associativity.get_size());
+    if (mask.L1D_size) size = size*(mem_hierarchy.L1D.size.get_size());
+    if (mask.L1D_block) size = size*(mem_hierarchy.L1D.block_size.get_size());
+    if (mask.L1D_assoc) size = size*(mem_hierarchy.L1D.associativity.get_size());
 
-    if (mask.L1I_size) size = size*(mem_hierarchy->L1I.size.get_size());
-    if (mask.L1I_block) size = size*(mem_hierarchy->L1I.block_size.get_size());
-    if (mask.L1I_assoc) size = size*(mem_hierarchy->L1I.associativity.get_size());
+    if (mask.L1I_size) size = size*(mem_hierarchy.L1I.size.get_size());
+    if (mask.L1I_block) size = size*(mem_hierarchy.L1I.block_size.get_size());
+    if (mask.L1I_assoc) size = size*(mem_hierarchy.L1I.associativity.get_size());
 
-    if (mask.L2U_size) size = size*(mem_hierarchy->L2U.size.get_size());
-    if (mask.L2U_block) size = size*(mem_hierarchy->L2U.block_size.get_size());
-    if (mask.L2U_assoc) size = size*(mem_hierarchy->L2U.associativity.get_size());
+    if (mask.L2U_size) size = size*(mem_hierarchy.L2U.size.get_size());
+    if (mask.L2U_block) size = size*(mem_hierarchy.L2U.block_size.get_size());
+    if (mask.L2U_assoc) size = size*(mem_hierarchy.L2U.associativity.get_size());
 
     return size;
 }
@@ -4312,59 +4288,59 @@ vector<pair<int,int> > Explorer::getParameterRanges()
 {
   vector<pair<int,int> > v;
 
-  v.push_back(pair<int,int>(processor->config.integer_units.get_first(),
-			    processor->config.integer_units.get_last()));
+  v.push_back(pair<int,int>(processor.config.integer_units.get_first(),
+			    processor.config.integer_units.get_last()));
 
-  v.push_back(pair<int,int>(processor->config.float_units.get_first(),
-			    processor->config.float_units.get_last()));
+  v.push_back(pair<int,int>(processor.config.float_units.get_first(),
+			    processor.config.float_units.get_last()));
 
-  v.push_back(pair<int,int>(processor->config.branch_units.get_first(),
-			    processor->config.branch_units.get_last()));
+  v.push_back(pair<int,int>(processor.config.branch_units.get_first(),
+			    processor.config.branch_units.get_last()));
 
-  v.push_back(pair<int,int>(processor->config.memory_units.get_first(),
-			    processor->config.memory_units.get_last()));
+  v.push_back(pair<int,int>(processor.config.memory_units.get_first(),
+			    processor.config.memory_units.get_last()));
 
-  v.push_back(pair<int,int>(processor->config.gpr_static_size.get_first(),
-			    processor->config.gpr_static_size.get_last()));
+  v.push_back(pair<int,int>(processor.config.gpr_static_size.get_first(),
+			    processor.config.gpr_static_size.get_last()));
 
-  v.push_back(pair<int,int>(processor->config.fpr_static_size.get_first(),
-			    processor->config.fpr_static_size.get_last()));
+  v.push_back(pair<int,int>(processor.config.fpr_static_size.get_first(),
+			    processor.config.fpr_static_size.get_last()));
 
-  v.push_back(pair<int,int>(processor->config.pr_static_size.get_first(),
-			    processor->config.pr_static_size.get_last()));
+  v.push_back(pair<int,int>(processor.config.pr_static_size.get_first(),
+			    processor.config.pr_static_size.get_last()));
 
-  v.push_back(pair<int,int>(processor->config.cr_static_size.get_first(),
-			    processor->config.cr_static_size.get_last()));
+  v.push_back(pair<int,int>(processor.config.cr_static_size.get_first(),
+			    processor.config.cr_static_size.get_last()));
 
-  v.push_back(pair<int,int>(processor->config.btr_static_size.get_first(),
-			    processor->config.btr_static_size.get_last()));
+  v.push_back(pair<int,int>(processor.config.btr_static_size.get_first(),
+			    processor.config.btr_static_size.get_last()));
 
-  v.push_back(pair<int,int>(mem_hierarchy->L1D.size.get_first(),
-			    mem_hierarchy->L1D.size.get_last()));
+  v.push_back(pair<int,int>(mem_hierarchy.L1D.size.get_first(),
+			    mem_hierarchy.L1D.size.get_last()));
 
-  v.push_back(pair<int,int>(mem_hierarchy->L1D.block_size.get_first(),
-			    mem_hierarchy->L1D.block_size.get_last()));
+  v.push_back(pair<int,int>(mem_hierarchy.L1D.block_size.get_first(),
+			    mem_hierarchy.L1D.block_size.get_last()));
 
-  v.push_back(pair<int,int>(mem_hierarchy->L1D.associativity.get_first(),
-			    mem_hierarchy->L1D.associativity.get_last()));
+  v.push_back(pair<int,int>(mem_hierarchy.L1D.associativity.get_first(),
+			    mem_hierarchy.L1D.associativity.get_last()));
 
-  v.push_back(pair<int,int>(mem_hierarchy->L1I.size.get_first(),
-			    mem_hierarchy->L1I.size.get_last()));
+  v.push_back(pair<int,int>(mem_hierarchy.L1I.size.get_first(),
+			    mem_hierarchy.L1I.size.get_last()));
 
-  v.push_back(pair<int,int>(mem_hierarchy->L1I.block_size.get_first(),
-			    mem_hierarchy->L1I.block_size.get_last()));
+  v.push_back(pair<int,int>(mem_hierarchy.L1I.block_size.get_first(),
+			    mem_hierarchy.L1I.block_size.get_last()));
 
-  v.push_back(pair<int,int>(mem_hierarchy->L1I.associativity.get_first(),
-			    mem_hierarchy->L1I.associativity.get_last()));
+  v.push_back(pair<int,int>(mem_hierarchy.L1I.associativity.get_first(),
+			    mem_hierarchy.L1I.associativity.get_last()));
 
-  v.push_back(pair<int,int>(mem_hierarchy->L2U.size.get_first(),
-			    mem_hierarchy->L2U.size.get_last()));
+  v.push_back(pair<int,int>(mem_hierarchy.L2U.size.get_first(),
+			    mem_hierarchy.L2U.size.get_last()));
 
-  v.push_back(pair<int,int>(mem_hierarchy->L2U.block_size.get_first(),
-			    mem_hierarchy->L2U.block_size.get_last()));
+  v.push_back(pair<int,int>(mem_hierarchy.L2U.block_size.get_first(),
+			    mem_hierarchy.L2U.block_size.get_last()));
 
-  v.push_back(pair<int,int>(mem_hierarchy->L2U.associativity.get_first(),
-			    mem_hierarchy->L2U.associativity.get_last()));
+  v.push_back(pair<int,int>(mem_hierarchy.L2U.associativity.get_first(),
+			    mem_hierarchy.L2U.associativity.get_last()));
 
 
   return v;
@@ -4379,4 +4355,289 @@ int Explorer::get_obj_number() const
 void Explorer::set_force_simulation(bool s)
 {
     force_simulation = s;
+}
+
+void Explorer::set_space_name(const string& spacename)
+{
+    current_space = spacename;
+}
+
+void Explorer::load_space_file(const string& filename)
+{
+   std::ifstream input_file (filename.c_str());
+   string word;
+
+   if (!input_file)
+   {
+       cout << "\n Error while reading " << filename;
+       wait_key();
+   }
+   else
+   {
+
+	go_until("[BEGIN_SPACE]",input_file);
+
+	int val;
+	vector<int> values;
+
+	values.clear();
+	input_file >> word; // skip parameter label
+	while ( (input_file>>val) && (val!=0)) { values.push_back(val); } // reads val until 0
+	input_file >> word; // skip default label
+	input_file >> val;  // get default value
+	mem_hierarchy.L1D.size.set_values(values,val);
+
+	values.clear();
+	input_file >> word; // skip parameter label
+	while ( (input_file>>val) && (val!=0)) { values.push_back(val); } // reads val until 0
+	input_file >> word; // skip default label
+	input_file >> val;  // get default value
+	mem_hierarchy.L1D.block_size.set_values(values,val);
+
+	values.clear();
+	input_file >> word; // skip parameter label
+	while ( (input_file>>val) && (val!=0)) { values.push_back(val); } // reads val until 0
+	input_file >> word; // skip default label
+	input_file >> val;  // get default value
+	mem_hierarchy.L1D.associativity.set_values(values,val);
+
+	values.clear();
+	input_file >> word; // skip parameter label
+	while ( (input_file>>val) && (val!=0)) { values.push_back(val); } // reads val until 0
+	input_file >> word; // skip default label
+	input_file >> val;  // get default value
+	mem_hierarchy.L1I.size.set_values(values,val);
+
+	values.clear();
+	input_file >> word; // skip parameter label
+	while ( (input_file>>val) && (val!=0)) { values.push_back(val); } // reads val until 0
+	input_file >> word; // skip default label
+	input_file >> val;  // get default value
+	mem_hierarchy.L1I.block_size.set_values(values,val);
+
+	values.clear();
+	input_file >> word; // skip parameter label
+	while ( (input_file>>val) && (val!=0)) { values.push_back(val); } // reads val until 0
+	input_file >> word; // skip default label
+	input_file >> val;  // get default value
+	mem_hierarchy.L1I.associativity.set_values(values,val);
+
+	values.clear();
+	input_file >> word; // skip parameter label
+	while ( (input_file>>val) && (val!=0)) { values.push_back(val); } // reads val until 0
+	input_file >> word; // skip default label
+	input_file >> val;  // get default value
+	mem_hierarchy.L2U.size.set_values(values,val);
+
+	values.clear();
+	input_file >> word; // skip parameter label
+	while ( (input_file>>val) && (val!=0)) { values.push_back(val); } // reads val until 0
+	input_file >> word; // skip default label
+	input_file >> val;  // get default value
+	mem_hierarchy.L2U.block_size.set_values(values,val);
+
+	values.clear();
+	input_file >> word; // skip parameter label
+	while ( (input_file>>val) && (val!=0)) { values.push_back(val); } // reads val until 0
+	input_file >> word; // skip default label
+	input_file >> val;  // get default value
+	mem_hierarchy.L2U.associativity.set_values(values,val);
+
+	values.clear();
+	input_file >> word; // skip parameter label
+	while ( (input_file>>val) && (val!=0)) { values.push_back(val); } // reads val until 0
+	input_file >> word; // skip default label
+	input_file >> val;  // get default value
+	processor.config.integer_units.set_values(values,val);
+
+	values.clear();
+	input_file >> word; // skip parameter label
+	while ( (input_file>>val) && (val!=0)) { values.push_back(val); } // reads val until 0
+	input_file >> word; // skip default label
+	input_file >> val;  // get default value
+	processor.config.float_units.set_values(values,val);
+
+	values.clear();
+	input_file >> word; // skip parameter label
+	while ( (input_file>>val) && (val!=0)) { values.push_back(val); } // reads val until 0
+	input_file >> word; // skip default label
+	input_file >> val;  // get default value
+	processor.config.memory_units.set_values(values,val);
+
+	values.clear();
+	input_file >> word; // skip parameter label
+	while ( (input_file>>val) && (val!=0)) { values.push_back(val); } // reads val until 0
+	input_file >> word; // skip default label
+	input_file >> val;  // get default value
+	processor.config.branch_units.set_values(values,val);
+
+	values.clear();
+	input_file >> word; // skip parameter label
+	while ( (input_file>>val) && (val!=0)) { values.push_back(val); } // reads val until 0
+	input_file >> word; // skip default label
+	input_file >> val;  // get default value
+	processor.config.gpr_static_size.set_values(values,val);
+
+	values.clear();
+	input_file >> word; // skip parameter label
+	while ( (input_file>>val) && (val!=0)) { values.push_back(val); } // reads val until 0
+	input_file >> word; // skip default label
+	input_file >> val;  // get default value
+	processor.config.fpr_static_size.set_values(values,val);
+
+	values.clear();
+	input_file >> word; // skip parameter label
+	while ( (input_file>>val) && (val!=0)) { values.push_back(val); } // reads val until 0
+	input_file >> word; // skip default label
+	input_file >> val;  // get default value
+	processor.config.pr_static_size.set_values(values,val);
+
+	values.clear();
+	input_file >> word; // skip parameter label
+	while ( (input_file>>val) && (val!=0)) { values.push_back(val); } // reads val until 0
+	input_file >> word; // skip default label
+	input_file >> val;  // get default value
+	processor.config.cr_static_size.set_values(values,val);
+
+	values.clear();
+	input_file >> word; // skip parameter label
+	while ( (input_file>>val) && (val!=0)) { values.push_back(val); } // reads val until 0
+	input_file >> word; // skip default label
+	input_file >> val;  // get default value
+	processor.config.btr_static_size.set_values(values,val);
+
+	processor.set_to_default();
+	processor.save_config();
+   }
+
+}
+
+void Explorer::save_space_file(const string& filename)
+{
+    std::ofstream output_file(filename.c_str());
+    if (!output_file)
+    {
+	cout << "\n Error while saving " << filename ;
+	wait_key();
+    }
+    else
+    {
+	output_file << "\n\n [BEGIN_SPACE]";
+
+	processor.config.integer_units.set_to_first();
+	processor.config.float_units.set_to_first();
+	processor.config.branch_units.set_to_first();
+	processor.config.memory_units.set_to_first();
+	processor.config.gpr_static_size.set_to_first();
+	processor.config.fpr_static_size.set_to_first();
+	processor.config.pr_static_size.set_to_first();
+	processor.config.cr_static_size.set_to_first();
+	processor.config.btr_static_size.set_to_first();
+
+	mem_hierarchy.L1D.size.set_to_first();
+	mem_hierarchy.L1D.block_size.set_to_first();
+	mem_hierarchy.L1D.associativity.set_to_first();
+
+	mem_hierarchy.L1I.size.set_to_first();
+	mem_hierarchy.L1I.block_size.set_to_first();
+	mem_hierarchy.L1I.associativity.set_to_first();
+
+	mem_hierarchy.L2U.size.set_to_first();
+	mem_hierarchy.L2U.block_size.set_to_first();
+	mem_hierarchy.L2U.associativity.set_to_first();
+
+	output_file << "\nL1D_size " ;
+	do { output_file << mem_hierarchy.L1D.size.get_val() << " "; } while (mem_hierarchy.L1D.size.increase()); 
+	output_file << "0";
+	output_file << "\n DEFAULT " << mem_hierarchy.L1D.size.get_default();
+
+	output_file << "\nL1D_block_size " ;
+	do { output_file << mem_hierarchy.L1D.block_size.get_val() << " "; } while (mem_hierarchy.L1D.block_size.increase());
+	output_file << "0";
+	output_file << "\n DEFAULT " << mem_hierarchy.L1D.block_size.get_default();
+
+	output_file << "\nL1D_associativity " ;
+	do { output_file << mem_hierarchy.L1D.associativity.get_val() << " "; } while (mem_hierarchy.L1D.associativity.increase());
+	output_file << "0";
+	output_file << "\n DEFAULT " << mem_hierarchy.L1D.associativity.get_default();
+
+	output_file << "\nL1I_size " ;
+	do { output_file << mem_hierarchy.L1I.size.get_val() << " "; } while (mem_hierarchy.L1I.size.increase());
+	output_file << "0";
+	output_file << "\n DEFAULT " << mem_hierarchy.L1I.size.get_default();
+
+	output_file << "\nL1I_block_size " ;
+	do { output_file << mem_hierarchy.L1I.block_size.get_val() << " "; } while (mem_hierarchy.L1I.block_size.increase());
+	output_file << "0";
+	output_file << "\n DEFAULT " << mem_hierarchy.L1I.block_size.get_default();
+
+	output_file << "\nL1I_associativity " ;
+	do { output_file << mem_hierarchy.L1I.associativity.get_val() << " "; } while (mem_hierarchy.L1I.associativity.increase());
+	output_file << "0";
+	output_file << "\n DEFAULT " << mem_hierarchy.L1I.associativity.get_default();
+
+	output_file << "\nL2U_size " ;
+	do { output_file << mem_hierarchy.L2U.size.get_val() << " "; } while (mem_hierarchy.L2U.size.increase());
+	output_file << "0";
+	output_file << "\n DEFAULT " << mem_hierarchy.L2U.size.get_default();
+
+	output_file << "\nL2U_block_size " ;
+	do { output_file << mem_hierarchy.L2U.block_size.get_val() << " "; } while (mem_hierarchy.L2U.block_size.increase());
+	output_file << "0";
+	output_file << "\n DEFAULT " << mem_hierarchy.L2U.block_size.get_default();
+
+	output_file << "\nL2U_associativity " ;
+	do { output_file << mem_hierarchy.L2U.associativity.get_val() << " "; } while (mem_hierarchy.L2U.associativity.increase());
+	output_file << "0";
+	output_file << "\n DEFAULT " << mem_hierarchy.L2U.associativity.get_default();
+
+	output_file << "\ninteger_units ";
+	do { output_file << processor.config.integer_units.get_val() << " "; } while (processor.config.integer_units.increase());
+	output_file << "0";
+	output_file << "\n DEFAULT " << processor.config.integer_units.get_default();
+
+	output_file << "\nfloat_units ";
+	do { output_file << processor.config.float_units.get_val() << " "; } while (processor.config.float_units.increase());
+	output_file << "0";
+	output_file << "\n DEFAULT " << processor.config.float_units.get_default();
+
+	output_file << "\nmemory_units ";
+	do { output_file << processor.config.memory_units.get_val() << " "; } while (processor.config.memory_units.increase());
+	output_file << "0";
+	output_file << "\n DEFAULT " << processor.config.memory_units.get_default();
+
+	output_file << "\nbranch_units ";
+	do { output_file << processor.config.branch_units.get_val() << " "; } while (processor.config.branch_units.increase());
+	output_file << "0";
+	output_file << "\n DEFAULT " << processor.config.branch_units.get_default();
+
+	output_file << "\ngpr_static_size ";
+	do { output_file << processor.config.gpr_static_size.get_val() << " "; } while (processor.config.gpr_static_size.increase());
+	output_file << "0";
+	output_file << "\n DEFAULT " << processor.config.gpr_static_size.get_default();
+
+	output_file << "\nfpr_static_size ";
+	do { output_file << processor.config.fpr_static_size.get_val() << " "; } while (processor.config.fpr_static_size.increase());
+	output_file << "0";
+	output_file << "\n DEFAULT " << processor.config.fpr_static_size.get_default();
+
+	output_file << "\npr_static_size ";
+	do { output_file << processor.config.pr_static_size.get_val() << " "; } while (processor.config.pr_static_size.increase());
+	output_file << "0";
+	output_file << "\n DEFAULT " << processor.config.pr_static_size.get_default();
+
+	output_file << "\ncr_static_size ";
+	do { output_file << processor.config.cr_static_size.get_val() << " "; } while (processor.config.cr_static_size.increase());
+	output_file << "0";
+	output_file << "\n DEFAULT " << processor.config.cr_static_size.get_default();
+
+	output_file << "\nbtr_static_size ";
+	do { output_file << processor.config.btr_static_size.get_val() << " "; } while (processor.config.btr_static_size.increase());
+	output_file << "0";
+	output_file << "\n DEFAULT " << processor.config.btr_static_size.get_default();
+
+	output_file << "\n\n [END_SPACE]";
+
+    }
+
 }

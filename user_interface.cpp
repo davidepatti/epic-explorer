@@ -25,9 +25,10 @@ User_interface::User_interface(){
     string path = get_base_dir()+"/trimaran-workspace/epic-explorer/";
 
     user_settings.default_settings_file = path+"epic_default.conf";
-    my_explorer = new Explorer(&my_processor,&my_mem,&trimaran_interface);
+    my_explorer = new Explorer(&trimaran_interface);
     load_settings(user_settings.default_settings_file);
-    load_subspace(path+"SUBSPACES/default_space.sub");
+    my_explorer->load_space_file(path+"SUBSPACES/default_space.sub");
+    my_explorer->set_space_name(string("default_space.sub"));
 }
 
 User_interface::~User_interface(){
@@ -386,72 +387,72 @@ void User_interface::edit_exploration_space()
     do
     {
 	system("clear");
-	my_processor.config.integer_units.set_to_first();
-	my_processor.config.float_units.set_to_first();
-	my_processor.config.branch_units.set_to_first();
-	my_processor.config.memory_units.set_to_first();
-	my_processor.config.gpr_static_size.set_to_first();
-	my_processor.config.fpr_static_size.set_to_first();
-	my_processor.config.pr_static_size.set_to_first();
-	my_processor.config.cr_static_size.set_to_first();
-	my_processor.config.btr_static_size.set_to_first();
+	my_explorer->processor.config.integer_units.set_to_first();
+	my_explorer->processor.config.float_units.set_to_first();
+	my_explorer->processor.config.branch_units.set_to_first();
+	my_explorer->processor.config.memory_units.set_to_first();
+	my_explorer->processor.config.gpr_static_size.set_to_first();
+	my_explorer->processor.config.fpr_static_size.set_to_first();
+	my_explorer->processor.config.pr_static_size.set_to_first();
+	my_explorer->processor.config.cr_static_size.set_to_first();
+	my_explorer->processor.config.btr_static_size.set_to_first();
 
-	my_mem.L1D.size.set_to_first();
-	my_mem.L1D.block_size.set_to_first();
-	my_mem.L1D.associativity.set_to_first();
+	my_explorer->mem_hierarchy.L1D.size.set_to_first();
+	my_explorer->mem_hierarchy.L1D.block_size.set_to_first();
+	my_explorer->mem_hierarchy.L1D.associativity.set_to_first();
 
-	my_mem.L1I.size.set_to_first();
-	my_mem.L1I.block_size.set_to_first();
-	my_mem.L1I.associativity.set_to_first();
+	my_explorer->mem_hierarchy.L1I.size.set_to_first();
+	my_explorer->mem_hierarchy.L1I.block_size.set_to_first();
+	my_explorer->mem_hierarchy.L1I.associativity.set_to_first();
 
-	my_mem.L2U.size.set_to_first();
-	my_mem.L2U.block_size.set_to_first();
-	my_mem.L2U.associativity.set_to_first();
+	my_explorer->mem_hierarchy.L2U.size.set_to_first();
+	my_explorer->mem_hierarchy.L2U.block_size.set_to_first();
+	my_explorer->mem_hierarchy.L2U.associativity.set_to_first();
 
 	cout << "\n Mem hierarchy parameters ";
 	cout << "\n---------------------------------------";
 
 	cout << "\n [1]           L1D size : " ;
-	do { cout << my_mem.L1D.size.get_val() << ","; } while (my_mem.L1D.size.increase()); 
+	do { cout << my_explorer->mem_hierarchy.L1D.size.get_val() << ","; } while (my_explorer->mem_hierarchy.L1D.size.increase()); 
 	cout << "\n [2]     L1D block_size : " ;
-	do { cout << my_mem.L1D.block_size.get_val() << ","; } while (my_mem.L1D.block_size.increase());
+	do { cout << my_explorer->mem_hierarchy.L1D.block_size.get_val() << ","; } while (my_explorer->mem_hierarchy.L1D.block_size.increase());
 	cout << "\n [3]  L1D associativity : " ;
-	do { cout << my_mem.L1D.associativity.get_val() << ","; } while (my_mem.L1D.associativity.increase());
+	do { cout << my_explorer->mem_hierarchy.L1D.associativity.get_val() << ","; } while (my_explorer->mem_hierarchy.L1D.associativity.increase());
 
 	cout << "\n [4]           L1I size : " ;
-	do { cout << my_mem.L1I.size.get_val() << ","; } while (my_mem.L1I.size.increase());
+	do { cout << my_explorer->mem_hierarchy.L1I.size.get_val() << ","; } while (my_explorer->mem_hierarchy.L1I.size.increase());
 	cout << "\n [5]     L1I block_size : " ;
-	do { cout << my_mem.L1I.block_size.get_val() << ","; } while (my_mem.L1I.block_size.increase());
+	do { cout << my_explorer->mem_hierarchy.L1I.block_size.get_val() << ","; } while (my_explorer->mem_hierarchy.L1I.block_size.increase());
 	cout << "\n [6]  L1I associativity : " ;
-	do { cout << my_mem.L1I.associativity.get_val() << ","; } while (my_mem.L1I.associativity.increase());
+	do { cout << my_explorer->mem_hierarchy.L1I.associativity.get_val() << ","; } while (my_explorer->mem_hierarchy.L1I.associativity.increase());
 	
 	cout << "\n [7]           L2U size : " ;
-	do { cout << my_mem.L2U.size.get_val() << ","; } while (my_mem.L2U.size.increase());
+	do { cout << my_explorer->mem_hierarchy.L2U.size.get_val() << ","; } while (my_explorer->mem_hierarchy.L2U.size.increase());
 	cout << "\n [8]     L2U block_size : " ;
-	do { cout << my_mem.L2U.block_size.get_val() << ","; } while (my_mem.L2U.block_size.increase());
+	do { cout << my_explorer->mem_hierarchy.L2U.block_size.get_val() << ","; } while (my_explorer->mem_hierarchy.L2U.block_size.increase());
 	cout << "\n [9]  L2U associativity : " ;
-	do { cout << my_mem.L2U.associativity.get_val() << ","; } while (my_mem.L2U.associativity.increase());
+	do { cout << my_explorer->mem_hierarchy.L2U.associativity.get_val() << ","; } while (my_explorer->mem_hierarchy.L2U.associativity.increase());
 	cout << "\n\n Processor Parameters ";
 	cout << "\n---------------------------------------";
 	cout << "\n [10]     integer_units : ";
-	do { cout << my_processor.config.integer_units.get_val() << ","; } while (my_processor.config.integer_units.increase());
+	do { cout << my_explorer->processor.config.integer_units.get_val() << ","; } while (my_explorer->processor.config.integer_units.increase());
 	cout << "\n [11]       float_units : ";
-	do { cout << my_processor.config.float_units.get_val() << ","; } while (my_processor.config.float_units.increase());
+	do { cout << my_explorer->processor.config.float_units.get_val() << ","; } while (my_explorer->processor.config.float_units.increase());
 	cout << "\n [12]      memory_units : ";
-	do { cout << my_processor.config.memory_units.get_val() << ","; } while (my_processor.config.memory_units.increase());
+	do { cout << my_explorer->processor.config.memory_units.get_val() << ","; } while (my_explorer->processor.config.memory_units.increase());
 	cout << "\n [13]      branch_units : ";
-	do { cout << my_processor.config.branch_units.get_val() << ","; } while (my_processor.config.branch_units.increase());
+	do { cout << my_explorer->processor.config.branch_units.get_val() << ","; } while (my_explorer->processor.config.branch_units.increase());
 	cout << "\n";
 	cout << "\n [14]   gpr_static_size : ";
-	do { cout << my_processor.config.gpr_static_size.get_val() << ","; } while (my_processor.config.gpr_static_size.increase());
+	do { cout << my_explorer->processor.config.gpr_static_size.get_val() << ","; } while (my_explorer->processor.config.gpr_static_size.increase());
 	cout << "\n [15]   fpr_static_size : ";
-	do { cout << my_processor.config.fpr_static_size.get_val() << ","; } while (my_processor.config.fpr_static_size.increase());
+	do { cout << my_explorer->processor.config.fpr_static_size.get_val() << ","; } while (my_explorer->processor.config.fpr_static_size.increase());
 	cout << "\n [16]    pr_static_size : ";
-	do { cout << my_processor.config.pr_static_size.get_val() << ","; } while (my_processor.config.pr_static_size.increase());
+	do { cout << my_explorer->processor.config.pr_static_size.get_val() << ","; } while (my_explorer->processor.config.pr_static_size.increase());
 	cout << "\n [17]    cr_static_size : ";
-	do { cout << my_processor.config.cr_static_size.get_val() << ","; } while (my_processor.config.cr_static_size.increase());
+	do { cout << my_explorer->processor.config.cr_static_size.get_val() << ","; } while (my_explorer->processor.config.cr_static_size.increase());
 	cout << "\n [18]   btr_static_size : ";
-	do { cout << my_processor.config.btr_static_size.get_val() << ","; } while (my_processor.config.btr_static_size.increase());
+	do { cout << my_explorer->processor.config.btr_static_size.get_val() << ","; } while (my_explorer->processor.config.btr_static_size.increase());
 
 	cout << "\n\n Total space size : " << my_explorer->get_space_size();
 
@@ -483,58 +484,58 @@ void User_interface::edit_exploration_space()
 	    switch (p)
 	    {
 		case 1: 
-		    my_mem.L1D.size.set_values(values,def_val);
+		    my_explorer->mem_hierarchy.L1D.size.set_values(values,def_val);
 		    break;
 		case 2: 
-		    my_mem.L1D.block_size.set_values(values,def_val);
+		    my_explorer->mem_hierarchy.L1D.block_size.set_values(values,def_val);
 		    break;
 		case 3: 
-		    my_mem.L1D.associativity.set_values(values,def_val);
+		    my_explorer->mem_hierarchy.L1D.associativity.set_values(values,def_val);
 		    break;
 		case 4: 
-		    my_mem.L1I.size.set_values(values,def_val);
+		    my_explorer->mem_hierarchy.L1I.size.set_values(values,def_val);
 		    break;
 		case 5: 
-		    my_mem.L1I.block_size.set_values(values,def_val);
+		    my_explorer->mem_hierarchy.L1I.block_size.set_values(values,def_val);
 		    break;
 		case 6: 
-		    my_mem.L1I.associativity.set_values(values,def_val);
+		    my_explorer->mem_hierarchy.L1I.associativity.set_values(values,def_val);
 		    break;
 		case 7: 
-		    my_mem.L2U.size.set_values(values,def_val);
+		    my_explorer->mem_hierarchy.L2U.size.set_values(values,def_val);
 		    break;
 		case 8: 
-		    my_mem.L2U.block_size.set_values(values,def_val);
+		    my_explorer->mem_hierarchy.L2U.block_size.set_values(values,def_val);
 		    break;
 		case 9: 
-		    my_mem.L2U.associativity.set_values(values,def_val);
+		    my_explorer->mem_hierarchy.L2U.associativity.set_values(values,def_val);
 		    break;
 		case 10:
-		    my_processor.config.integer_units.set_values(values,def_val);
+		    my_explorer->processor.config.integer_units.set_values(values,def_val);
 		    break;
 		case 11:
-		    my_processor.config.float_units.set_values(values,def_val);
+		    my_explorer->processor.config.float_units.set_values(values,def_val);
 		    break;
 		case 12:
-		    my_processor.config.memory_units.set_values(values,def_val);
+		    my_explorer->processor.config.memory_units.set_values(values,def_val);
 		    break;
 		case 13:
-		    my_processor.config.branch_units.set_values(values,def_val);
+		    my_explorer->processor.config.branch_units.set_values(values,def_val);
 		    break;
 		case 14:
-		    my_processor.config.gpr_static_size.set_values(values,def_val);
+		    my_explorer->processor.config.gpr_static_size.set_values(values,def_val);
 		    break;
 		case 15:
-		    my_processor.config.fpr_static_size.set_values(values,def_val);
+		    my_explorer->processor.config.fpr_static_size.set_values(values,def_val);
 		    break;
 		case 16:
-		    my_processor.config.pr_static_size.set_values(values,def_val);
+		    my_explorer->processor.config.pr_static_size.set_values(values,def_val);
 		    break;
 		case 17:
-		    my_processor.config.cr_static_size.set_values(values,def_val);
+		    my_explorer->processor.config.cr_static_size.set_values(values,def_val);
 		    break;
 		case 18:
-		    my_processor.config.btr_static_size.set_values(values,def_val);
+		    my_explorer->processor.config.btr_static_size.set_values(values,def_val);
 		    break;
 		default:
 		    cout << "\n ERROR : wrong parameter index ! ";
@@ -582,20 +583,20 @@ void User_interface::view_processor_config() {
    cout << "\n Functional units ";
    cout << "\n--------------------------------";
 
-   cout<<"\n integer_units :"<< my_processor.config.integer_units.get_val();
-   cout<<"\n float_units :"<< my_processor.config.float_units.get_val();
-   cout<<"\n memory_units :"<< my_processor.config.memory_units.get_val();
-   cout<<"\n branch_units :"<< my_processor.config.branch_units.get_val();
+   cout<<"\n integer_units :"<< my_explorer->processor.config.integer_units.get_val();
+   cout<<"\n float_units :"<< my_explorer->processor.config.float_units.get_val();
+   cout<<"\n memory_units :"<< my_explorer->processor.config.memory_units.get_val();
+   cout<<"\n branch_units :"<< my_explorer->processor.config.branch_units.get_val();
 
-   //cout<<"\n local_memory_units "<< my_processor.config.memory_units.get_val();
+   //cout<<"\n local_memory_units "<< my_explorer->processor.config.memory_units.get_val();
 
    cout << "\n\n Register Files ";
    cout << "\n--------------------------------";
-   cout<<"\n gpr_static_size :"<< my_processor.config.gpr_static_size.get_val();
-   cout<<"\n fpr_static_size :"<< my_processor.config.fpr_static_size.get_val();
-   cout<<"\n pr_static_size :"<< my_processor.config.pr_static_size.get_val();
-   cout<<"\n cr_static_size :"<< my_processor.config.cr_static_size.get_val();
-   cout<<"\n btr_static_size :"<< my_processor.config.btr_static_size.get_val();
+   cout<<"\n gpr_static_size :"<< my_explorer->processor.config.gpr_static_size.get_val();
+   cout<<"\n fpr_static_size :"<< my_explorer->processor.config.fpr_static_size.get_val();
+   cout<<"\n pr_static_size :"<< my_explorer->processor.config.pr_static_size.get_val();
+   cout<<"\n cr_static_size :"<< my_explorer->processor.config.cr_static_size.get_val();
+   cout<<"\n btr_static_size :"<< my_explorer->processor.config.btr_static_size.get_val();
 
    cout << "\n\n NOTE: rotating portion of each register file is assumed equal";
    cout << "\n to static portion.";
@@ -606,9 +607,9 @@ void User_interface::view_cache_config() {
 
     system("clear");
 
-    my_mem.print_cache_config(my_mem.L1I);
-    my_mem.print_cache_config(my_mem.L1D);
-    my_mem.print_cache_config(my_mem.L2U);
+    my_explorer->mem_hierarchy.print_cache_config(my_explorer->mem_hierarchy.L1I);
+    my_explorer->mem_hierarchy.print_cache_config(my_explorer->mem_hierarchy.L1D);
+    my_explorer->mem_hierarchy.print_cache_config(my_explorer->mem_hierarchy.L2U);
 
 }
 
@@ -638,164 +639,17 @@ void User_interface::load_subspace_wrapper()
    string filename;
 
    cout << "\n\n List of available subspace files : \n";
-   string command = "ls "+base_dir;
+   string command = "ls "+base_dir+"*.sub";
    system(command.c_str());
    cout << "\n Enter file name without path ( es. 'my_space.sub' -  Use 'x' to exit) : ";
    cin >> filename;
    if (filename!="x") 
    {
-       load_subspace(base_dir+filename);
-       current_subspace = filename;
+       my_explorer->load_space_file(base_dir+filename);
+       my_explorer->set_space_name(filename);
    }
 }
 
-void User_interface::load_subspace(string subspace_file)
-{
-   std::ifstream input_file (subspace_file.c_str());
-
-   if (!input_file)
-   {
-       cout << "\n Error while reading " << subspace_file;
-       wait_key();
-   }
-   else
-   {
-
-	go_until("[BEGIN_SPACE]",input_file);
-
-	int val;
-	vector<int> values;
-
-	values.clear();
-	input_file >> word; // skip parameter label
-	while ( (input_file>>val) && (val!=0)) { values.push_back(val); } // reads val until 0
-	input_file >> word; // skip default label
-	input_file >> val;  // get default value
-	my_mem.L1D.size.set_values(values,val);
-
-	values.clear();
-	input_file >> word; // skip parameter label
-	while ( (input_file>>val) && (val!=0)) { values.push_back(val); } // reads val until 0
-	input_file >> word; // skip default label
-	input_file >> val;  // get default value
-	my_mem.L1D.block_size.set_values(values,val);
-
-	values.clear();
-	input_file >> word; // skip parameter label
-	while ( (input_file>>val) && (val!=0)) { values.push_back(val); } // reads val until 0
-	input_file >> word; // skip default label
-	input_file >> val;  // get default value
-	my_mem.L1D.associativity.set_values(values,val);
-
-	values.clear();
-	input_file >> word; // skip parameter label
-	while ( (input_file>>val) && (val!=0)) { values.push_back(val); } // reads val until 0
-	input_file >> word; // skip default label
-	input_file >> val;  // get default value
-	my_mem.L1I.size.set_values(values,val);
-
-	values.clear();
-	input_file >> word; // skip parameter label
-	while ( (input_file>>val) && (val!=0)) { values.push_back(val); } // reads val until 0
-	input_file >> word; // skip default label
-	input_file >> val;  // get default value
-	my_mem.L1I.block_size.set_values(values,val);
-
-	values.clear();
-	input_file >> word; // skip parameter label
-	while ( (input_file>>val) && (val!=0)) { values.push_back(val); } // reads val until 0
-	input_file >> word; // skip default label
-	input_file >> val;  // get default value
-	my_mem.L1I.associativity.set_values(values,val);
-
-	values.clear();
-	input_file >> word; // skip parameter label
-	while ( (input_file>>val) && (val!=0)) { values.push_back(val); } // reads val until 0
-	input_file >> word; // skip default label
-	input_file >> val;  // get default value
-	my_mem.L2U.size.set_values(values,val);
-
-	values.clear();
-	input_file >> word; // skip parameter label
-	while ( (input_file>>val) && (val!=0)) { values.push_back(val); } // reads val until 0
-	input_file >> word; // skip default label
-	input_file >> val;  // get default value
-	my_mem.L2U.block_size.set_values(values,val);
-
-	values.clear();
-	input_file >> word; // skip parameter label
-	while ( (input_file>>val) && (val!=0)) { values.push_back(val); } // reads val until 0
-	input_file >> word; // skip default label
-	input_file >> val;  // get default value
-	my_mem.L2U.associativity.set_values(values,val);
-
-	values.clear();
-	input_file >> word; // skip parameter label
-	while ( (input_file>>val) && (val!=0)) { values.push_back(val); } // reads val until 0
-	input_file >> word; // skip default label
-	input_file >> val;  // get default value
-	my_processor.config.integer_units.set_values(values,val);
-
-	values.clear();
-	input_file >> word; // skip parameter label
-	while ( (input_file>>val) && (val!=0)) { values.push_back(val); } // reads val until 0
-	input_file >> word; // skip default label
-	input_file >> val;  // get default value
-	my_processor.config.float_units.set_values(values,val);
-
-	values.clear();
-	input_file >> word; // skip parameter label
-	while ( (input_file>>val) && (val!=0)) { values.push_back(val); } // reads val until 0
-	input_file >> word; // skip default label
-	input_file >> val;  // get default value
-	my_processor.config.memory_units.set_values(values,val);
-
-	values.clear();
-	input_file >> word; // skip parameter label
-	while ( (input_file>>val) && (val!=0)) { values.push_back(val); } // reads val until 0
-	input_file >> word; // skip default label
-	input_file >> val;  // get default value
-	my_processor.config.branch_units.set_values(values,val);
-
-	values.clear();
-	input_file >> word; // skip parameter label
-	while ( (input_file>>val) && (val!=0)) { values.push_back(val); } // reads val until 0
-	input_file >> word; // skip default label
-	input_file >> val;  // get default value
-	my_processor.config.gpr_static_size.set_values(values,val);
-
-	values.clear();
-	input_file >> word; // skip parameter label
-	while ( (input_file>>val) && (val!=0)) { values.push_back(val); } // reads val until 0
-	input_file >> word; // skip default label
-	input_file >> val;  // get default value
-	my_processor.config.fpr_static_size.set_values(values,val);
-
-	values.clear();
-	input_file >> word; // skip parameter label
-	while ( (input_file>>val) && (val!=0)) { values.push_back(val); } // reads val until 0
-	input_file >> word; // skip default label
-	input_file >> val;  // get default value
-	my_processor.config.pr_static_size.set_values(values,val);
-
-	values.clear();
-	input_file >> word; // skip parameter label
-	while ( (input_file>>val) && (val!=0)) { values.push_back(val); } // reads val until 0
-	input_file >> word; // skip default label
-	input_file >> val;  // get default value
-	my_processor.config.cr_static_size.set_values(values,val);
-
-	values.clear();
-	input_file >> word; // skip parameter label
-	while ( (input_file>>val) && (val!=0)) { values.push_back(val); } // reads val until 0
-	input_file >> word; // skip default label
-	input_file >> val;  // get default value
-	my_processor.config.btr_static_size.set_values(values,val);
-
-	my_processor.set_to_default();
-	my_processor.save_config();
-   }
-}
 
 void User_interface::load_settings(string settings_file)
 {
@@ -934,146 +788,18 @@ void User_interface::save_subspace_wrapper()
    char ch;
    cin >> ch;
 
-   if (ch=='1') save_subspace(base_dir+"default_space.sub");
+   if (ch=='1') my_explorer->save_space_file(base_dir+"default_space.sub");
    else
    if (ch=='2')
    {
        cout << "\n Enter filename (USE .sub extension) : ";
        string s;
        cin >> s;
-       save_subspace(base_dir+s);
+       my_explorer->save_space_file(base_dir+s);
+       my_explorer->set_space_name(s);
    }
 }
 
-void User_interface::save_subspace(string subspace_file)
-{
-    std::ofstream output_file(subspace_file.c_str());
-    if (!output_file)
-    {
-	cout << "\n Error while saving " << subspace_file ;
-	wait_key();
-    }
-    else
-    {
-	output_file << "\n\n [BEGIN_SPACE]";
-
-	my_processor.config.integer_units.set_to_first();
-	my_processor.config.float_units.set_to_first();
-	my_processor.config.branch_units.set_to_first();
-	my_processor.config.memory_units.set_to_first();
-	my_processor.config.gpr_static_size.set_to_first();
-	my_processor.config.fpr_static_size.set_to_first();
-	my_processor.config.pr_static_size.set_to_first();
-	my_processor.config.cr_static_size.set_to_first();
-	my_processor.config.btr_static_size.set_to_first();
-
-	my_mem.L1D.size.set_to_first();
-	my_mem.L1D.block_size.set_to_first();
-	my_mem.L1D.associativity.set_to_first();
-
-	my_mem.L1I.size.set_to_first();
-	my_mem.L1I.block_size.set_to_first();
-	my_mem.L1I.associativity.set_to_first();
-
-	my_mem.L2U.size.set_to_first();
-	my_mem.L2U.block_size.set_to_first();
-	my_mem.L2U.associativity.set_to_first();
-
-	output_file << "\nL1D_size " ;
-	do { output_file << my_mem.L1D.size.get_val() << " "; } while (my_mem.L1D.size.increase()); 
-	output_file << "0";
-	output_file << "\n DEFAULT " << my_mem.L1D.size.get_default();
-
-	output_file << "\nL1D_block_size " ;
-	do { output_file << my_mem.L1D.block_size.get_val() << " "; } while (my_mem.L1D.block_size.increase());
-	output_file << "0";
-	output_file << "\n DEFAULT " << my_mem.L1D.block_size.get_default();
-
-	output_file << "\nL1D_associativity " ;
-	do { output_file << my_mem.L1D.associativity.get_val() << " "; } while (my_mem.L1D.associativity.increase());
-	output_file << "0";
-	output_file << "\n DEFAULT " << my_mem.L1D.associativity.get_default();
-
-	output_file << "\nL1I_size " ;
-	do { output_file << my_mem.L1I.size.get_val() << " "; } while (my_mem.L1I.size.increase());
-	output_file << "0";
-	output_file << "\n DEFAULT " << my_mem.L1I.size.get_default();
-
-	output_file << "\nL1I_block_size " ;
-	do { output_file << my_mem.L1I.block_size.get_val() << " "; } while (my_mem.L1I.block_size.increase());
-	output_file << "0";
-	output_file << "\n DEFAULT " << my_mem.L1I.block_size.get_default();
-
-	output_file << "\nL1I_associativity " ;
-	do { output_file << my_mem.L1I.associativity.get_val() << " "; } while (my_mem.L1I.associativity.increase());
-	output_file << "0";
-	output_file << "\n DEFAULT " << my_mem.L1I.associativity.get_default();
-	
-	output_file << "\nL2U_size " ;
-	do { output_file << my_mem.L2U.size.get_val() << " "; } while (my_mem.L2U.size.increase());
-	output_file << "0";
-	output_file << "\n DEFAULT " << my_mem.L2U.size.get_default();
-
-	output_file << "\nL2U_block_size " ;
-	do { output_file << my_mem.L2U.block_size.get_val() << " "; } while (my_mem.L2U.block_size.increase());
-	output_file << "0";
-	output_file << "\n DEFAULT " << my_mem.L2U.block_size.get_default();
-
-	output_file << "\nL2U_associativity " ;
-	do { output_file << my_mem.L2U.associativity.get_val() << " "; } while (my_mem.L2U.associativity.increase());
-	output_file << "0";
-	output_file << "\n DEFAULT " << my_mem.L2U.associativity.get_default();
-
-	output_file << "\ninteger_units ";
-	do { output_file << my_processor.config.integer_units.get_val() << " "; } while (my_processor.config.integer_units.increase());
-	output_file << "0";
-	output_file << "\n DEFAULT " << my_processor.config.integer_units.get_default();
-
-	output_file << "\nfloat_units ";
-	do { output_file << my_processor.config.float_units.get_val() << " "; } while (my_processor.config.float_units.increase());
-	output_file << "0";
-	output_file << "\n DEFAULT " << my_processor.config.float_units.get_default();
-
-	output_file << "\nmemory_units ";
-	do { output_file << my_processor.config.memory_units.get_val() << " "; } while (my_processor.config.memory_units.increase());
-	output_file << "0";
-	output_file << "\n DEFAULT " << my_processor.config.memory_units.get_default();
-
-	output_file << "\nbranch_units ";
-	do { output_file << my_processor.config.branch_units.get_val() << " "; } while (my_processor.config.branch_units.increase());
-	output_file << "0";
-	output_file << "\n DEFAULT " << my_processor.config.branch_units.get_default();
-
-	output_file << "\ngpr_static_size ";
-	do { output_file << my_processor.config.gpr_static_size.get_val() << " "; } while (my_processor.config.gpr_static_size.increase());
-	output_file << "0";
-	output_file << "\n DEFAULT " << my_processor.config.gpr_static_size.get_default();
-
-	output_file << "\nfpr_static_size ";
-	do { output_file << my_processor.config.fpr_static_size.get_val() << " "; } while (my_processor.config.fpr_static_size.increase());
-	output_file << "0";
-	output_file << "\n DEFAULT " << my_processor.config.fpr_static_size.get_default();
-
-	output_file << "\npr_static_size ";
-	do { output_file << my_processor.config.pr_static_size.get_val() << " "; } while (my_processor.config.pr_static_size.increase());
-	output_file << "0";
-	output_file << "\n DEFAULT " << my_processor.config.pr_static_size.get_default();
-
-	output_file << "\ncr_static_size ";
-	do { output_file << my_processor.config.cr_static_size.get_val() << " "; } while (my_processor.config.cr_static_size.increase());
-	output_file << "0";
-	output_file << "\n DEFAULT " << my_processor.config.cr_static_size.get_default();
-
-	output_file << "\nbtr_static_size ";
-	do { output_file << my_processor.config.btr_static_size.get_val() << " "; } while (my_processor.config.btr_static_size.increase());
-	output_file << "0";
-	output_file << "\n DEFAULT " << my_processor.config.btr_static_size.get_default();
-
-	output_file << "\n\n [END_SPACE]";
-
-    }
-
-}
 void User_interface::save_settings(string settings_file)
 {
     std::ofstream output_file(settings_file.c_str());
@@ -1210,7 +936,7 @@ void User_interface::reload_hmdes_file()
 {
 
     cout << "\n\n Loading processor config from hmdes file ...";
-    my_processor.load_config();
+    my_explorer->processor.load_config();
 
    cout << "\n\n Updated processor config ";
 }
@@ -1218,7 +944,7 @@ void User_interface::reload_hmdes_file()
 void User_interface::reload_memhierarchy_config()
 {
     cout << "\n\n Loading cache config from cache.cgf file ";
-    my_mem.load_cache_config();
+    my_explorer->mem_hierarchy.load_cache_config();
 }
 
 
@@ -1291,7 +1017,7 @@ void User_interface::compute_cost() {
     system("clear");
 
     Dynamic_stats dynamic_stats = trimaran_interface.get_dynamic_stats();
-    Estimate estimate = my_estimator.get_estimate(dynamic_stats,my_mem,my_processor);
+    Estimate estimate = my_explorer->estimator.get_estimate(dynamic_stats,my_explorer->mem_hierarchy,my_explorer->processor);
 
     cout << "\n\n";
     cout << "\n  P e r f o r m a n c e ";
@@ -1334,13 +1060,13 @@ void User_interface::compute_cost() {
 void User_interface::save_processor_config() {
 
     cout << "\n Saving current process configuration ...";
-    my_processor.save_config();
+    my_explorer->processor.save_config();
 }
 
 void User_interface::save_cache_config() {
     cout << "\n Saving current cache config ...";
 
-    my_mem.save_cache_config();
+    my_explorer->mem_hierarchy.save_cache_config();
 }
 
 

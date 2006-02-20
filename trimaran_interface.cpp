@@ -71,13 +71,11 @@ void Trimaran_interface::compile_benchmark() {
 
     if (settings.hyperblock)
     {
-    command =command +"tcc -host "+TRIMARAN_HOST_PLATFORM+" -bench "+settings.benchmark+" -region h -i2s -E\"\" -M$HOME/trimaran-workspace/machines/hpl_pd_elcor_std.lmdes2 -S\"-Fcontrol_flow_trace=yes -Faddress_trace=yes\" -project \"full\" -clean -gui | tee -a compilation.log";
-    //command =command +"tcc -host "+TRIMARAN_HOST_PLATFORM+" -bench "+settings.benchmark+" -region h -i2s -E\" -Fdo_triceps=no \" -M$HOME/trimaran-workspace/machines/hpl_pd_elcor_std.lmdes2 -S\"-Fcontrol_flow_trace=yes -Faddress_trace=yes\" -project \"full\" -clean -gui | tee -a compilation.log";
+    command = command +"tcc -host "+TRIMARAN_HOST_PLATFORM+" -bench "+settings.benchmark+" -region h -i2s -E\"\" -M$HOME/trimaran-workspace/machines/hpl_pd_elcor_std.lmdes2 -S\"-Fcontrol_flow_trace=yes -Faddress_trace=yes\" -project \"full\" -clean -gui | tee -a compilation.log";
     }
     else
     {
     command =command +"tcc -host "+TRIMARAN_HOST_PLATFORM+" -bench "+settings.benchmark+" -region b -i2s -E\"\" -M$HOME/trimaran-workspace/machines/hpl_pd_elcor_std.lmdes2 -S\"-Fcontrol_flow_trace=yes -Faddress_trace=yes\" -project \"full\" -clean -gui | tee -a compilation.log";
-    //command =command +"tcc -host "+TRIMARAN_HOST_PLATFORM+" -bench "+settings.benchmark+" -region b -i2s -E\" -Fdo_triceps=no \" -M$HOME/trimaran-workspace/machines/hpl_pd_elcor_std.lmdes2 -S\"-Fcontrol_flow_trace=yes -Faddress_trace=yes\" -project \"full\" -clean -gui | tee -a compilation.log";
     };
 
     system(command.c_str());
