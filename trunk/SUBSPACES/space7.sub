@@ -22,8 +22,8 @@ integer_units 1 0
  DEFAULT 1
 float_units 1 0
  DEFAULT 1
-memory_units 1 0
- DEFAULT 1
+memory_units 2 0
+ DEFAULT 2
 branch_units 1 0
  DEFAULT 1
 gpr_static_size 16 32 48 64 0
