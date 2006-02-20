@@ -95,6 +95,15 @@ void Processor::load_config()
 	input_file>>val;
 	config.memory_units.set_val(val);
 
+	if (val==1) 
+	{
+	    cout << "\n Fatal error: due a Trimaran bug EPIC-Exlorer currently does not";
+	    cout << "\n support spaces with memory_units = 1. ";
+	    cout << "\n Please modify your *.sub file in trimaran-workspace/SUBSPACES dir.";
+	    cout << "\n For more details : https://lists.csail.mit.edu/pipermail/trimaran-users/2005-September/000083.html";
+	    exit(1);
+	}
+
 	go_until("!branch_units",input_file);
 	input_file>>val;
 	config.branch_units.set_val(val);
