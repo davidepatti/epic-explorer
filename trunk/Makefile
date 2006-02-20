@@ -64,8 +64,5 @@ clean:
 	rm -f MOGA/include/moea/*.o
 	rm -f MOGA/lib/libmoea.a
 	rm -f *.o epic *~ core
-	rm -f tools/print_cache_ref
-
-
 
 # DO NOT DELETE
