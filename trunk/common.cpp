@@ -10,10 +10,6 @@ bool Configuration::is_feasible()
 	   (L1I_size >= L1I_block * L1I_assoc) &&
 	   (L2U_size >= L2U_block * L2U_assoc) );
 }
-string get_base_dir()
-{
-    return string(getenv("HOME"));
-}
 
 void go_until(const string& dest,ifstream& ifs)
 {

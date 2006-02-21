@@ -35,8 +35,6 @@ class Processor {
 	~Processor();
 	
 	void set_to_default();
-	void load_config();
-	void save_config() const;
 
 	struct configuration
 	{

@@ -19,10 +19,10 @@
 #include "environment.h"
 #include "common.h"
 
-Trimaran_interface::Trimaran_interface(){
+Trimaran_interface::Trimaran_interface(const string& base_dir){
 
-    string default_benchmark = DEFAULT_BENCH;
-    set_benchmark(default_benchmark);
+    set_benchmark(string("DEFAULT_BENCH"));
+    set_base_dir(base_dir);
     set_environment();
     set_hyperblock(false);
     updated_dynamic_stats = false;
@@ -35,17 +35,17 @@ Trimaran_interface::~Trimaran_interface()
 
 void Trimaran_interface::set_hyperblock(bool hyperblock)
 {
-    settings.hyperblock = hyperblock;
+    do_hyperblock = hyperblock;
 }
 
-void Trimaran_interface::set_benchmark(string& new_benchmark)
+void Trimaran_interface::set_benchmark(string new_benchmark)
 {
-    settings.benchmark = new_benchmark;
+   current_benchmark = new_benchmark;
 }
 
 string Trimaran_interface::get_benchmark_name() const
 {
-    return settings.benchmark;
+    return current_benchmark;
 }
 
 
@@ -69,13 +69,13 @@ void Trimaran_interface::compile_benchmark() {
     // from get_base_dir()
     string command="";
 
-    if (settings.hyperblock)
+    if (do_hyperblock)
     {
-    command = command +"tcc -host "+TRIMARAN_HOST_PLATFORM+" -bench "+settings.benchmark+" -region h -i2s -E\"\" -M$HOME/trimaran-workspace/machines/hpl_pd_elcor_std.lmdes2 -S\"-Fcontrol_flow_trace=yes -Faddress_trace=yes\" -project \"full\" -clean -gui | tee -a compilation.log";
+    command = command +"tcc -host "+TRIMARAN_HOST_PLATFORM+" -bench "+current_benchmark+" -region h -i2s -E\"\" -M$HOME/trimaran-workspace/machines/hpl_pd_elcor_std.lmdes2 -S\"-Fcontrol_flow_trace=yes -Faddress_trace=yes\" -project \"full\" -clean -gui | tee -a compilation.log";
     }
     else
     {
-    command =command +"tcc -host "+TRIMARAN_HOST_PLATFORM+" -bench "+settings.benchmark+" -region b -i2s -E\"\" -M$HOME/trimaran-workspace/machines/hpl_pd_elcor_std.lmdes2 -S\"-Fcontrol_flow_trace=yes -Faddress_trace=yes\" -project \"full\" -clean -gui | tee -a compilation.log";
+    command =command +"tcc -host "+TRIMARAN_HOST_PLATFORM+" -bench "+current_benchmark+" -region b -i2s -E\"\" -M$HOME/trimaran-workspace/machines/hpl_pd_elcor_std.lmdes2 -S\"-Fcontrol_flow_trace=yes -Faddress_trace=yes\" -project \"full\" -clean -gui | tee -a compilation.log";
     };
 
     system(command.c_str());
@@ -90,13 +90,13 @@ void Trimaran_interface::execute_benchmark()
     // TODO: check proper tcc command options
     string command;
 
-    if (settings.hyperblock)
+    if (do_hyperblock)
     {
-    command =command +"tcc -host "+TRIMARAN_HOST_PLATFORM+" -bench "+settings.benchmark+" -region h -m2m -E\"\" -M$HOME/trimaran-workspace/machines/hpl_pd_elcor_std.lmdes2 -S\"-Fcontrol_flow_trace=yes -Faddress_trace=yes\" -project \"full\" -gui | tee -a compilation.log";
+    command =command +"tcc -host "+TRIMARAN_HOST_PLATFORM+" -bench "+current_benchmark+" -region h -m2m -E\"\" -M$HOME/trimaran-workspace/machines/hpl_pd_elcor_std.lmdes2 -S\"-Fcontrol_flow_trace=yes -Faddress_trace=yes\" -project \"full\" -gui | tee -a compilation.log";
     }
     else
     {
-    command =command +"tcc -host "+TRIMARAN_HOST_PLATFORM+" -bench "+settings.benchmark+" -region b -m2m -E\"\" -M$HOME/trimaran-workspace/machines/hpl_pd_elcor_std.lmdes2 -S\"-Fcontrol_flow_trace=yes -Faddress_trace=yes\" -project \"full\" -gui | tee -a compilation.log";
+    command =command +"tcc -host "+TRIMARAN_HOST_PLATFORM+" -bench "+current_benchmark+" -region b -m2m -E\"\" -M$HOME/trimaran-workspace/machines/hpl_pd_elcor_std.lmdes2 -S\"-Fcontrol_flow_trace=yes -Faddress_trace=yes\" -project \"full\" -gui | tee -a compilation.log";
     };
 
     system(command.c_str());
@@ -110,7 +110,7 @@ void Trimaran_interface::update_dynamic_stats()
 {
     string path;
 
-    if (settings.hyperblock) path = "./simu_intermediate/PD_STATS.HS";
+    if (do_hyperblock) path = "./simu_intermediate/PD_STATS.HS";
     else
 	path = "./simu_intermediate/PD_STATS.O";
 
@@ -324,5 +324,229 @@ void Trimaran_interface::set_environment() {
     chdir(path.c_str());
 }
 
+void Trimaran_interface::set_base_dir(const string& dir)
+{
+    base_dir = dir;
+}
+
+string Trimaran_interface::get_base_dir() const
+{
+    return base_dir;
+}
+
+void Trimaran_interface::save_processor_config(const Processor& p) const
+{
+    string filename = get_base_dir()+"/trimaran-workspace/machines/"+EXPLORER_HMDES2;
+    std::ofstream output_file(filename.c_str());
+
+    if (!output_file) 
+    {
+	cout << "\nError opening hmdes file :" << filename;
+	wait_key();
+    }
+    else
+    {
+	// NOTE: 
+	// - we assume that rotating and static portion of registers
+	// have equal sizes.
+	// - All the other parameters are fixed to their default values as specified
+	// in the standard trimaran hmdes2 files. 
+
+	output_file << "\n//////////////////////////////////////////////////";
+	output_file << "\n// Epic Explorer processor configuration";
+	output_file << "\n//////////////////////////////////////////////////";
+	output_file << "\n// DO NOT EDIT: this file is generated by epic explorer ";
+	output_file << "\n// and should be included into the main hmdes2 machine ";
+	output_file << "\n// description file using the $include directive";
+
+	output_file << "\n\n";
+	output_file << "\n// Register file sizes ";
+	output_file << "\n\n";
+	output_file << "\n$def !gpr_static_size\t" << p.config.gpr_static_size.get_val();
+	output_file << "\n$def !gpr_rotating_size\t" << p.config.gpr_static_size.get_val();
+	output_file << "\n$def !fpr_static_size\t" <<   p.config.fpr_static_size.get_val();
+	output_file << "\n$def !fpr_rotating_size\t" << p.config.fpr_static_size.get_val();
+	output_file << "\n$def !pr_static_size\t" <<    p.config.pr_static_size.get_val();
+	output_file << "\n$def !pr_rotating_size\t" <<  p.config.pr_static_size.get_val();
+	output_file << "\n$def !cr_static_size\t" <<    p.config.cr_static_size.get_val();
+	output_file << "\n$def !cr_rotating_size\t" <<  p.config.cr_static_size.get_val();
+	output_file << "\n$def !btr_static_size\t" <<   p.config.btr_static_size.get_val();
+
+	output_file << "\n\n// Functional Units \n";
+
+	output_file << "\n$def !integer_units\t" << p.config.integer_units.get_val();
+	output_file << "\n$def !float_units\t" <<   p.config.float_units.get_val();
+	output_file << "\n$def !memory_units\t" <<  p.config.memory_units.get_val();
+	output_file << "\n$def !branch_units\t" <<  p.config.branch_units.get_val();
+    }
+}
+
+void Trimaran_interface::load_processor_config(Processor* p) const
+{
+    string filename = get_base_dir()+"/trimaran-workspace/machines/"+EXPLORER_HMDES2;
+    std::ifstream input_file(filename.c_str());
+
+    if (!input_file) {
+	cout << "\nError opening hmdes file :" << filename;
+	wait_key();
+    }
+    else
+    {
+	int val;
+
+	//NOTE : This function only read from hmdes configuration file
+	//the parameter values that are subject of exploration.
+	//
+	//Rotating size entries are currently ignored, assuming
+	//that rotating portion has always the same size of static
+	//portion for all register files.
+
+	/// Register files sizes ////////////////////////////////////
+	go_until("!gpr_static_size",input_file);
+	input_file>>val;
+	p->config.gpr_static_size.set_val(val);
+
+	go_until("!fpr_static_size",input_file);
+	input_file>>val;
+	p->config.fpr_static_size.set_val(val);
+
+	go_until("!pr_static_size",input_file);
+	input_file>>val;
+
+	p->config.pr_static_size.set_val(val);
+
+	go_until("!cr_static_size",input_file);
+	input_file>>val;
+	p->config.cr_static_size.set_val(val);
+
+	go_until("!btr_static_size",input_file);
+	input_file>>val;
+	p->config.btr_static_size.set_val(val);
+
+	//// Functional units ////////////////////////
+
+	go_until("!integer_units",input_file);
+	input_file>>val;
+	p->config.integer_units.set_val(val);
+
+	go_until("!float_units",input_file);
+	input_file>>val;
+	p->config.float_units.set_val(val);
+
+	go_until("!memory_units",input_file);
+	input_file>>val;
+	p->config.memory_units.set_val(val);
+
+	if (val==1) 
+	{
+	    cout << "\n Fatal error: due a Trimaran bug EPIC-Exlorer currently does not";
+	    cout << "\n support spaces with memory_units = 1. ";
+	    cout << "\n Please modify your *.sub file in trimaran-workspace/SUBSPACES dir.";
+	    cout << "\n For more details : https://lists.csail.mit.edu/pipermail/trimaran-users/2005-September/000083.html";
+	    exit(1);
+	}
+
+	go_until("!branch_units",input_file);
+	input_file>>val;
+	p->config.branch_units.set_val(val);
+    }
+}
+
+void Trimaran_interface::save_mem_config(const Mem_hierarchy& mem) const
+{
+    string cache_config_file = get_base_dir() + "/trimaran-workspace/cache.cfg";
+    std::ofstream output_file(cache_config_file.c_str());
+
+    if (!output_file) 
+    {
+	cout << "\nerror opening hmdes file :" << cache_config_file;
+	wait_key();
+    }
+    else
+    {
+	output_file <<"\n# EPIC explorer cache configuration ";
+	output_file <<"\n";
+	output_file <<"\n# level 2 unified cache";
+	output_file <<"\nL2U_blocksize " << mem.L2U.block_size.get_val();
+	output_file <<"\nL2U_subblocksize " << mem.L2U.block_size.get_val();
+	output_file <<"\nL2U_size " << mem.L2U.size.get_val() ;
+	output_file <<"\nL2U_associativity " << mem.L2U.associativity.get_val();
+	output_file <<"\n";
+	output_file <<"\n# level 1 instruction cache ";
+	output_file <<"\n";
+	output_file <<"\nL1I_blocksize " << mem.L1I.block_size.get_val();
+	output_file <<"\nL1I_subblocksize " << mem.L1I.block_size.get_val();
+	output_file <<"\nL1I_size " << mem.L1I.size.get_val();
+	output_file <<"\nL1I_associativity " << mem.L1I.associativity.get_val();
+	output_file <<"\n";
+	output_file <<"\n# level 1 data cache";
+	output_file <<"\n";
+	output_file <<"\nL1D_blocksize " << mem.L1D.block_size.get_val();
+	output_file <<"\nL1D_subblocksize " << mem.L1D.block_size.get_val();
+	output_file <<"\nL1D_size " << mem.L1D.size.get_val();
+	output_file <<"\nL1D_associativity " << mem.L1D.associativity.get_val();
+    }
+}
+
+void Trimaran_interface::load_mem_config(Mem_hierarchy* mem) const
+{
+    string cache_config_file = get_base_dir() + "/trimaran-workspace/cache.cfg";
+    std::ifstream input_file(cache_config_file.c_str());
+
+    int value ;
+
+    if (!input_file) 
+    {
+	cout << "\nError opening cache config file :" << cache_config_file;
+	wait_key();
+    }
+    else
+    {
+	// Note that subblock size value in config file is ignored 
+	// subblock size is assumed to be equal to block size
+
+	go_until("L2U_blocksize",input_file);
+	input_file >> value;
+	mem->L2U.block_size.set_val(value);
+	mem->L2U.subblock_size = mem->L2U.block_size.get_val();
+
+	go_until("L2U_size",input_file);
+	input_file >> value;
+	mem->L2U.size.set_val(value);
+
+	go_until("L2U_associativity",input_file);
+	input_file >> value;
+	mem->L2U.associativity.set_val(value);
+
+
+	go_until("L1I_blocksize",input_file);
+	input_file >> value;
+	mem->L1I.block_size.set_val(value);
+	mem->L1I.subblock_size = mem->L1I.block_size.get_val();
+
+	go_until("L1I_size",input_file);
+	input_file >> value;
+	mem->L1I.size.set_val(value);
+
+	go_until("L1I_associativity",input_file);
+	input_file >> value;
+	mem->L1I.associativity.set_val(value);
+
+
+	go_until("L1D_blocksize",input_file);
+	input_file >> value;
+	mem->L1D.block_size.set_val(value) ;
+	mem->L1D.subblock_size = mem->L1D.block_size.get_val();
+
+	go_until("L1D_size",input_file);
+	input_file >> value;
+	mem->L1D.size.set_val(value);
+
+	go_until("L1D_associativity",input_file);
+	input_file >> value;
+	mem->L1D.associativity.set_val(value);
+
+    }
+}
 
 

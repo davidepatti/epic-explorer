@@ -23,6 +23,7 @@
 #include <fstream>
 
 #include "processor.h"
+#include "mem_hierarchy.h"
 #include "common.h"
 
 
@@ -33,12 +34,15 @@ class Trimaran_interface {
 public: 
     
     
-    Trimaran_interface(); 
+    Trimaran_interface(const string& base_dir); 
     
     ~Trimaran_interface();
 
-	void set_benchmark(string& new_benchmark);
+	void set_benchmark(string new_benchmark);
 	void set_hyperblock(bool hyperblock);
+
+	void set_base_dir(const string& dir);
+	string get_base_dir() const;
 
 	string get_benchmark_name() const;
 
@@ -46,15 +50,19 @@ public:
 	void compile_benchmark();
 	void execute_benchmark();
 
+	void save_processor_config(const Processor&) const;
+	void load_processor_config(Processor*) const;
+
+	void save_mem_config(const Mem_hierarchy&) const;
+	void load_mem_config(Mem_hierarchy*) const;
+
 	Dynamic_stats get_dynamic_stats();
 
 private:
 
-	struct Settings 
-	{ 
-	    string benchmark; 
-	    bool hyperblock;
-	} settings ;
+	string current_benchmark; 
+	string base_dir;
+	bool do_hyperblock;
 
 	bool updated_dynamic_stats;
 

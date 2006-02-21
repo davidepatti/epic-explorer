@@ -41,13 +41,14 @@ public:
   Estimator estimator;
 
   Explorer(Trimaran_interface * ti);
-  Explorer();
 
   ~Explorer();
 
   // Functions to modify explorer options
     // multiobjective alternatives
   void set_options(const struct User_Settings& user_settings);
+  void set_base_dir(const string& dir);
+  string get_base_dir() const;
 
   // Exploration algorithms
 	
@@ -179,6 +180,8 @@ private:
 
   bool fuzzy_enabled;
   bool force_simulation;
+
+  string base_dir;
 
   string current_algo;
   string current_space;

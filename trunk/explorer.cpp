@@ -51,6 +51,8 @@ Explorer::Explorer(Trimaran_interface * ti)
     force_simulation = false;
 
     current_space = "SPACE_NOT_SET";
+
+    set_base_dir(ti->get_base_dir());
 }
 
 //********************************************************************
@@ -3348,7 +3350,7 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
 
 		time_t begin = time(NULL);
 
-		processor.save_config();
+		trimaran_interface->save_processor_config(processor);
 		trimaran_interface->compile_hmdes_file();
 		trimaran_interface->compile_benchmark();
 
@@ -3357,7 +3359,7 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
 		average_compilation_time = (int)(difftime(end,begin));
 	    }
 
-	    mem_hierarchy.save_cache_config();
+	    trimaran_interface->save_mem_config(mem_hierarchy);
 
 	    time_t t1 = time(NULL);
 	    trimaran_interface->execute_benchmark();
@@ -3428,21 +3430,10 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
     // restored
 
     processor.set_to_default();
-    processor.load_config();
+    trimaran_interface->save_processor_config(processor);
 
-    mem_hierarchy.L1D.size.set_to_default();
-    mem_hierarchy.L1D.block_size.set_to_default();
-    mem_hierarchy.L1D.associativity.set_to_default();
-
-    mem_hierarchy.L1I.size.set_to_default();
-    mem_hierarchy.L1I.block_size.set_to_default();
-    mem_hierarchy.L1I.associativity.set_to_default();
-
-    mem_hierarchy.L2U.size.set_to_default();
-    mem_hierarchy.L2U.block_size.set_to_default();
-    mem_hierarchy.L2U.associativity.set_to_default();
-
-    mem_hierarchy.save_cache_config();
+    mem_hierarchy.set_to_default();
+    trimaran_interface->save_mem_config(mem_hierarchy);
 
     sim_counter+=simulations.size();
 
@@ -4507,7 +4498,7 @@ void Explorer::load_space_file(const string& filename)
 	processor.config.btr_static_size.set_values(values,val);
 
 	processor.set_to_default();
-	processor.save_config();
+	trimaran_interface->save_processor_config(processor);
    }
 
 }
@@ -4640,4 +4631,16 @@ void Explorer::save_space_file(const string& filename)
 
     }
 
+}
+
+void Explorer::set_base_dir(const string& dir)
+{
+    base_dir = dir;
+    trimaran_interface->set_base_dir(dir);
+    estimator.set_base_dir(dir);
+}
+
+string Explorer::get_base_dir() const
+{
+    return base_dir;
 }

@@ -57,15 +57,11 @@ class Mem_hierarchy {
 	Cache L2U;
 
 	void set_to_default();
-	void load_cache_config();
-	void save_cache_config();
 	void print_cache_config(const Cache& cache) const;
 	bool test_valid_cache(const Cache& cache) const ;
 	bool test_valid_cache(int C, int B, int A) const ;
 	bool test_valid_config() const;
 
-    private:
-	string cache_config_file;
 };
 
 #endif
