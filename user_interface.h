@@ -39,15 +39,15 @@
 
 class User_interface {
 public: 
-	User_interface();
+	User_interface(const string& dir);
 	~User_interface();
 	void interact();
+	void set_base_dir(const string&);
 
 private:
-	string word;
 	struct User_Settings user_settings;
 
-	Trimaran_interface trimaran_interface;
+	Trimaran_interface * trimaran_interface;
 	Explorer * my_explorer;
 
 	int show_menu();
@@ -80,6 +80,8 @@ private:
 	void schedule_explorations();
 
 	inline string status_string(bool b);
+	string word;
+	string base_dir;
 };
 
 #endif

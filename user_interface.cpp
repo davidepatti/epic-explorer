@@ -20,15 +20,18 @@
 // uncomment this line if you want interface to be verbose
 //#define VERBOSE_INTERFACE
 
-User_interface::User_interface(){
+User_interface::User_interface(const string& dir){
 
-    string path = get_base_dir()+"/trimaran-workspace/epic-explorer/";
+    base_dir = dir;
+    string epic_path = base_dir+"/trimaran-workspace/epic-explorer/";
 
-    user_settings.default_settings_file = path+"epic_default.conf";
-    my_explorer = new Explorer(&trimaran_interface);
-    load_settings(user_settings.default_settings_file);
-    my_explorer->load_space_file(path+"SUBSPACES/default_space.sub");
+    trimaran_interface = new Trimaran_interface(base_dir);
+    my_explorer = new Explorer(trimaran_interface);
+    my_explorer->load_space_file(epic_path+"SUBSPACES/default_space.sub");
     my_explorer->set_space_name(string("default_space.sub"));
+
+    user_settings.default_settings_file = epic_path + "epic_default.conf";
+    load_settings(user_settings.default_settings_file);
 }
 
 User_interface::~User_interface(){
@@ -43,7 +46,7 @@ void User_interface::start_exploration_message()
 {
     cout << "\n Ok, you are ready to start exploration.";
     cout << "\n Results will be saved in the directory:\n";
-    cout << get_base_dir()+"/trimaran-workspace/epic-explorer";
+    cout << trimaran_interface->get_base_dir()+"/trimaran-workspace/epic-explorer";
 }
 
 
@@ -310,7 +313,7 @@ void User_interface::edit_user_settings()
 	cout << "\n (5) - save simulated spaces        --> " << status_string(user_settings.save_spaces);
 	cout << "\n (6) - save Trimaran PD_STATS files --> " << status_string(user_settings.save_PD_STATS);
 	cout << "\n (7) - save estimation detail files --> " << status_string(user_settings.save_estimation);
-	cout << "\n (8) - Benchmark                    --> " << trimaran_interface.get_benchmark_name();
+	cout << "\n (8) - Benchmark                    --> " << trimaran_interface->get_benchmark_name();
 	cout << "\n (9) - Automatic clock freq         --> " << status_string(user_settings.auto_clock);
 	cout << "\n ----------------------------------------------------------";
 	cout << "\n\n (s) - Save current settings to file";
@@ -324,7 +327,7 @@ void User_interface::edit_user_settings()
 	if (ch=='0') 
 	{
 	    user_settings.hyperblock = !user_settings.hyperblock;
-	    trimaran_interface.set_hyperblock(user_settings.hyperblock);
+	    trimaran_interface->set_hyperblock(user_settings.hyperblock);
 	}
 	if (ch=='1') user_settings.objective_area =   !user_settings.objective_area;
 	if (ch=='2') user_settings.objective_exec_time = !user_settings.objective_exec_time;
@@ -352,7 +355,7 @@ void User_interface::choose_benchmark() {
     cout << "\n-----------------------------------------------------------";
 
     string command = "ls ";
-    command+=get_base_dir()+"/trimaran/benchmarks";
+    command+=trimaran_interface->get_base_dir()+"/trimaran/benchmarks";
 
     //sleep(5); // to avoid that 'system' execute before last cout has completed
     system(command.c_str());
@@ -362,12 +365,12 @@ void User_interface::choose_benchmark() {
     string b;
     cin >> b;
 
-    trimaran_interface.set_benchmark(b);
+    trimaran_interface->set_benchmark(b);
     user_settings.benchmark = b;
 
     my_explorer->set_options(user_settings);
 
-    cout << "\n\n benchmark set to : " << trimaran_interface.get_benchmark_name();
+    cout << "\n\n benchmark set to : " << trimaran_interface->get_benchmark_name();
     cout << "\n IMPORTANT : If you want to make permanent this change you must save ";
     cout << "\n user settings from main menu...";
 
@@ -615,7 +618,7 @@ void User_interface::view_cache_config() {
 
 void User_interface::load_settings_wrapper()
 {
-   string base_dir = get_base_dir();
+   string base_dir = trimaran_interface->get_base_dir();
 
    base_dir+="/trimaran-workspace/epic-explorer/";
    string filename;
@@ -633,7 +636,7 @@ void User_interface::load_settings_wrapper()
 
 void User_interface::load_subspace_wrapper()
 {
-   string base_dir = get_base_dir();
+   string base_dir = trimaran_interface->get_base_dir();
 
    base_dir+="/trimaran-workspace/epic-explorer/SUBSPACES/";
    string filename;
@@ -702,11 +705,11 @@ void User_interface::load_settings(string settings_file)
 	go_until("hyperblock",input_file);
 	input_file >> word;
 	if (word=="ENABLED") user_settings.hyperblock = true;
-	trimaran_interface.set_hyperblock(user_settings.hyperblock);
+	trimaran_interface->set_hyperblock(user_settings.hyperblock);
 
 	go_until("benchmark",input_file);
 	input_file >> word;
-	trimaran_interface.set_benchmark(word);
+	trimaran_interface->set_benchmark(word);
 	user_settings.benchmark = word;
 
 	go_until("area",input_file);
@@ -747,7 +750,7 @@ void User_interface::load_settings(string settings_file)
 
 void User_interface::save_settings_wrapper()
 {
-   string base_dir = get_base_dir();
+   string base_dir = trimaran_interface->get_base_dir();
 
    base_dir +="/trimaran-workspace/epic-explorer/";
 
@@ -774,7 +777,7 @@ void User_interface::save_settings_wrapper()
 
 void User_interface::save_subspace_wrapper()
 {
-   string base_dir = get_base_dir();
+   string base_dir = trimaran_interface->get_base_dir();
 
    base_dir +="/trimaran-workspace/epic-explorer/SUBSPACES/";
 
@@ -936,7 +939,7 @@ void User_interface::reload_hmdes_file()
 {
 
     cout << "\n\n Loading processor config from hmdes file ...";
-    my_explorer->processor.load_config();
+    trimaran_interface->load_processor_config(&(my_explorer->processor));
 
    cout << "\n\n Updated processor config ";
 }
@@ -944,7 +947,7 @@ void User_interface::reload_hmdes_file()
 void User_interface::reload_memhierarchy_config()
 {
     cout << "\n\n Loading cache config from cache.cgf file ";
-    my_explorer->mem_hierarchy.load_cache_config();
+    trimaran_interface->load_mem_config(&(my_explorer->mem_hierarchy));
 }
 
 
@@ -958,23 +961,23 @@ void User_interface::compile_hmdes_file() {
     wait_key();
 #endif
 
-    trimaran_interface.compile_hmdes_file();
+    trimaran_interface->compile_hmdes_file();
 }
 
 void User_interface::compile_benchmark() {
 
-    trimaran_interface.compile_benchmark();
+    trimaran_interface->compile_benchmark();
 }
 
 void User_interface::execute_benchmark() {
 
-    trimaran_interface.execute_benchmark();
+    trimaran_interface->execute_benchmark();
 }
 
 void User_interface::view_statistics() {
 
     system("clear");
-    Dynamic_stats dynamic_stats = trimaran_interface.get_dynamic_stats();
+    Dynamic_stats dynamic_stats = trimaran_interface->get_dynamic_stats();
 
     cout << "\n D y n a m i c  S t a t s ";
 
@@ -1016,7 +1019,7 @@ void User_interface::compute_cost() {
 
     system("clear");
 
-    Dynamic_stats dynamic_stats = trimaran_interface.get_dynamic_stats();
+    Dynamic_stats dynamic_stats = trimaran_interface->get_dynamic_stats();
     Estimate estimate = my_explorer->estimator.get_estimate(dynamic_stats,my_explorer->mem_hierarchy,my_explorer->processor);
 
     cout << "\n\n";
@@ -1060,13 +1063,20 @@ void User_interface::compute_cost() {
 void User_interface::save_processor_config() {
 
     cout << "\n Saving current process configuration ...";
-    my_explorer->processor.save_config();
+    trimaran_interface->save_processor_config(my_explorer->processor);
 }
 
 void User_interface::save_cache_config() {
     cout << "\n Saving current cache config ...";
 
-    my_explorer->mem_hierarchy.save_cache_config();
+    trimaran_interface->save_mem_config(my_explorer->mem_hierarchy);
+}
+
+void User_interface::set_base_dir(const string& dir)
+{
+    base_dir = dir;
+    trimaran_interface->set_base_dir(dir);
+    my_explorer->set_base_dir(dir);
 }
 
 

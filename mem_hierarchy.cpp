@@ -19,9 +19,6 @@
 
 Mem_hierarchy::Mem_hierarchy(){
 
-    string home = string(getenv("HOME"));
-
-    cache_config_file = home+"/trimaran-workspace/cache.cfg";
 
     // L1 Data cache 
     L1D.label = "L1_data";
@@ -57,101 +54,6 @@ void Mem_hierarchy::set_to_default()
     L1D.subblock_size = L1D.block_size.get_val();
     L1I.subblock_size = L1I.block_size.get_val();
     L2U.subblock_size = L2U.block_size.get_val();
-}
-
-void Mem_hierarchy::load_cache_config()
-{
-    std::ifstream input_file(cache_config_file.c_str());
-
-    int value ;
-
-    if (!input_file) 
-    {
-	cout << "\nError opening cache config file :" << cache_config_file;
-	wait_key();
-    }
-    else
-    {
-	// Note that subblock size value in config file is ignored 
-	// subblock size is assumed to be equal to block size
-
-	go_until("L2U_blocksize",input_file);
-	input_file >> value;
-	L2U.block_size.set_val(value);
-	L2U.subblock_size = L2U.block_size.get_val();
-
-	go_until("L2U_size",input_file);
-	input_file >> value;
-	L2U.size.set_val(value);
-
-	go_until("L2U_associativity",input_file);
-	input_file >> value;
-	L2U.associativity.set_val(value);
-
-
-	go_until("L1I_blocksize",input_file);
-	input_file >> value;
-	L1I.block_size.set_val(value);
-	L1I.subblock_size = L1I.block_size.get_val();
-
-	go_until("L1I_size",input_file);
-	input_file >> value;
-	L1I.size.set_val(value);
-
-	go_until("L1I_associativity",input_file);
-	input_file >> value;
-	L1I.associativity.set_val(value);
-
-
-	go_until("L1D_blocksize",input_file);
-	input_file >> value;
-	L1D.block_size.set_val(value) ;
-	L1D.subblock_size = L1D.block_size.get_val();
-
-	go_until("L1D_size",input_file);
-	input_file >> value;
-	L1D.size.set_val(value);
-
-	go_until("L1D_associativity",input_file);
-	input_file >> value;
-	L1D.associativity.set_val(value);
-
-    }
-}
-
-void Mem_hierarchy::save_cache_config()
-{
-    std::ofstream output_file(cache_config_file.c_str());
-
-    if (!output_file) 
-    {
-	cout << "\nerror opening hmdes file :" << cache_config_file;
-	wait_key();
-    }
-    else
-    {
-	output_file <<"\n# EPIC explorer cache configuration ";
-	output_file <<"\n";
-	output_file <<"\n# level 2 unified cache";
-	output_file <<"\nL2U_blocksize " << L2U.block_size.get_val();
-	output_file <<"\nL2U_subblocksize " << L2U.block_size.get_val();
-	output_file <<"\nL2U_size " << L2U.size.get_val() ;
-	output_file <<"\nL2U_associativity " << L2U.associativity.get_val();
-	output_file <<"\n";
-	output_file <<"\n# level 1 instruction cache ";
-	output_file <<"\n";
-	output_file <<"\nL1I_blocksize " << L1I.block_size.get_val();
-	output_file <<"\nL1I_subblocksize " << L1I.block_size.get_val();
-	output_file <<"\nL1I_size " << L1I.size.get_val();
-	output_file <<"\nL1I_associativity " << L1I.associativity.get_val();
-	output_file <<"\n";
-	output_file <<"\n# level 1 data cache";
-	output_file <<"\n";
-	output_file <<"\nL1D_blocksize " << L1D.block_size.get_val();
-	output_file <<"\nL1D_subblocksize " <<L1D.block_size.get_val();
-	output_file <<"\nL1D_size " << L1D.size.get_val();
-	output_file <<"\nL1D_associativity " << L1D.associativity.get_val();
-    }
 }
 
 void Mem_hierarchy::print_cache_config(const Cache& cache) const 

@@ -71,6 +71,8 @@ public:
 
 	Estimate get_estimate(const Dynamic_stats& dynamic_stats, const Mem_hierarchy&, const Processor& processor );
 	void set_autoclock(bool enabled);
+
+	void set_base_dir(const string& dir);
 	
 private:
 	double CLOCK_FREQ;
@@ -78,6 +80,7 @@ private:
 	double POWER_DENSITY_SCALE;
 
 	bool autoclock;
+	string base_dir;
 
 	typedef struct 
 	{

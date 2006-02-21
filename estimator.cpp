@@ -29,8 +29,7 @@
 
 Estimator::Estimator(){
 
-    cache_config_file = get_base_dir()+"/trimaran-workspace/cache.cfg";
-    tmp_transitions_file = get_base_dir()+"/trimaran-workspace/epic-explorer/tmp_transition";
+    set_base_dir(string(getenv("HOME")));
 
     set_autoclock(false);
 }
@@ -975,5 +974,12 @@ Estimate Estimator::get_estimate(const Dynamic_stats& dyn_stats, const Mem_hiera
     estimate.processor_area = get_processor_area(processor);
     estimate.total_area = estimate.L1D_area + estimate.L1I_area + estimate.L2U_area + estimate.processor_area;
     return estimate;
+}
+
+void Estimator::set_base_dir(const string& dir)
+{
+    base_dir = dir;
+    cache_config_file = base_dir + "/trimaran-workspace/cache.cfg";
+    tmp_transitions_file = base_dir + "/trimaran-workspace/epic-explorer/tmp_transition";
 }
 
