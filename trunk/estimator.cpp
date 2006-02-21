@@ -174,21 +174,21 @@ double Estimator::get_processor_energy(const Dynamic_stats& dyn_stats,
     area_decode.memory_area = DECODE_MEMORY_AREA,
     area_decode.pla_area = DECODE_PLA_AREA,
 
-    n_units = processor.config.integer_units.get_val(); 
+    n_units = processor.integer_units.get_val(); 
     int_units_energy = get_functional_unit_energy( total_cycles, ialu_ops,area_ialu, n_units);
 
-    n_units = processor.config.float_units.get_val();
+    n_units = processor.float_units.get_val();
     float_units_energy = get_functional_unit_energy( total_cycles, falu_ops,area_falu, n_units);
 
     // Each cmp (compare to predicate ) op uses a branch unit to
     // evaluate branch condition.
 
-    n_units = processor.config.branch_units.get_val();
+    n_units = processor.branch_units.get_val();
     branch_units_energy = get_functional_unit_energy( total_cycles, cmp_ops, area_ialu, n_units);
 
     //each load/store op uses a memory unit
 
-    n_units = processor.config.memory_units.get_val();
+    n_units = processor.memory_units.get_val();
     mem_units_energy = get_functional_unit_energy ( total_cycles, mem_ops, area_ialu, n_units);
 
 
@@ -208,7 +208,7 @@ double Estimator::get_processor_energy(const Dynamic_stats& dyn_stats,
     //
     //NOTE: rotating size is assumed = static size
 
-    words = processor.config.gpr_static_size.get_val() + processor.config.gpr_static_size.get_val();
+    words = processor.gpr_static_size.get_val() + processor.gpr_static_size.get_val();
 
     double gpr_ps = get_registerfile_standbypower(words,32);
     double gpr_pd = get_registerfile_dynamic_power(words,32);
@@ -221,7 +221,7 @@ double Estimator::get_processor_energy(const Dynamic_stats& dyn_stats,
     /////////////// floating point register file /////////////////////
     //
 
-    words = processor.config.fpr_static_size.get_val() + processor.config.fpr_static_size.get_val();
+    words = processor.fpr_static_size.get_val() + processor.fpr_static_size.get_val();
 
     double fp_ps = get_registerfile_standbypower(words,64);
     double fp_pd = get_registerfile_dynamic_power(words,64);
@@ -237,7 +237,7 @@ double Estimator::get_processor_energy(const Dynamic_stats& dyn_stats,
     // ....and each branch operation read from a btr the branch
     // destination 
 
-    words = processor.config.btr_static_size.get_val();
+    words = processor.btr_static_size.get_val();
 
     double bt_register_file_ps = get_registerfile_standbypower(words,64);
     double bt_register_file_pd = get_registerfile_dynamic_power(words,64);
@@ -252,7 +252,7 @@ double Estimator::get_processor_energy(const Dynamic_stats& dyn_stats,
     // Each compare to predicate op write to a predicate register 
     //
 
-    words = processor.config.pr_static_size.get_val() + processor.config.pr_static_size.get_val();
+    words = processor.pr_static_size.get_val() + processor.pr_static_size.get_val();
 
     double pr_ps = get_registerfile_standbypower(words,1);
     double pr_pd = get_registerfile_dynamic_power(words,1);
@@ -264,7 +264,7 @@ double Estimator::get_processor_energy(const Dynamic_stats& dyn_stats,
     
     ///////////// control register file ///////////////////////////////
 
-    words = processor.config.cr_static_size.get_val() + processor.config.cr_static_size.get_val();
+    words = processor.cr_static_size.get_val() + processor.cr_static_size.get_val();
 
     double cr_ps = get_registerfile_standbypower(words,32);
     double cr_pd = get_registerfile_dynamic_power(words,32);
@@ -310,10 +310,10 @@ int Estimator::max_reg_size(const Processor& p) {
 
     int max_size = 0;
 
-    int gpr_size = p.config.gpr_static_size.get_val()+p.config.gpr_static_size.get_val();
-    int fpr_size = p.config.fpr_static_size.get_val()+p.config.fpr_static_size.get_val();
-    int btr_size = p.config.btr_static_size.get_val();
-    int pr_size = p.config.pr_static_size.get_val()+p.config.pr_static_size.get_val();
+    int gpr_size = p.gpr_static_size.get_val()+p.gpr_static_size.get_val();
+    int fpr_size = p.fpr_static_size.get_val()+p.fpr_static_size.get_val();
+    int btr_size = p.btr_static_size.get_val();
+    int pr_size = p.pr_static_size.get_val()+p.pr_static_size.get_val();
 
     if (gpr_size>max_size) max_size = gpr_size;
     if (fpr_size>max_size) max_size = fpr_size;
@@ -468,11 +468,11 @@ double Estimator::get_processor_area(const Processor& processor)
     double addr_unit_increase = 19412;
     double branch_unit_increase = 12736;
 
-    double ck4 = (processor.config.integer_units.get_val() + 
-	         processor.config.float_units.get_val() ) * alu_increase;
+    double ck4 = (processor.integer_units.get_val() + 
+	         processor.float_units.get_val() ) * alu_increase;
 
-    ck4 += processor.config.memory_units.get_val() * addr_unit_increase;
-    ck4 += processor.config.branch_units.get_val() * branch_unit_increase;
+    ck4 += processor.memory_units.get_val() * addr_unit_increase;
+    ck4 += processor.branch_units.get_val() * branch_unit_increase;
 
     // total processor kernel area
     
@@ -490,14 +490,14 @@ double Estimator::get_processor_area(const Processor& processor)
     // NOTE:
     // register size = static + rotating , but rotating is assumed
     // equal to static portion
-    int n_regs_32bit =processor.config.gpr_static_size.get_val()+
-   		      processor.config.gpr_static_size.get_val()+
-		      processor.config.cr_static_size.get_val()+
-		      processor.config.cr_static_size.get_val();
+    int n_regs_32bit =processor.gpr_static_size.get_val()+
+   		      processor.gpr_static_size.get_val()+
+		      processor.cr_static_size.get_val()+
+		      processor.cr_static_size.get_val();
 
-    int n_regs_64bit = processor.config.fpr_static_size.get_val() + 
-	               processor.config.fpr_static_size.get_val()+
-		       processor.config.btr_static_size.get_val();
+    int n_regs_64bit = processor.fpr_static_size.get_val() + 
+	               processor.fpr_static_size.get_val()+
+		       processor.btr_static_size.get_val();
 
 
     // missing pr , only 1 bit width 
@@ -512,10 +512,10 @@ double Estimator::get_processor_area(const Processor& processor)
     // factor 1.32353 is derived from area values of power_conf file in PowerImpact
     // source, as the result of (area_falu/area_ialu)
    
-    double int_units_area = processor.config.integer_units.get_val()*151194 ;
-    double float_units_area = processor.config.float_units.get_val()*151194*1.32353;
-    double addr_units_area = 30535 * processor.config.memory_units.get_val();
-    double branch_units_area = processor.config.branch_units.get_val()*151194;
+    double int_units_area = processor.integer_units.get_val()*151194 ;
+    double float_units_area = processor.float_units.get_val()*151194*1.32353;
+    double addr_units_area = 30535 * processor.memory_units.get_val();
+    double branch_units_area = processor.branch_units.get_val()*151194;
 
     double units_area = int_units_area + float_units_area + addr_units_area + branch_units_area;
 

@@ -106,9 +106,9 @@ struct Rule {
 
 struct Configuration
 {
-  int L1D_block; int L1D_size; int L1D_assoc;
-  int L1I_block; int L1I_size; int L1I_assoc;
-  int L2U_block; int L2U_size; int L2U_assoc;
+  int L1D_block, L1D_size, L1D_assoc;
+  int L1I_block, L1I_size, L1I_assoc;
+  int L2U_block, L2U_size, L2U_assoc;
   
   int integer_units; int float_units; int memory_units; int branch_units;
   

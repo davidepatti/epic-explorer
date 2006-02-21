@@ -140,3 +140,17 @@ bool Mem_hierarchy::test_valid_cache(const Cache& cache) const
 Mem_hierarchy::~Mem_hierarchy(){
 }
 
+void Mem_hierarchy::set_config(const Configuration& conf)
+{
+    L1D.size.set_val(conf.L1D_size);
+    L1D.block_size.set_val(conf.L1D_block);
+    L1D.associativity.set_val(conf.L1D_assoc);
+    L1I.size.set_val(conf.L1I_size);
+    L1I.block_size.set_val(conf.L1I_block);
+    L1I.associativity.set_val(conf.L1I_assoc);
+    L2U.size.set_val(conf.L2U_size);
+    L2U.block_size.set_val(conf.L2U_block);
+    L2U.associativity.set_val(conf.L2U_assoc);
+}
+
+

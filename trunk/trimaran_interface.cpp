@@ -362,22 +362,22 @@ void Trimaran_interface::save_processor_config(const Processor& p) const
 	output_file << "\n\n";
 	output_file << "\n// Register file sizes ";
 	output_file << "\n\n";
-	output_file << "\n$def !gpr_static_size\t" << p.config.gpr_static_size.get_val();
-	output_file << "\n$def !gpr_rotating_size\t" << p.config.gpr_static_size.get_val();
-	output_file << "\n$def !fpr_static_size\t" <<   p.config.fpr_static_size.get_val();
-	output_file << "\n$def !fpr_rotating_size\t" << p.config.fpr_static_size.get_val();
-	output_file << "\n$def !pr_static_size\t" <<    p.config.pr_static_size.get_val();
-	output_file << "\n$def !pr_rotating_size\t" <<  p.config.pr_static_size.get_val();
-	output_file << "\n$def !cr_static_size\t" <<    p.config.cr_static_size.get_val();
-	output_file << "\n$def !cr_rotating_size\t" <<  p.config.cr_static_size.get_val();
-	output_file << "\n$def !btr_static_size\t" <<   p.config.btr_static_size.get_val();
+	output_file << "\n$def !gpr_static_size\t" << p.gpr_static_size.get_val();
+	output_file << "\n$def !gpr_rotating_size\t" << p.gpr_static_size.get_val();
+	output_file << "\n$def !fpr_static_size\t" <<   p.fpr_static_size.get_val();
+	output_file << "\n$def !fpr_rotating_size\t" << p.fpr_static_size.get_val();
+	output_file << "\n$def !pr_static_size\t" <<    p.pr_static_size.get_val();
+	output_file << "\n$def !pr_rotating_size\t" <<  p.pr_static_size.get_val();
+	output_file << "\n$def !cr_static_size\t" <<    p.cr_static_size.get_val();
+	output_file << "\n$def !cr_rotating_size\t" <<  p.cr_static_size.get_val();
+	output_file << "\n$def !btr_static_size\t" <<   p.btr_static_size.get_val();
 
 	output_file << "\n\n// Functional Units \n";
 
-	output_file << "\n$def !integer_units\t" << p.config.integer_units.get_val();
-	output_file << "\n$def !float_units\t" <<   p.config.float_units.get_val();
-	output_file << "\n$def !memory_units\t" <<  p.config.memory_units.get_val();
-	output_file << "\n$def !branch_units\t" <<  p.config.branch_units.get_val();
+	output_file << "\n$def !integer_units\t" << p.integer_units.get_val();
+	output_file << "\n$def !float_units\t" <<   p.float_units.get_val();
+	output_file << "\n$def !memory_units\t" <<  p.memory_units.get_val();
+	output_file << "\n$def !branch_units\t" <<  p.branch_units.get_val();
     }
 }
 
@@ -404,38 +404,38 @@ void Trimaran_interface::load_processor_config(Processor* p) const
 	/// Register files sizes ////////////////////////////////////
 	go_until("!gpr_static_size",input_file);
 	input_file>>val;
-	p->config.gpr_static_size.set_val(val);
+	p->gpr_static_size.set_val(val);
 
 	go_until("!fpr_static_size",input_file);
 	input_file>>val;
-	p->config.fpr_static_size.set_val(val);
+	p->fpr_static_size.set_val(val);
 
 	go_until("!pr_static_size",input_file);
 	input_file>>val;
 
-	p->config.pr_static_size.set_val(val);
+	p->pr_static_size.set_val(val);
 
 	go_until("!cr_static_size",input_file);
 	input_file>>val;
-	p->config.cr_static_size.set_val(val);
+	p->cr_static_size.set_val(val);
 
 	go_until("!btr_static_size",input_file);
 	input_file>>val;
-	p->config.btr_static_size.set_val(val);
+	p->btr_static_size.set_val(val);
 
 	//// Functional units ////////////////////////
 
 	go_until("!integer_units",input_file);
 	input_file>>val;
-	p->config.integer_units.set_val(val);
+	p->integer_units.set_val(val);
 
 	go_until("!float_units",input_file);
 	input_file>>val;
-	p->config.float_units.set_val(val);
+	p->float_units.set_val(val);
 
 	go_until("!memory_units",input_file);
 	input_file>>val;
-	p->config.memory_units.set_val(val);
+	p->memory_units.set_val(val);
 
 	if (val==1) 
 	{
@@ -448,7 +448,7 @@ void Trimaran_interface::load_processor_config(Processor* p) const
 
 	go_until("!branch_units",input_file);
 	input_file>>val;
-	p->config.branch_units.set_val(val);
+	p->branch_units.set_val(val);
     }
 }
 

@@ -117,15 +117,15 @@ void Explorer::start_RAND(int n)
 
     for(int i=0;i<n;i++)
     {
-	processor.config.integer_units.set_random();
-	processor.config.float_units.set_random();
-	processor.config.branch_units.set_random();
-	processor.config.memory_units.set_random();
-	processor.config.gpr_static_size.set_random();
-	processor.config.fpr_static_size.set_random();
-	processor.config.pr_static_size.set_random();
-	processor.config.cr_static_size.set_random();
-	processor.config.btr_static_size.set_random();
+	processor.integer_units.set_random();
+	processor.float_units.set_random();
+	processor.branch_units.set_random();
+	processor.memory_units.set_random();
+	processor.gpr_static_size.set_random();
+	processor.fpr_static_size.set_random();
+	processor.pr_static_size.set_random();
+	processor.cr_static_size.set_random();
+	processor.btr_static_size.set_random();
 	mem_hierarchy.L1D.size.set_random();
 	mem_hierarchy.L1D.block_size.set_random();
 	mem_hierarchy.L1D.associativity.set_random();
@@ -1979,15 +1979,15 @@ void Explorer::init_GA(SPEA& ga, ExportUserData* eud,GA_parameters* ga_parameter
   alleles.push_back(values2alleles(mem_hierarchy.L2U.associativity.get_values()));
 
   // processor parameters
-  alleles.push_back(values2alleles(processor.config.integer_units.get_values()));
-  alleles.push_back(values2alleles(processor.config.float_units.get_values()));
-  alleles.push_back(values2alleles(processor.config.memory_units.get_values()));
-  alleles.push_back(values2alleles(processor.config.branch_units.get_values()));
-  alleles.push_back(values2alleles(processor.config.gpr_static_size.get_values()));
-  alleles.push_back(values2alleles(processor.config.fpr_static_size.get_values()));
-  alleles.push_back(values2alleles(processor.config.cr_static_size.get_values()));
-  alleles.push_back(values2alleles(processor.config.pr_static_size.get_values()));
-  alleles.push_back(values2alleles(processor.config.btr_static_size.get_values()));
+  alleles.push_back(values2alleles(processor.integer_units.get_values()));
+  alleles.push_back(values2alleles(processor.float_units.get_values()));
+  alleles.push_back(values2alleles(processor.memory_units.get_values()));
+  alleles.push_back(values2alleles(processor.branch_units.get_values()));
+  alleles.push_back(values2alleles(processor.gpr_static_size.get_values()));
+  alleles.push_back(values2alleles(processor.fpr_static_size.get_values()));
+  alleles.push_back(values2alleles(processor.cr_static_size.get_values()));
+  alleles.push_back(values2alleles(processor.pr_static_size.get_values()));
+  alleles.push_back(values2alleles(processor.btr_static_size.get_values()));
 
   IND individual(alleles, GA_Evaluator, eud);
   individual.metric(DefaultObjectiveDistance);
@@ -2023,15 +2023,15 @@ void Explorer::init_GA_Fuzzy(SPEA& ga, ExportUserData* eud,GA_parameters* ga_par
   alleles.push_back(values2alleles(mem_hierarchy.L2U.associativity.get_values()));
 
   // processor parameters
-  alleles.push_back(values2alleles(processor.config.integer_units.get_values()));
-  alleles.push_back(values2alleles(processor.config.float_units.get_values()));
-  alleles.push_back(values2alleles(processor.config.memory_units.get_values()));
-  alleles.push_back(values2alleles(processor.config.branch_units.get_values()));
-  alleles.push_back(values2alleles(processor.config.gpr_static_size.get_values()));
-  alleles.push_back(values2alleles(processor.config.fpr_static_size.get_values()));
-  alleles.push_back(values2alleles(processor.config.cr_static_size.get_values()));
-  alleles.push_back(values2alleles(processor.config.pr_static_size.get_values()));
-  alleles.push_back(values2alleles(processor.config.btr_static_size.get_values()));
+  alleles.push_back(values2alleles(processor.integer_units.get_values()));
+  alleles.push_back(values2alleles(processor.float_units.get_values()));
+  alleles.push_back(values2alleles(processor.memory_units.get_values()));
+  alleles.push_back(values2alleles(processor.branch_units.get_values()));
+  alleles.push_back(values2alleles(processor.gpr_static_size.get_values()));
+  alleles.push_back(values2alleles(processor.fpr_static_size.get_values()));
+  alleles.push_back(values2alleles(processor.cr_static_size.get_values()));
+  alleles.push_back(values2alleles(processor.pr_static_size.get_values()));
+  alleles.push_back(values2alleles(processor.btr_static_size.get_values()));
 
   IND individual(alleles, GA_Fuzzy_Evaluator, eud);
   individual.metric(DefaultObjectiveDistance);
@@ -2670,16 +2670,16 @@ Configuration Explorer::create_configuration(const Processor& p,const Mem_hierar
 {
     Configuration conf;
 
-    conf.gpr_static_size = processor.config.gpr_static_size.get_val();
-    conf.fpr_static_size = processor.config.fpr_static_size.get_val();
-    conf.pr_static_size = processor.config.pr_static_size.get_val();
-    conf.cr_static_size = processor.config.cr_static_size.get_val();
-    conf.btr_static_size = processor.config.btr_static_size.get_val();
+    conf.gpr_static_size = processor.gpr_static_size.get_val();
+    conf.fpr_static_size = processor.fpr_static_size.get_val();
+    conf.pr_static_size = processor.pr_static_size.get_val();
+    conf.cr_static_size = processor.cr_static_size.get_val();
+    conf.btr_static_size = processor.btr_static_size.get_val();
 
-    conf.integer_units = processor.config.integer_units.get_val();
-    conf.float_units = processor.config.float_units.get_val();
-    conf.branch_units = processor.config.branch_units.get_val();
-    conf.memory_units = processor.config.memory_units.get_val();
+    conf.integer_units = processor.integer_units.get_val();
+    conf.float_units = processor.float_units.get_val();
+    conf.branch_units = processor.branch_units.get_val();
+    conf.memory_units = processor.memory_units.get_val();
 
     conf.L1D_size = mem.L1D.size.get_val();
     conf.L1D_block = mem.L1D.block_size.get_val();
@@ -2702,16 +2702,16 @@ Configuration Explorer::create_configuration() const
 
      Configuration default_config;
 
-     default_config.gpr_static_size = processor.config.gpr_static_size.get_default();
-     default_config.fpr_static_size = processor.config.fpr_static_size.get_default();
-     default_config.pr_static_size = processor.config.pr_static_size.get_default();
-     default_config.cr_static_size = processor.config.cr_static_size.get_default();
-     default_config.btr_static_size = processor.config.btr_static_size.get_default();
+     default_config.gpr_static_size = processor.gpr_static_size.get_default();
+     default_config.fpr_static_size = processor.fpr_static_size.get_default();
+     default_config.pr_static_size = processor.pr_static_size.get_default();
+     default_config.cr_static_size = processor.cr_static_size.get_default();
+     default_config.btr_static_size = processor.btr_static_size.get_default();
 
-     default_config.integer_units = processor.config.integer_units.get_default();
-     default_config.float_units = processor.config.float_units.get_default();
-     default_config.memory_units = processor.config.memory_units.get_default();
-     default_config.branch_units = processor.config.branch_units.get_default();
+     default_config.integer_units = processor.integer_units.get_default();
+     default_config.float_units = processor.float_units.get_default();
+     default_config.memory_units = processor.memory_units.get_default();
+     default_config.branch_units = processor.branch_units.get_default();
 
      default_config.L1D_size = mem_hierarchy.L1D.size.get_default();
      default_config.L1D_block = mem_hierarchy.L1D.block_size.get_default();
@@ -3182,10 +3182,10 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
 	// available a save_simultation() function 
 
 	vector<Simulation> pseudo_sims;
+	Simulation pseudo_sim;
 
 	for (unsigned int i = 0;i< space.size();i++)
 	{
-	    Simulation pseudo_sim;
 	    pseudo_sim.config = space[i];
 	    pseudo_sim.area = 0.0;
 	    pseudo_sim.exec_time = 0.0;
@@ -3213,12 +3213,10 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
 
     vector<Configuration> previous_space = extract_space(previous_simulations);
 
-    if ((Options.benchmark==previous_benchmark) 
-	    && (Options.hyperblock==previous_hyperblock)
-	    && equivalent_spaces(previous_space,space)) 
-    {
-	return previous_simulations;// return here, without simulating 
-    }
+    if ((Options.benchmark==previous_benchmark) && 
+	(Options.hyperblock==previous_hyperblock) &&
+	 equivalent_spaces(previous_space,space)) 
+	    return previous_simulations;// return here, without simulating 
     // -------------------------------------------------------------------
 
 
@@ -3243,37 +3241,24 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
     // -------------------------------------------------------------------
     if (do_simulation)
     {
-
 	// here are stored the values of the last simulation
 	Configuration last_config;
 
 	if (previous_simulations.size()>0)
-	{
 	    last_config = previous_simulations[previous_simulations.size()-1].config;
-
-	    last_integer_units = last_config.integer_units;
-	    last_float_units = last_config.float_units;
-	    last_branch_units = last_config.branch_units;
-	    last_memory_units = last_config.memory_units;
-	    last_gpr_static_size = last_config.gpr_static_size;
-	    last_fpr_static_size = last_config.fpr_static_size;
-	    last_pr_static_size = last_config.pr_static_size;
-	    last_cr_static_size = last_config.cr_static_size;
-	    last_btr_static_size = last_config.btr_static_size;
-	}
 	else 
 	    // this is the first call of simulate_space(...)
 	    // current config should always be considered a new one
 	{
-	    last_integer_units = -1;
-	    last_float_units = -1;
-	    last_branch_units = -1;
-	    last_memory_units = -1;
-	    last_gpr_static_size = -1;
-	    last_fpr_static_size = -1;
-	    last_pr_static_size = -1;
-	    last_cr_static_size = -1;
-	    last_btr_static_size = -1;
+	    last_config.integer_units = -1;
+	    last_config.float_units = -1;
+	    last_config.branch_units = -1;
+	    last_config.memory_units = -1;
+	    last_config.gpr_static_size = -1;
+	    last_config.fpr_static_size = -1;
+	    last_config.pr_static_size = -1;
+	    last_config.cr_static_size = -1;
+	    last_config.btr_static_size = -1;
 	}
 
 	// Even if the simulate_space(...) call uses the same space of the previous call,
@@ -3293,26 +3278,10 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
 
 	temp_sim.config = space[i];
 
-	processor.config.integer_units.set_val(temp_sim.config.integer_units);
-	processor.config.float_units.set_val(temp_sim.config.float_units);
-	processor.config.branch_units.set_val(temp_sim.config.branch_units);
-	processor.config.memory_units.set_val(temp_sim.config.memory_units);
+	processor.set_config(space[i]);
+	mem_hierarchy.set_config(space[i]);
 
-	processor.config.gpr_static_size.set_val(temp_sim.config.gpr_static_size);
-	processor.config.fpr_static_size.set_val(temp_sim.config.fpr_static_size);
-	processor.config.pr_static_size.set_val(temp_sim.config.pr_static_size);
-	processor.config.cr_static_size.set_val(temp_sim.config.cr_static_size);
-	processor.config.btr_static_size.set_val(temp_sim.config.btr_static_size);
 
-	mem_hierarchy.L1D.size.set_val(temp_sim.config.L1D_size);
-	mem_hierarchy.L1D.block_size.set_val(temp_sim.config.L1D_block);
-	mem_hierarchy.L1D.associativity.set_val(temp_sim.config.L1D_assoc);
-	mem_hierarchy.L1I.size.set_val(temp_sim.config.L1I_size);
-	mem_hierarchy.L1I.block_size.set_val(temp_sim.config.L1I_block);
-	mem_hierarchy.L1I.associativity.set_val(temp_sim.config.L1I_assoc);
-	mem_hierarchy.L2U.size.set_val(temp_sim.config.L2U_size);
-	mem_hierarchy.L2U.block_size.set_val(temp_sim.config.L2U_block);
-	mem_hierarchy.L2U.associativity.set_val(temp_sim.config.L2U_assoc);
 
 
 
@@ -3470,16 +3439,16 @@ void Explorer::save_estimation_file( const Dynamic_stats& dynamic_stats ,
 	output_file << "\n >>>>>>>> EPIC Explorer estimation file : " << filename;
 	output_file << "\n";
 	output_file << "\n **************************************************";
-	output_file << "\n GPR,FPR,PR,CR,BTR = " <<processor.config.gpr_static_size.get_val();
-	output_file << "," <<  processor.config.fpr_static_size.get_val();
-	output_file << "," <<  processor.config.pr_static_size.get_val();
-	output_file << "," <<  processor.config.cr_static_size.get_val();
-	output_file << "," <<  processor.config.btr_static_size.get_val();
+	output_file << "\n GPR,FPR,PR,CR,BTR = " <<processor.gpr_static_size.get_val();
+	output_file << "," <<  processor.fpr_static_size.get_val();
+	output_file << "," <<  processor.pr_static_size.get_val();
+	output_file << "," <<  processor.cr_static_size.get_val();
+	output_file << "," <<  processor.btr_static_size.get_val();
 
-	output_file << "\n IU,FPR,MU,BU =  " << processor.config.integer_units.get_val();
-	output_file << "," <<   processor.config.float_units.get_val();
-	output_file << "," <<  processor.config.memory_units.get_val();
-	output_file << "," <<  processor.config.branch_units.get_val();
+	output_file << "\n IU,FPR,MU,BU =  " << processor.integer_units.get_val();
+	output_file << "," <<   processor.float_units.get_val();
+	output_file << "," <<  processor.memory_units.get_val();
+	output_file << "," <<  processor.branch_units.get_val();
 
 	output_file <<"\n";
 	output_file <<"\n L2U Size,BSize,Assoc = " << mem.L2U.size.get_val() << "," << mem.L2U.block_size.get_val() << "," << mem.L2U.associativity.get_val();
@@ -3752,43 +3721,43 @@ vector<Configuration> Explorer::build_space(const Space_mask& mask,Configuration
 {
     vector<Configuration> space;
 
-    processor.config.integer_units.set_to_first();
+    processor.integer_units.set_to_first();
     do {
-	if (mask.integer_units) base_conf.integer_units=processor.config.integer_units.get_val();
-	processor.config.float_units.set_to_first();
+	if (mask.integer_units) base_conf.integer_units=processor.integer_units.get_val();
+	processor.float_units.set_to_first();
 
 	do {
-	    if (mask.float_units) base_conf.float_units=processor.config.float_units.get_val();
-	    processor.config.memory_units.set_to_first();
+	    if (mask.float_units) base_conf.float_units=processor.float_units.get_val();
+	    processor.memory_units.set_to_first();
 
 	    do {
-		if (mask.memory_units) base_conf.memory_units=processor.config.memory_units.get_val();
-		processor.config.branch_units.set_to_first();
+		if (mask.memory_units) base_conf.memory_units=processor.memory_units.get_val();
+		processor.branch_units.set_to_first();
 
 		do {
-		    if (mask.branch_units) base_conf.branch_units=processor.config.branch_units.get_val();
-		    processor.config.gpr_static_size.set_to_first();
+		    if (mask.branch_units) base_conf.branch_units=processor.branch_units.get_val();
+		    processor.gpr_static_size.set_to_first();
 
 		    do {
-			if (mask.gpr_static_size) base_conf.gpr_static_size=processor.config.gpr_static_size.get_val();
+			if (mask.gpr_static_size) base_conf.gpr_static_size=processor.gpr_static_size.get_val();
 
-			processor.config.fpr_static_size.set_to_first();
+			processor.fpr_static_size.set_to_first();
 
 			do {
-			    if (mask.fpr_static_size) base_conf.fpr_static_size=processor.config.fpr_static_size.get_val();
+			    if (mask.fpr_static_size) base_conf.fpr_static_size=processor.fpr_static_size.get_val();
 
-			    processor.config.pr_static_size.set_to_first();
+			    processor.pr_static_size.set_to_first();
 
 			    do {
-				if (mask.pr_static_size) base_conf.pr_static_size=processor.config.pr_static_size.get_val();
-				processor.config.cr_static_size.set_to_first();
+				if (mask.pr_static_size) base_conf.pr_static_size=processor.pr_static_size.get_val();
+				processor.cr_static_size.set_to_first();
 
 				do {
-				    if (mask.cr_static_size) base_conf.cr_static_size=processor.config.cr_static_size.get_val();
-				    processor.config.btr_static_size.set_to_first();
+				    if (mask.cr_static_size) base_conf.cr_static_size=processor.cr_static_size.get_val();
+				    processor.btr_static_size.set_to_first();
 
 				    do {
-					if (mask.btr_static_size) base_conf.btr_static_size=processor.config.btr_static_size.get_val();
+					if (mask.btr_static_size) base_conf.btr_static_size=processor.btr_static_size.get_val();
 
 					mem_hierarchy.L1D.size.set_to_first();
 
@@ -3846,17 +3815,17 @@ vector<Configuration> Explorer::build_space(const Space_mask& mask,Configuration
 						} while ( (mask.L1D_assoc)&&(mem_hierarchy.L1D.associativity.increase()));
 					    } while ( (mask.L1D_block)&&(mem_hierarchy.L1D.block_size.increase() ));
 					} while ( (mask.L1D_size)&&(mem_hierarchy.L1D.size.increase()));
-				    }while ( (mask.btr_static_size) && (processor.config.btr_static_size.increase() ) );
-				}while ( (mask.cr_static_size) && (processor.config.cr_static_size.increase() ) );
-			    }while ( (mask.pr_static_size) && (processor.config.pr_static_size.increase() ) );
-			} while ( (mask.fpr_static_size) && (processor.config.fpr_static_size.increase() ) );
-		    } while ( (mask.gpr_static_size) && (processor.config.gpr_static_size.increase() ) );
-		} while ( (mask.branch_units) && (processor.config.branch_units.increase()) );
-	    } while ( (mask.memory_units) && (processor.config.memory_units.increase()) ) ;
+				    }while ( (mask.btr_static_size) && (processor.btr_static_size.increase() ) );
+				}while ( (mask.cr_static_size) && (processor.cr_static_size.increase() ) );
+			    }while ( (mask.pr_static_size) && (processor.pr_static_size.increase() ) );
+			} while ( (mask.fpr_static_size) && (processor.fpr_static_size.increase() ) );
+		    } while ( (mask.gpr_static_size) && (processor.gpr_static_size.increase() ) );
+		} while ( (mask.branch_units) && (processor.branch_units.increase()) );
+	    } while ( (mask.memory_units) && (processor.memory_units.increase()) ) ;
 
-	} while( (mask.float_units) && (processor.config.float_units.increase()) );
+	} while( (mask.float_units) && (processor.float_units.increase()) );
 
-    } while ( (mask.integer_units) && (processor.config.integer_units.increase() ));
+    } while ( (mask.integer_units) && (processor.integer_units.increase() ));
 
     return space;
 
@@ -4074,16 +4043,16 @@ double Explorer::get_space_size(const Space_mask& mask) const
     double size = 1;
 
 
-    if (mask.gpr_static_size) size = size*(processor.config.gpr_static_size.get_size());
-    if (mask.fpr_static_size) size = size*(processor.config.fpr_static_size.get_size());
-    if (mask.pr_static_size) size = size*(processor.config.pr_static_size.get_size());
-    if (mask.cr_static_size) size = size*(processor.config.cr_static_size.get_size());
-    if (mask.btr_static_size) size = size*(processor.config.btr_static_size.get_size());
+    if (mask.gpr_static_size) size = size*(processor.gpr_static_size.get_size());
+    if (mask.fpr_static_size) size = size*(processor.fpr_static_size.get_size());
+    if (mask.pr_static_size) size = size*(processor.pr_static_size.get_size());
+    if (mask.cr_static_size) size = size*(processor.cr_static_size.get_size());
+    if (mask.btr_static_size) size = size*(processor.btr_static_size.get_size());
 
-    if (mask.integer_units) size = size*(processor.config.integer_units.get_size());
-    if (mask.float_units) size = size*(processor.config.float_units.get_size());
-    if (mask.memory_units) size = size*(processor.config.memory_units.get_size());
-    if (mask.branch_units) size = size*(processor.config.branch_units.get_size());
+    if (mask.integer_units) size = size*(processor.integer_units.get_size());
+    if (mask.float_units) size = size*(processor.float_units.get_size());
+    if (mask.memory_units) size = size*(processor.memory_units.get_size());
+    if (mask.branch_units) size = size*(processor.branch_units.get_size());
 
     if (mask.L1D_size) size = size*(mem_hierarchy.L1D.size.get_size());
     if (mask.L1D_block) size = size*(mem_hierarchy.L1D.block_size.get_size());
@@ -4279,32 +4248,32 @@ vector<pair<int,int> > Explorer::getParameterRanges()
 {
   vector<pair<int,int> > v;
 
-  v.push_back(pair<int,int>(processor.config.integer_units.get_first(),
-			    processor.config.integer_units.get_last()));
+  v.push_back(pair<int,int>(processor.integer_units.get_first(),
+			    processor.integer_units.get_last()));
 
-  v.push_back(pair<int,int>(processor.config.float_units.get_first(),
-			    processor.config.float_units.get_last()));
+  v.push_back(pair<int,int>(processor.float_units.get_first(),
+			    processor.float_units.get_last()));
 
-  v.push_back(pair<int,int>(processor.config.branch_units.get_first(),
-			    processor.config.branch_units.get_last()));
+  v.push_back(pair<int,int>(processor.branch_units.get_first(),
+			    processor.branch_units.get_last()));
 
-  v.push_back(pair<int,int>(processor.config.memory_units.get_first(),
-			    processor.config.memory_units.get_last()));
+  v.push_back(pair<int,int>(processor.memory_units.get_first(),
+			    processor.memory_units.get_last()));
 
-  v.push_back(pair<int,int>(processor.config.gpr_static_size.get_first(),
-			    processor.config.gpr_static_size.get_last()));
+  v.push_back(pair<int,int>(processor.gpr_static_size.get_first(),
+			    processor.gpr_static_size.get_last()));
 
-  v.push_back(pair<int,int>(processor.config.fpr_static_size.get_first(),
-			    processor.config.fpr_static_size.get_last()));
+  v.push_back(pair<int,int>(processor.fpr_static_size.get_first(),
+			    processor.fpr_static_size.get_last()));
 
-  v.push_back(pair<int,int>(processor.config.pr_static_size.get_first(),
-			    processor.config.pr_static_size.get_last()));
+  v.push_back(pair<int,int>(processor.pr_static_size.get_first(),
+			    processor.pr_static_size.get_last()));
 
-  v.push_back(pair<int,int>(processor.config.cr_static_size.get_first(),
-			    processor.config.cr_static_size.get_last()));
+  v.push_back(pair<int,int>(processor.cr_static_size.get_first(),
+			    processor.cr_static_size.get_last()));
 
-  v.push_back(pair<int,int>(processor.config.btr_static_size.get_first(),
-			    processor.config.btr_static_size.get_last()));
+  v.push_back(pair<int,int>(processor.btr_static_size.get_first(),
+			    processor.btr_static_size.get_last()));
 
   v.push_back(pair<int,int>(mem_hierarchy.L1D.size.get_first(),
 			    mem_hierarchy.L1D.size.get_last()));
@@ -4439,63 +4408,63 @@ void Explorer::load_space_file(const string& filename)
 	while ( (input_file>>val) && (val!=0)) { values.push_back(val); } // reads val until 0
 	input_file >> word; // skip default label
 	input_file >> val;  // get default value
-	processor.config.integer_units.set_values(values,val);
+	processor.integer_units.set_values(values,val);
 
 	values.clear();
 	input_file >> word; // skip parameter label
 	while ( (input_file>>val) && (val!=0)) { values.push_back(val); } // reads val until 0
 	input_file >> word; // skip default label
 	input_file >> val;  // get default value
-	processor.config.float_units.set_values(values,val);
+	processor.float_units.set_values(values,val);
 
 	values.clear();
 	input_file >> word; // skip parameter label
 	while ( (input_file>>val) && (val!=0)) { values.push_back(val); } // reads val until 0
 	input_file >> word; // skip default label
 	input_file >> val;  // get default value
-	processor.config.memory_units.set_values(values,val);
+	processor.memory_units.set_values(values,val);
 
 	values.clear();
 	input_file >> word; // skip parameter label
 	while ( (input_file>>val) && (val!=0)) { values.push_back(val); } // reads val until 0
 	input_file >> word; // skip default label
 	input_file >> val;  // get default value
-	processor.config.branch_units.set_values(values,val);
+	processor.branch_units.set_values(values,val);
 
 	values.clear();
 	input_file >> word; // skip parameter label
 	while ( (input_file>>val) && (val!=0)) { values.push_back(val); } // reads val until 0
 	input_file >> word; // skip default label
 	input_file >> val;  // get default value
-	processor.config.gpr_static_size.set_values(values,val);
+	processor.gpr_static_size.set_values(values,val);
 
 	values.clear();
 	input_file >> word; // skip parameter label
 	while ( (input_file>>val) && (val!=0)) { values.push_back(val); } // reads val until 0
 	input_file >> word; // skip default label
 	input_file >> val;  // get default value
-	processor.config.fpr_static_size.set_values(values,val);
+	processor.fpr_static_size.set_values(values,val);
 
 	values.clear();
 	input_file >> word; // skip parameter label
 	while ( (input_file>>val) && (val!=0)) { values.push_back(val); } // reads val until 0
 	input_file >> word; // skip default label
 	input_file >> val;  // get default value
-	processor.config.pr_static_size.set_values(values,val);
+	processor.pr_static_size.set_values(values,val);
 
 	values.clear();
 	input_file >> word; // skip parameter label
 	while ( (input_file>>val) && (val!=0)) { values.push_back(val); } // reads val until 0
 	input_file >> word; // skip default label
 	input_file >> val;  // get default value
-	processor.config.cr_static_size.set_values(values,val);
+	processor.cr_static_size.set_values(values,val);
 
 	values.clear();
 	input_file >> word; // skip parameter label
 	while ( (input_file>>val) && (val!=0)) { values.push_back(val); } // reads val until 0
 	input_file >> word; // skip default label
 	input_file >> val;  // get default value
-	processor.config.btr_static_size.set_values(values,val);
+	processor.btr_static_size.set_values(values,val);
 
 	processor.set_to_default();
 	trimaran_interface->save_processor_config(processor);
@@ -4515,15 +4484,15 @@ void Explorer::save_space_file(const string& filename)
     {
 	output_file << "\n\n [BEGIN_SPACE]";
 
-	processor.config.integer_units.set_to_first();
-	processor.config.float_units.set_to_first();
-	processor.config.branch_units.set_to_first();
-	processor.config.memory_units.set_to_first();
-	processor.config.gpr_static_size.set_to_first();
-	processor.config.fpr_static_size.set_to_first();
-	processor.config.pr_static_size.set_to_first();
-	processor.config.cr_static_size.set_to_first();
-	processor.config.btr_static_size.set_to_first();
+	processor.integer_units.set_to_first();
+	processor.float_units.set_to_first();
+	processor.branch_units.set_to_first();
+	processor.memory_units.set_to_first();
+	processor.gpr_static_size.set_to_first();
+	processor.fpr_static_size.set_to_first();
+	processor.pr_static_size.set_to_first();
+	processor.cr_static_size.set_to_first();
+	processor.btr_static_size.set_to_first();
 
 	mem_hierarchy.L1D.size.set_to_first();
 	mem_hierarchy.L1D.block_size.set_to_first();
@@ -4583,49 +4552,49 @@ void Explorer::save_space_file(const string& filename)
 	output_file << "\n DEFAULT " << mem_hierarchy.L2U.associativity.get_default();
 
 	output_file << "\ninteger_units ";
-	do { output_file << processor.config.integer_units.get_val() << " "; } while (processor.config.integer_units.increase());
+	do { output_file << processor.integer_units.get_val() << " "; } while (processor.integer_units.increase());
 	output_file << "0";
-	output_file << "\n DEFAULT " << processor.config.integer_units.get_default();
+	output_file << "\n DEFAULT " << processor.integer_units.get_default();
 
 	output_file << "\nfloat_units ";
-	do { output_file << processor.config.float_units.get_val() << " "; } while (processor.config.float_units.increase());
+	do { output_file << processor.float_units.get_val() << " "; } while (processor.float_units.increase());
 	output_file << "0";
-	output_file << "\n DEFAULT " << processor.config.float_units.get_default();
+	output_file << "\n DEFAULT " << processor.float_units.get_default();
 
 	output_file << "\nmemory_units ";
-	do { output_file << processor.config.memory_units.get_val() << " "; } while (processor.config.memory_units.increase());
+	do { output_file << processor.memory_units.get_val() << " "; } while (processor.memory_units.increase());
 	output_file << "0";
-	output_file << "\n DEFAULT " << processor.config.memory_units.get_default();
+	output_file << "\n DEFAULT " << processor.memory_units.get_default();
 
 	output_file << "\nbranch_units ";
-	do { output_file << processor.config.branch_units.get_val() << " "; } while (processor.config.branch_units.increase());
+	do { output_file << processor.branch_units.get_val() << " "; } while (processor.branch_units.increase());
 	output_file << "0";
-	output_file << "\n DEFAULT " << processor.config.branch_units.get_default();
+	output_file << "\n DEFAULT " << processor.branch_units.get_default();
 
 	output_file << "\ngpr_static_size ";
-	do { output_file << processor.config.gpr_static_size.get_val() << " "; } while (processor.config.gpr_static_size.increase());
+	do { output_file << processor.gpr_static_size.get_val() << " "; } while (processor.gpr_static_size.increase());
 	output_file << "0";
-	output_file << "\n DEFAULT " << processor.config.gpr_static_size.get_default();
+	output_file << "\n DEFAULT " << processor.gpr_static_size.get_default();
 
 	output_file << "\nfpr_static_size ";
-	do { output_file << processor.config.fpr_static_size.get_val() << " "; } while (processor.config.fpr_static_size.increase());
+	do { output_file << processor.fpr_static_size.get_val() << " "; } while (processor.fpr_static_size.increase());
 	output_file << "0";
-	output_file << "\n DEFAULT " << processor.config.fpr_static_size.get_default();
+	output_file << "\n DEFAULT " << processor.fpr_static_size.get_default();
 
 	output_file << "\npr_static_size ";
-	do { output_file << processor.config.pr_static_size.get_val() << " "; } while (processor.config.pr_static_size.increase());
+	do { output_file << processor.pr_static_size.get_val() << " "; } while (processor.pr_static_size.increase());
 	output_file << "0";
-	output_file << "\n DEFAULT " << processor.config.pr_static_size.get_default();
+	output_file << "\n DEFAULT " << processor.pr_static_size.get_default();
 
 	output_file << "\ncr_static_size ";
-	do { output_file << processor.config.cr_static_size.get_val() << " "; } while (processor.config.cr_static_size.increase());
+	do { output_file << processor.cr_static_size.get_val() << " "; } while (processor.cr_static_size.increase());
 	output_file << "0";
-	output_file << "\n DEFAULT " << processor.config.cr_static_size.get_default();
+	output_file << "\n DEFAULT " << processor.cr_static_size.get_default();
 
 	output_file << "\nbtr_static_size ";
-	do { output_file << processor.config.btr_static_size.get_val() << " "; } while (processor.config.btr_static_size.increase());
+	do { output_file << processor.btr_static_size.get_val() << " "; } while (processor.btr_static_size.increase());
 	output_file << "0";
-	output_file << "\n DEFAULT " << processor.config.btr_static_size.get_default();
+	output_file << "\n DEFAULT " << processor.btr_static_size.get_default();
 
 	output_file << "\n\n [END_SPACE]";
 

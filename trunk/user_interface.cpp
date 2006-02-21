@@ -390,15 +390,15 @@ void User_interface::edit_exploration_space()
     do
     {
 	system("clear");
-	my_explorer->processor.config.integer_units.set_to_first();
-	my_explorer->processor.config.float_units.set_to_first();
-	my_explorer->processor.config.branch_units.set_to_first();
-	my_explorer->processor.config.memory_units.set_to_first();
-	my_explorer->processor.config.gpr_static_size.set_to_first();
-	my_explorer->processor.config.fpr_static_size.set_to_first();
-	my_explorer->processor.config.pr_static_size.set_to_first();
-	my_explorer->processor.config.cr_static_size.set_to_first();
-	my_explorer->processor.config.btr_static_size.set_to_first();
+	my_explorer->processor.integer_units.set_to_first();
+	my_explorer->processor.float_units.set_to_first();
+	my_explorer->processor.branch_units.set_to_first();
+	my_explorer->processor.memory_units.set_to_first();
+	my_explorer->processor.gpr_static_size.set_to_first();
+	my_explorer->processor.fpr_static_size.set_to_first();
+	my_explorer->processor.pr_static_size.set_to_first();
+	my_explorer->processor.cr_static_size.set_to_first();
+	my_explorer->processor.btr_static_size.set_to_first();
 
 	my_explorer->mem_hierarchy.L1D.size.set_to_first();
 	my_explorer->mem_hierarchy.L1D.block_size.set_to_first();
@@ -438,24 +438,24 @@ void User_interface::edit_exploration_space()
 	cout << "\n\n Processor Parameters ";
 	cout << "\n---------------------------------------";
 	cout << "\n [10]     integer_units : ";
-	do { cout << my_explorer->processor.config.integer_units.get_val() << ","; } while (my_explorer->processor.config.integer_units.increase());
+	do { cout << my_explorer->processor.integer_units.get_val() << ","; } while (my_explorer->processor.integer_units.increase());
 	cout << "\n [11]       float_units : ";
-	do { cout << my_explorer->processor.config.float_units.get_val() << ","; } while (my_explorer->processor.config.float_units.increase());
+	do { cout << my_explorer->processor.float_units.get_val() << ","; } while (my_explorer->processor.float_units.increase());
 	cout << "\n [12]      memory_units : ";
-	do { cout << my_explorer->processor.config.memory_units.get_val() << ","; } while (my_explorer->processor.config.memory_units.increase());
+	do { cout << my_explorer->processor.memory_units.get_val() << ","; } while (my_explorer->processor.memory_units.increase());
 	cout << "\n [13]      branch_units : ";
-	do { cout << my_explorer->processor.config.branch_units.get_val() << ","; } while (my_explorer->processor.config.branch_units.increase());
+	do { cout << my_explorer->processor.branch_units.get_val() << ","; } while (my_explorer->processor.branch_units.increase());
 	cout << "\n";
 	cout << "\n [14]   gpr_static_size : ";
-	do { cout << my_explorer->processor.config.gpr_static_size.get_val() << ","; } while (my_explorer->processor.config.gpr_static_size.increase());
+	do { cout << my_explorer->processor.gpr_static_size.get_val() << ","; } while (my_explorer->processor.gpr_static_size.increase());
 	cout << "\n [15]   fpr_static_size : ";
-	do { cout << my_explorer->processor.config.fpr_static_size.get_val() << ","; } while (my_explorer->processor.config.fpr_static_size.increase());
+	do { cout << my_explorer->processor.fpr_static_size.get_val() << ","; } while (my_explorer->processor.fpr_static_size.increase());
 	cout << "\n [16]    pr_static_size : ";
-	do { cout << my_explorer->processor.config.pr_static_size.get_val() << ","; } while (my_explorer->processor.config.pr_static_size.increase());
+	do { cout << my_explorer->processor.pr_static_size.get_val() << ","; } while (my_explorer->processor.pr_static_size.increase());
 	cout << "\n [17]    cr_static_size : ";
-	do { cout << my_explorer->processor.config.cr_static_size.get_val() << ","; } while (my_explorer->processor.config.cr_static_size.increase());
+	do { cout << my_explorer->processor.cr_static_size.get_val() << ","; } while (my_explorer->processor.cr_static_size.increase());
 	cout << "\n [18]   btr_static_size : ";
-	do { cout << my_explorer->processor.config.btr_static_size.get_val() << ","; } while (my_explorer->processor.config.btr_static_size.increase());
+	do { cout << my_explorer->processor.btr_static_size.get_val() << ","; } while (my_explorer->processor.btr_static_size.increase());
 
 	cout << "\n\n Total space size : " << my_explorer->get_space_size();
 
@@ -514,31 +514,31 @@ void User_interface::edit_exploration_space()
 		    my_explorer->mem_hierarchy.L2U.associativity.set_values(values,def_val);
 		    break;
 		case 10:
-		    my_explorer->processor.config.integer_units.set_values(values,def_val);
+		    my_explorer->processor.integer_units.set_values(values,def_val);
 		    break;
 		case 11:
-		    my_explorer->processor.config.float_units.set_values(values,def_val);
+		    my_explorer->processor.float_units.set_values(values,def_val);
 		    break;
 		case 12:
-		    my_explorer->processor.config.memory_units.set_values(values,def_val);
+		    my_explorer->processor.memory_units.set_values(values,def_val);
 		    break;
 		case 13:
-		    my_explorer->processor.config.branch_units.set_values(values,def_val);
+		    my_explorer->processor.branch_units.set_values(values,def_val);
 		    break;
 		case 14:
-		    my_explorer->processor.config.gpr_static_size.set_values(values,def_val);
+		    my_explorer->processor.gpr_static_size.set_values(values,def_val);
 		    break;
 		case 15:
-		    my_explorer->processor.config.fpr_static_size.set_values(values,def_val);
+		    my_explorer->processor.fpr_static_size.set_values(values,def_val);
 		    break;
 		case 16:
-		    my_explorer->processor.config.pr_static_size.set_values(values,def_val);
+		    my_explorer->processor.pr_static_size.set_values(values,def_val);
 		    break;
 		case 17:
-		    my_explorer->processor.config.cr_static_size.set_values(values,def_val);
+		    my_explorer->processor.cr_static_size.set_values(values,def_val);
 		    break;
 		case 18:
-		    my_explorer->processor.config.btr_static_size.set_values(values,def_val);
+		    my_explorer->processor.btr_static_size.set_values(values,def_val);
 		    break;
 		default:
 		    cout << "\n ERROR : wrong parameter index ! ";
@@ -586,20 +586,20 @@ void User_interface::view_processor_config() {
    cout << "\n Functional units ";
    cout << "\n--------------------------------";
 
-   cout<<"\n integer_units :"<< my_explorer->processor.config.integer_units.get_val();
-   cout<<"\n float_units :"<< my_explorer->processor.config.float_units.get_val();
-   cout<<"\n memory_units :"<< my_explorer->processor.config.memory_units.get_val();
-   cout<<"\n branch_units :"<< my_explorer->processor.config.branch_units.get_val();
+   cout<<"\n integer_units :"<< my_explorer->processor.integer_units.get_val();
+   cout<<"\n float_units :"<< my_explorer->processor.float_units.get_val();
+   cout<<"\n memory_units :"<< my_explorer->processor.memory_units.get_val();
+   cout<<"\n branch_units :"<< my_explorer->processor.branch_units.get_val();
 
-   //cout<<"\n local_memory_units "<< my_explorer->processor.config.memory_units.get_val();
+   //cout<<"\n local_memory_units "<< my_explorer->processor.memory_units.get_val();
 
    cout << "\n\n Register Files ";
    cout << "\n--------------------------------";
-   cout<<"\n gpr_static_size :"<< my_explorer->processor.config.gpr_static_size.get_val();
-   cout<<"\n fpr_static_size :"<< my_explorer->processor.config.fpr_static_size.get_val();
-   cout<<"\n pr_static_size :"<< my_explorer->processor.config.pr_static_size.get_val();
-   cout<<"\n cr_static_size :"<< my_explorer->processor.config.cr_static_size.get_val();
-   cout<<"\n btr_static_size :"<< my_explorer->processor.config.btr_static_size.get_val();
+   cout<<"\n gpr_static_size :"<< my_explorer->processor.gpr_static_size.get_val();
+   cout<<"\n fpr_static_size :"<< my_explorer->processor.fpr_static_size.get_val();
+   cout<<"\n pr_static_size :"<< my_explorer->processor.pr_static_size.get_val();
+   cout<<"\n cr_static_size :"<< my_explorer->processor.cr_static_size.get_val();
+   cout<<"\n btr_static_size :"<< my_explorer->processor.btr_static_size.get_val();
 
    cout << "\n\n NOTE: rotating portion of each register file is assumed equal";
    cout << "\n to static portion.";
