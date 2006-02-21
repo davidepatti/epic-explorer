@@ -228,8 +228,15 @@ int User_interface::show_menu()
 	case 'r':
 	    start_exploration_message();
 	    int n;
+	    unsigned int seed;
 	    cout << "\n Number of  random simulations :";
 	    cin >> n;
+	    cout << "\n Enter random seed (0 = auto):";
+	    cin >> seed;
+	    if (seed==0)
+		srand((unsigned int)time((time_t*)NULL));
+	    else
+		srand(seed);
 	    my_explorer->start_RAND(n);
 	    wait_key();
 	    break;
@@ -866,9 +873,17 @@ void User_interface::schedule_explorations()
 
     if (random_pos!=string::npos)
     {
+	unsigned int seed;
+
 	cout << "\n Schedule sequence contains RANDOM exploration.  ";
 	cout << "\n How many random configuration must be explored ?";
 	cin >> n_random;
+	cout << "\n Enter random seed (0 = auto):";
+	cin >> seed;
+	if (seed==0)
+	    srand((unsigned int)time((time_t*)NULL));
+	else
+	    srand(seed);
     }
 
     int i=0;

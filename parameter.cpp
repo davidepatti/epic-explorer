@@ -21,7 +21,6 @@ using namespace std;
 
 Parameter::Parameter(){
     
-    srand((unsigned int)time((time_t*)NULL));
 }
 
 

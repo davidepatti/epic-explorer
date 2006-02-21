@@ -103,7 +103,7 @@ void Explorer::set_options(const struct User_Settings& user_settings)
 
 //********************************************************************
 // N Random  explorations of configuration space
-//********************************************************************
+//*******************************************************************
 void Explorer::start_RAND(int n)
 {
 
@@ -3147,7 +3147,8 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
 	if (Options.objective_energy) current_sim.energy = estimate.total_system_energy;
 	else if (Options.objective_power) current_sim.energy = estimate.total_average_power;
 
-	assert(Options.objective_energy ^^ Options.objective_power);
+	assert( (Options.objective_energy && (!Options.objective_power)) ||
+	        ( (!Options.objective_energy) && Options.objective_power) );
 
 	simulations.push_back(current_sim);
 
