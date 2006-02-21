@@ -96,7 +96,7 @@ struct GA_parameters
 
 // ---------------------------------------------------------------------------
 // predefined mask types 
-enum Mask_type { SET_ALL, UNSET_ALL, SET_L1D, SET_L1I, SET_L2U, SET_PROCESSOR_UNITS };
+enum Mask_type { SET_ALL, UNSET_ALL, SET_L1D, SET_L1I, SET_L2U, SET_PROCESSOR_UNITS, SET_PROCESSOR };
 
 struct Rule {
 	int* antecedents;
@@ -119,6 +119,9 @@ struct Configuration
   int btr_static_size;
   
   bool is_feasible(); // mau
+  void invalidate();
+  bool check_difference(const Configuration&,Space_mask);
+  string to_string() const;
 };
 
 struct Simulation 

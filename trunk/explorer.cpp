@@ -2816,55 +2816,25 @@ int Explorer::count_needed_recompilations(const vector<Configuration>& space)
     bool processor_changed;
     int recompilations = 0;
 
-    int last_integer_units = -1;
-    int last_float_units = -1;
-    int last_branch_units = -1;
-    int last_memory_units = -1;
+    Configuration c;
+    c.invalidate();
 
-    int last_gpr_static_size = -1;
-    int last_fpr_static_size = -1;
-    int last_pr_static_size = -1;
-    int last_cr_static_size = -1;
-    int last_btr_static_size = -1;
+    Space_mask mask = get_space_mask(SET_PROCESSOR);
 
     for (unsigned int i=0;i<space.size();i++)
     {
-	processor_changed = (  (space[i].integer_units!= last_integer_units)
-			    || (space[i].float_units!= last_float_units)
-			    || (space[i].branch_units!=last_branch_units)
-			    || (space[i].memory_units!=last_memory_units)
-			    || (space[i].gpr_static_size!=last_gpr_static_size)
-			    || (space[i].fpr_static_size!=last_fpr_static_size)
-			    || (space[i].pr_static_size!= last_pr_static_size)
-			    || (space[i].cr_static_size!= last_cr_static_size)
-			    || (space[i].btr_static_size!=last_btr_static_size));
+	processor_changed = c.check_difference(space[i],mask);
 
-	if (processor_changed) recompilations++;
+	if (processor_changed)  recompilations++;
 
-	last_integer_units = space[i].integer_units;
-	last_float_units = space[i].float_units;
-	last_memory_units = space[i].memory_units;
-	last_branch_units = space[i].branch_units;
-	last_gpr_static_size = space[i].gpr_static_size;
-	last_fpr_static_size = space[i].fpr_static_size;
-	last_pr_static_size = space[i].pr_static_size;
-	last_cr_static_size = space[i].cr_static_size;
-	last_btr_static_size = space[i].btr_static_size;
+	c = space[i];
     }
-
     return recompilations;
 }
 
 ////////////////////////////////////////////////////////////////////////////
 void Explorer::save_simulations(const vector<Simulation>& simulations, string filename,int format)
 {
-
-    int L1D_C,L1D_B,L1D_A;
-    int L1I_C,L1I_B,L1I_A;
-    int L2U_C,L2U_B,L2U_A;
-
-    int gpr,fpr,pr,cr,btr; // register file sizes
-    int IU,FPU,MU,BU;      // number of instancies of each unit
     double area,energy;
     double energydelay;
     double exec_time;
@@ -2897,18 +2867,15 @@ void Explorer::save_simulations(const vector<Simulation>& simulations, string fi
     else
 	title+="Area(cm^2)     Average Power(W)  Exec time(ms) - ";
 
-    if ((format==SHOW_L1D)||(format==SHOW_L1I)||(format==SHOW_L2U))
-	title+= " Size Bsize Assoc ";
-    if (format==SHOW_REGISTER_FILES) title+= " gpr fpr pr cr btr ";
-    if (format==SHOW_UNITS) title+=" IU FPU BU MU ";
     if (format==SHOW_ALL) 
 	title+="/ clock(mhz) / I F B M / gpr fpr pr cr btr / L1D(CBA) / L1I(CBA) / L2U(CBA) ";
+
     if (format==SHOW_ENERGYDELAY)
     {
 	if (Options.objective_energy)
-	title=" Energy*Exec time - I F B M / gpr fpr pr cr btr / L1D(CBA) / L1I(CBA) / L2U(CBA) ";
+	    title=" Energy*Exec time - I F B M / gpr fpr pr cr btr / L1D(CBA) / L1I(CBA) / L2U(CBA) ";
 	else
-	title=" Power*Exec time - I F B M / gpr fpr pr cr btr / L1D(CBA) / L1I(CBA) / L2U(CBA) ";
+	    assert(false);
     }
 
 
@@ -2926,107 +2893,22 @@ void Explorer::save_simulations(const vector<Simulation>& simulations, string fi
 	area = simulations[i].area;
 	energy = simulations[i].energy;
 	exec_time = simulations[i].exec_time*1000;
+	
+	string conf_string = simulations[i].config.to_string();
 
-	if (format==SHOW_L1D)
+	if (format==SHOW_ALL)
 	{
-	    L1D_C = simulations[i].config.L1D_size;
-	    L1D_B = simulations[i].config.L1D_block;
-	    L1D_A = simulations[i].config.L1D_assoc;
-	    fprintf(fp,"\n%.14f  %.14f  %.14f  %/  %d %d %d",area,energy,exec_time,L1D_C,L1D_B,L1D_A);
-	}
-	else if (format==SHOW_L1I)
-	{
-	    L1I_C = simulations[i].config.L1I_size;
-	    L1I_B = simulations[i].config.L1I_block;
-	    L1I_A = simulations[i].config.L1I_assoc;
-	    fprintf(fp,"\n%.14f  %.14f  %.14f %/  %d %d %d",area,energy,exec_time,L1I_C,L1I_B,L1I_A);
-	}
-	else if (format==SHOW_L2U)
-	{
-	    L2U_C = simulations[i].config.L2U_size;
-	    L2U_B = simulations[i].config.L2U_block;
-	    L2U_A = simulations[i].config.L2U_assoc;
-	    fprintf(fp,"\n%.14f  %.14f  %.14f %/  %d %d %d",area,energy,exec_time,L2U_C,L2U_B,L2U_A);
-	}
-	else if (format==SHOW_REGISTER_FILES)
-	{
-	    gpr=simulations[i].config.gpr_static_size;
-	    fpr=simulations[i].config.fpr_static_size;
-	    pr= simulations[i].config.pr_static_size;
-	    cr= simulations[i].config.cr_static_size;
-	    btr=simulations[i].config.btr_static_size;
-	    fprintf(fp,"\n%.14f  %.14f  %.14f %/  %d %d %d %d %d",area,energy,exec_time,gpr,fpr,pr,cr,btr);
-	}
-	else if (format==SHOW_UNITS)
-	{
-	    IU = simulations[i].config.integer_units;
-	    FPU =simulations[i].config.float_units;
-	    BU = simulations[i].config.branch_units;
-	    MU = simulations[i].config.memory_units;
-	    fprintf(fp,"\n%.14f  %.14f  %.14f %/  %d %d %d %d ",area,energy,exec_time,IU,FPU,BU,MU);
-	}
-	else if (format==SHOW_ALL)
-	{
-	    gpr=simulations[i].config.gpr_static_size;
-	    fpr=simulations[i].config.fpr_static_size;
-	    pr= simulations[i].config.pr_static_size;
-	    cr= simulations[i].config.cr_static_size;
-	    btr=simulations[i].config.btr_static_size;
-
-	    IU = simulations[i].config.integer_units;
-	    FPU =simulations[i].config.float_units;
-	    BU = simulations[i].config.branch_units;
-	    MU = simulations[i].config.memory_units;
-
-	    L1D_C = simulations[i].config.L1D_size;
-	    L1D_B = simulations[i].config.L1D_block;
-	    L1D_A = simulations[i].config.L1D_assoc;
-
-	    L1I_C = simulations[i].config.L1I_size;
-	    L1I_B = simulations[i].config.L1I_block;
-	    L1I_A = simulations[i].config.L1I_assoc;
-	    
-	    L2U_C = simulations[i].config.L2U_size;
-	    L2U_B = simulations[i].config.L2U_block;
-	    L2U_A = simulations[i].config.L2U_assoc;
-
 	    int mhz = int(simulations[i].clock_freq/1e6);
-
 	   
 	    char ch = ' ';
 	    if (!simulations[i].simulated) ch = '*';
 
-	    fprintf(fp,"\n%.14f  %.14f  %.14f %/ %d / %d %d %d %d / %d %d %d %d %d / %d %d %d / %d %d %d / %d %d %d %c",area,energy,exec_time,mhz,IU,FPU,BU,MU,gpr,fpr,pr,cr,btr,L1D_C,L1D_B,L1D_A,L1I_C,L1I_B,L1I_A,L2U_C,L2U_B,L2U_A,&ch);
+	    fprintf(fp,"\n%.14f  %.14f  %.14f %s %c",area,energy,exec_time,conf_string.c_str(),ch);
 	}
 	else if (format==SHOW_ENERGYDELAY)
 	{
-	    gpr=simulations[i].config.gpr_static_size;
-	    fpr=simulations[i].config.fpr_static_size;
-	    pr= simulations[i].config.pr_static_size;
-	    cr= simulations[i].config.cr_static_size;
-	    btr=simulations[i].config.btr_static_size;
-
-	    IU = simulations[i].config.integer_units;
-	    FPU =simulations[i].config.float_units;
-	    BU = simulations[i].config.branch_units;
-	    MU = simulations[i].config.memory_units;
-
-	    L1D_C = simulations[i].config.L1D_size;
-	    L1D_B = simulations[i].config.L1D_block;
-	    L1D_A = simulations[i].config.L1D_assoc;
-
-	    L1I_C = simulations[i].config.L1I_size;
-	    L1I_B = simulations[i].config.L1I_block;
-	    L1I_A = simulations[i].config.L1I_assoc;
-	    
-	    L2U_C = simulations[i].config.L2U_size;
-	    L2U_B = simulations[i].config.L2U_block;
-	    L2U_A = simulations[i].config.L2U_assoc;
-
 	    energydelay = simulations[i].energy * simulations[i].exec_time;
-
-
-	    fprintf(fp,"\n%.14f % - %d %d %d %d / %d %d %d %d %d / %d %d %d / %d %d %d / %d %d %d ",energydelay,IU,FPU,BU,MU,gpr,fpr,pr,cr,btr,L1D_C,L1D_B,L1D_A,L1I_C,L1I_B,L1I_A,L2U_C,L2U_B,L2U_A);
+	    fprintf(fp,"\n%.14f %s",energydelay,conf_string.c_str());
 	}
     }
     fclose(fp);
@@ -3034,40 +2916,12 @@ void Explorer::save_simulations(const vector<Simulation>& simulations, string fi
 
 void Explorer::save_objectives_details(const Dynamic_stats& dyn,const Configuration& config, const string filename) const
 {
-    int L1D_C,L1D_B,L1D_A;
-    int L1I_C,L1I_B,L1I_A;
-    int L2U_C,L2U_B,L2U_A;
-
-    int gpr,fpr,pr,cr,btr; // register file sizes
-    int IU,FPU,MU,BU;      // number of instancies of each unit
-
     FILE * fp;
     fp=fopen(filename.c_str(),"a");
 
-    gpr=config.gpr_static_size;
-    fpr=config.fpr_static_size;
-    pr= config.pr_static_size;
-    cr= config.cr_static_size;
-    btr=config.btr_static_size;
+    string c = config.to_string();
 
-    IU = config.integer_units;
-    FPU =config.float_units;
-    BU = config.branch_units;
-    MU = config.memory_units;
-
-    L1D_C = config.L1D_size;
-    L1D_B = config.L1D_block;
-    L1D_A = config.L1D_assoc;
-
-    L1I_C = config.L1I_size;
-    L1I_B = config.L1I_block;
-    L1I_A = config.L1I_assoc;
-    
-    L2U_C = config.L2U_size;
-    L2U_B = config.L2U_block;
-    L2U_A = config.L2U_assoc;
-
-    fprintf(fp,"\n %llu %llu %llu %llu %llu %llu %llu %llu %llu %llu %llu %llu %llu %llu %llu %llu %llu %llu %llu %llu %llu %llu %llu ",
+    fprintf(fp,"\n %llu %llu %llu %llu %llu %llu %llu %llu %llu %llu %llu %llu %llu %llu %llu %llu %llu %llu %llu %llu %llu %llu %llu %s",
 		    					    dyn.compute_cycles,
 	                                                    dyn.ialu,
 							    dyn.falu,
@@ -3090,20 +2944,16 @@ void Explorer::save_objectives_details(const Dynamic_stats& dyn,const Configurat
 							    dyn.L2U_r_miss,
 							    dyn.L2U_w_miss,
 							    dyn.L2U_capacity_misses,
-							    dyn.L2U_conflict_misses);
+							    dyn.L2U_conflict_misses,
+							    c.c_str());
 
-    fprintf(fp,"%% %d %d %d %d / %d %d %d %d %d / %d %d %d / %d %d %d / %d %d %d ",IU,FPU,BU,MU,gpr,fpr,pr,cr,btr,L1D_C,L1D_B,L1D_A,L1I_C,L1I_B,L1I_A,L2U_C,L2U_B,L2U_A);
     fclose(fp);
-
 }
 
 ////////////////////////////////////////////////////////////////////////////
 void Explorer::save_stats(const Exploration_stats& stats,const string& file)
 {
     FILE * fp;
-
-   
-
     string file_path = get_base_dir()+"/trimaran-workspace/epic-explorer/"+file;
 
     fp = fopen(file_path.c_str(),"w");
@@ -3190,22 +3040,19 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
 	    pseudo_sim.area = 0.0;
 	    pseudo_sim.exec_time = 0.0;
 	    pseudo_sim.energy = 0.0;
-	    pseudo_sim.simulated = fuzzy_enabled;
+	    pseudo_sim.simulated = false;
 	    pseudo_sims.push_back(pseudo_sim);
 	}
 	save_simulations(pseudo_sims,file_name,SHOW_ALL);
 
-    } // save simulated spaces option ------------------------------------
-
+    } 
+    // save simulated spaces option ------------------------------------
 
 
     // -------------------------------------------------------------------
-    // This is an optimization to reduce exploration time .
-    // If the space that has to be explored is the same of the
-    // previous call of simulate space, we can avoid to repeat all
-    // the simulations. This happens for example when a space is
-    // combined with all possible values of a parameter that has only
-    // an single admissible value.
+    // This is an optimization to reduce exploration time .  If the
+    // space that has to be explored is the same of the previous call
+    // of simulate space, we can avoid to repeat all the simulations.
     // NOTE: benchmark and hyperblock formation must be the same too.
     // NOTE bis: within the exploration of single space an
     // algorithm can make multiple call of simulate_space(...)
@@ -3216,88 +3063,51 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
     if ((Options.benchmark==previous_benchmark) && 
 	(Options.hyperblock==previous_hyperblock) &&
 	 equivalent_spaces(previous_space,space)) 
-	    return previous_simulations;// return here, without simulating 
+	    return previous_simulations;
     // -------------------------------------------------------------------
 
-
-
     vector<Simulation> simulations;
-    Simulation temp_sim;
+    Simulation current_sim;
+    Configuration last_config;
+
 
     bool processor_changed;
     bool compilation_changed;
     bool do_simulation = (force_simulation || (!(fuzzy_enabled && fuzzy_approx.Reliable())));
 
-    int last_integer_units;
-    int last_float_units;
-    int last_branch_units;
-    int last_memory_units;
-    int last_gpr_static_size;
-    int last_fpr_static_size;
-    int last_pr_static_size;
-    int last_cr_static_size;
-    int last_btr_static_size;
-
     // -------------------------------------------------------------------
     if (do_simulation)
     {
-	// here are stored the values of the last simulation
-	Configuration last_config;
-
 	if (previous_simulations.size()>0)
 	    last_config = previous_simulations[previous_simulations.size()-1].config;
 	else 
-	    // this is the first call of simulate_space(...)
-	    // current config should always be considered a new one
-	{
-	    last_config.integer_units = -1;
-	    last_config.float_units = -1;
-	    last_config.branch_units = -1;
-	    last_config.memory_units = -1;
-	    last_config.gpr_static_size = -1;
-	    last_config.fpr_static_size = -1;
-	    last_config.pr_static_size = -1;
-	    last_config.cr_static_size = -1;
-	    last_config.btr_static_size = -1;
-	}
+	    // first call, current config should always be considered a new one
+	    last_config.invalidate();
 
 	// Even if the simulate_space(...) call uses the same space of the previous call,
 	// we should recompile on the first cycle of the for loop below 
 	// if the benchmark and/or the compilation option are different
 
 	compilation_changed = (Options.benchmark!=previous_benchmark)||(Options.hyperblock!=previous_hyperblock);
-
     }
+
     // -------------------------------------------------------------------
-    //  main exploration cycles
+    //  main exploration loop
     // -------------------------------------------------------------------
 
     for (unsigned int i = 0;i< space.size();i++)
     {
 	cout << "\n -------> E P I C  E X P L O R E R >>>> simulation n." << i+1 << " / " << space.size();
 
-	temp_sim.config = space[i];
-
 	processor.set_config(space[i]);
 	mem_hierarchy.set_config(space[i]);
-
-
-
-
+	current_sim.config = space[i];
 
 	if (do_simulation)
 	{
-	            processor_changed = 
-		       (space[i].integer_units!= last_integer_units)
-		    || (space[i].float_units!= last_float_units)
-		    || (space[i].branch_units!=last_branch_units)
-		    || (space[i].memory_units!=last_memory_units)
-		    || (space[i].gpr_static_size!=last_gpr_static_size)
-		    || (space[i].fpr_static_size!=last_fpr_static_size)
-		    || (space[i].pr_static_size!= last_pr_static_size)
-		    || (space[i].cr_static_size!= last_cr_static_size)
-		    || (space[i].btr_static_size!=last_btr_static_size);
+	    Space_mask mask_processor = get_space_mask(SET_PROCESSOR);
 
+	    processor_changed = last_config.check_difference(space[i],mask_processor);
 
 	    // if a processor parameter changed, we need to update current
 	    // processor config , save hmdes file, and recompile benchmark
@@ -3305,95 +3115,77 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
 	    // previous benchmark or compilation options to be simulated
 	    // changed.
 
-	    if ( (processor_changed) || (i==0 && compilation_changed) )
+	    if ( (processor_changed) || (i==0 && compilation_changed) ) 
 	    {
-		last_integer_units = space[i].integer_units;
-		last_float_units =  space[i].float_units;
-		last_branch_units = space[i].branch_units;
-		last_memory_units = space[i].memory_units;
-		last_gpr_static_size = space[i].gpr_static_size;
-		last_fpr_static_size = space[i].fpr_static_size;
-		last_pr_static_size = space[i].pr_static_size;
-		last_cr_static_size = space[i].cr_static_size;
-		last_btr_static_size = space[i].btr_static_size;
-
-		time_t begin = time(NULL);
-
+		last_config = space[i];
 		trimaran_interface->save_processor_config(processor);
 		trimaran_interface->compile_hmdes_file();
 		trimaran_interface->compile_benchmark();
-
-		time_t end = time(NULL);
-
-		average_compilation_time = (int)(difftime(end,begin));
 	    }
+	    else
+		cout << "\n Processor unchanged, skipping recompilation!";
 
 	    trimaran_interface->save_mem_config(mem_hierarchy);
-
-	    time_t t1 = time(NULL);
 	    trimaran_interface->execute_benchmark();
-	    time_t t2 = time(NULL);
-	    average_exec_time = (int)(difftime(t2,t1));
 
 	    dyn_stats = trimaran_interface->get_dynamic_stats();
-	    estimate = estimator.get_estimate(dyn_stats,mem_hierarchy,processor);
 
 	    if (fuzzy_enabled) fuzzy_approx.Learn(space[i],dyn_stats);
 	}
-	else 
-	{
+	else  
+	{   // using fuzzy approximation instead of simulation
 	    dyn_stats = fuzzy_approx.EstimateG(space[i]);
-	    estimate = estimator.get_estimate(dyn_stats,mem_hierarchy,processor);
+	}
+
+	estimate = estimator.get_estimate(dyn_stats,mem_hierarchy,processor);
+
+	current_sim.area = estimate.total_area;
+	current_sim.exec_time = estimate.execution_time;
+	current_sim.clock_freq = estimate.clock_freq;
+	current_sim.simulated = do_simulation;
+
+	if (Options.objective_energy) current_sim.energy = estimate.total_system_energy;
+	else if (Options.objective_power) current_sim.energy = estimate.total_average_power;
+
+	assert(Options.objective_energy ^^ Options.objective_power);
+
+	simulations.push_back(current_sim);
+
+	// -------------------------------------------------------------------
+	//  when doing simulation some interesting info can be optionally saved 
+	if (do_simulation)
+	{
+	    if (Options.save_PD_STATS)  // trimran PD_STATS file report
+	    {
+		string command;
+		string epic_path = get_base_dir()+"/trimaran-workspace/epic-explorer";
+		char temp[10];
+		sprintf(temp,"%d",i);
+
+		if (Options.hyperblock)
+		    command = "cp "+epic_path+"/simu_intermediate/PD_STATS.HS "+epic_path+"/PD_STATS.HS_"+string(temp);
+		else
+		    command = "cp "+epic_path+"/simu_intermediate/PD_STATS.O "+epic_path+"/PD_STATS.O_"+string(temp);
+		system(command.c_str());
+	    }
+
+	    if (Options.save_estimation) // detailed and verbose estimator report
+	    {
+		char temp[10];
+		sprintf(temp,"%d",i);
+		string filename= Options.benchmark+"_"+current_algo+"_"+current_space+"."+string(temp)+".est";
+		save_estimation_file(dyn_stats,estimate,processor, mem_hierarchy,filename);
+	    }
+
+	    if (Options.save_objectives_details) // 
+	    {
+		string filename= Options.benchmark+"_"+current_algo+"_"+current_space+".details";
+		save_objectives_details(dyn_stats,current_sim.config,filename);
+	    }
 	}
 	// -------------------------------------------------------------------
 
-	if (Options.objective_energy) temp_sim.energy = estimate.total_system_energy;
-	else if (Options.objective_power) temp_sim.energy = estimate.total_average_power;
-	else 
-	{
-	    cout << "\n **** FATAL ERROR: No energy/power objective enabled ! ";
-	    cout << "\n Quitting...";
-	    exit(1);
-	};
-	temp_sim.area = estimate.total_area;
-	temp_sim.exec_time = estimate.execution_time;
-	temp_sim.clock_freq = estimate.clock_freq;
-	temp_sim.simulated = do_simulation;
-
-	simulations.push_back(temp_sim);
-
-	// -------------------------------------------------------------------
-	if (Options.save_PD_STATS && do_simulation)
-	{
-	    string command;
-	    string epic_path = get_base_dir()+"/trimaran-workspace/epic-explorer";
-	    char temp[10];
-	    sprintf(temp,"%d",i);
-
-	    if (Options.hyperblock)
-		command = "cp "+epic_path+"/simu_intermediate/PD_STATS.HS "+epic_path+"/PD_STATS.HS_"+string(temp);
-	    else
-		command = "cp "+epic_path+"/simu_intermediate/PD_STATS.O "+epic_path+"/PD_STATS.O_"+string(temp);
-
-	    system(command.c_str());
-	}
-
-	// -------------------------------------------------------------------
-	if (Options.save_estimation && do_simulation)
-	{
-	    char temp[10];
-	    sprintf(temp,"%d",i);
-	    string filename= Options.benchmark+"_"+current_algo+"_"+current_space+"."+string(temp)+".est";
-	    save_estimation_file(dyn_stats,estimate,processor, mem_hierarchy,filename);
-	}
-
-	//if (Options.save_objectives_details && do_simulation)
-	{
-	    string filename= Options.benchmark+"_"+current_algo+"_"+current_space+".details";
-	    save_objectives_details(dyn_stats,temp_sim.config,filename);
-	}
-
-    } // end for
+    } // end for loop
 
     // when simultation is finished , all default values must be
     // restored
@@ -3618,8 +3410,22 @@ Space_mask Explorer::get_space_mask(Mask_type mask_type) const
 	    mask.branch_units = true;
 	    break;
 
-	default :
+	case SET_PROCESSOR:
+
+	    mask.gpr_static_size = true;
+	    mask.fpr_static_size = true;
+	    mask.pr_static_size = true;
+	    mask.cr_static_size = true;
+	    mask.btr_static_size = true;
+
+	    mask.integer_units = true;
+	    mask.float_units = true;
+	    mask.memory_units = true;
+	    mask.branch_units = true;
 	    break;
+
+	default :
+	    assert(false);
     }
 
     return mask;
