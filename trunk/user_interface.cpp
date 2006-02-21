@@ -306,22 +306,23 @@ int User_interface::show_menu()
 
 void User_interface::edit_user_settings()
 {
-    char ch;
+    string ch;
     do {
 	system("clear");
 	cout << "\n  OPTION                                 CURRENT VALUE ";
 	cout << "\n ----------------------------------------------------------";
-	cout << "\n (0) - Hyperblock formation         --> " << status_string(user_settings.hyperblock);
-	cout << "\n (1) - Objective Area               --> " << status_string(user_settings.objective_area);
-	cout << "\n (2) - Objective Execution Time     --> " << status_string(user_settings.objective_exec_time);
-	cout << "\n (3) - Objective Energy             --> " << status_string(user_settings.objective_energy);
-	cout << "\n (4) - Objective Average Power      --> " << status_string(user_settings.objective_power);
-	cout << "\n";
-	cout << "\n (5) - save simulated spaces        --> " << status_string(user_settings.save_spaces);
-	cout << "\n (6) - save Trimaran PD_STATS files --> " << status_string(user_settings.save_PD_STATS);
-	cout << "\n (7) - save estimation detail files --> " << status_string(user_settings.save_estimation);
-	cout << "\n (8) - Benchmark                    --> " << trimaran_interface->get_benchmark_name();
-	cout << "\n (9) - Automatic clock freq         --> " << status_string(user_settings.auto_clock);
+	cout << "\n  (0) - Hyperblock formation         --> " << status_string(user_settings.hyperblock);
+	cout << "\n  (1) - Objective Area               --> " << status_string(user_settings.objective_area);
+	cout << "\n  (2) - Objective Execution Time     --> " << status_string(user_settings.objective_exec_time);
+	cout << "\n  (3) - Objective Energy             --> " << status_string(user_settings.objective_energy);
+	cout << "\n  (4) - Objective Average Power      --> " << status_string(user_settings.objective_power);
+	cout << "\n" ;
+	cout << "\n  (5) - save simulated spaces        --> " << status_string(user_settings.save_spaces);
+	cout << "\n  (6) - save Trimaran PD_STATS files --> " << status_string(user_settings.save_PD_STATS);
+	cout << "\n  (7) - save estimation detail files --> " << status_string(user_settings.save_estimation);
+	cout << "\n  (8) - Benchmark                    --> " << trimaran_interface->get_benchmark_name();
+	cout << "\n  (9) - Automatic clock freq         --> " << status_string(user_settings.auto_clock);
+	cout << "\n (10) - Fuzzy simulation             --> " << status_string(user_settings.fuzzy_enabled);
 	cout << "\n ----------------------------------------------------------";
 	cout << "\n\n (s) - Save current settings to file";
 	cout << "\n (l) - Load settings from file";
@@ -331,25 +332,26 @@ void User_interface::edit_user_settings()
 	cout << "\n\n Make a choice : ";
 	cin >> ch;
 
-	if (ch=='0') 
+	if (ch=="0") 
 	{
 	    user_settings.hyperblock = !user_settings.hyperblock;
 	    trimaran_interface->set_hyperblock(user_settings.hyperblock);
 	}
-	if (ch=='1') user_settings.objective_area =   !user_settings.objective_area;
-	if (ch=='2') user_settings.objective_exec_time = !user_settings.objective_exec_time;
-	if (ch=='3') user_settings.objective_energy = !user_settings.objective_energy;
-	if (ch=='4') user_settings.objective_power =  !user_settings.objective_power;
-	if (ch=='5') user_settings.save_spaces = !user_settings.save_spaces;
-	if (ch=='6') user_settings.save_PD_STATS = !user_settings.save_PD_STATS;
-	if (ch=='7') user_settings.save_estimation = !user_settings.save_estimation;
-	if (ch=='8') choose_benchmark();
-	if (ch=='9') user_settings.auto_clock = !user_settings.auto_clock;
+	if (ch=="1") user_settings.objective_area =   !user_settings.objective_area;
+	if (ch=="2") user_settings.objective_exec_time = !user_settings.objective_exec_time;
+	if (ch=="3") user_settings.objective_energy = !user_settings.objective_energy;
+	if (ch=="4") user_settings.objective_power =  !user_settings.objective_power;
+	if (ch=="5") user_settings.save_spaces = !user_settings.save_spaces;
+	if (ch=="6") user_settings.save_PD_STATS = !user_settings.save_PD_STATS;
+	if (ch=="7") user_settings.save_estimation = !user_settings.save_estimation;
+	if (ch=="8") choose_benchmark();
+	if (ch=="9") user_settings.auto_clock = !user_settings.auto_clock;
+	if (ch=="10") user_settings.fuzzy_enabled = !user_settings.fuzzy_enabled;
 
-	if (ch=='s') save_settings_wrapper();
-	if (ch=='l') load_settings_wrapper();
+	if (ch=="s") save_settings_wrapper();
+	if (ch=="l") load_settings_wrapper();
 
-    } while(ch!='q');
+    } while(ch!="q");
 
     my_explorer->set_options(user_settings);
 }
@@ -682,6 +684,7 @@ void User_interface::load_settings(string settings_file)
        user_settings.save_PD_STATS = false;
        user_settings.save_estimation = false;
        user_settings.auto_clock = false;
+       user_settings.fuzzy_enabled = false;
 
        fp= fopen(settings_file.c_str(),"w");
        fclose(fp);
@@ -708,6 +711,7 @@ void User_interface::load_settings(string settings_file)
 	user_settings.save_PD_STATS = false;
 	user_settings.save_estimation = false;
 	user_settings.auto_clock = false;
+	user_settings.fuzzy_enabled = false;
 
 	go_until("hyperblock",input_file);
 	input_file >> word;
@@ -748,6 +752,10 @@ void User_interface::load_settings(string settings_file)
 	if (word=="ENABLED") user_settings.save_estimation = true;
 
 	go_until("AUTO_CLOCK",input_file);
+	input_file >> word;
+	if (word=="ENABLED") user_settings.auto_clock = true;
+
+	go_until("fuzzy_enabled",input_file);
 	input_file >> word;
 	if (word=="ENABLED") user_settings.auto_clock = true;
 
@@ -833,6 +841,7 @@ void User_interface::save_settings(string settings_file)
 	output_file << "\nsave_PD_STATS " << status_string(user_settings.save_PD_STATS);
 	output_file << "\nsave_estimation " << status_string(user_settings.save_estimation);
 	output_file << "\nAUTO_CLOCK " << status_string(user_settings.auto_clock);
+	output_file << "\nfuzzy_enabled " << status_string(user_settings.fuzzy_enabled);
 
 	cout << "\n Ok, saved current settings in " << settings_file;
     }

@@ -71,20 +71,9 @@ void Explorer::set_fuzzy(bool v)
 //********************************************************************
 void Explorer::set_options(const struct User_Settings& user_settings)
 {
-    Options.hyperblock = user_settings.hyperblock;
-    Options.objective_area = user_settings.objective_area;
-    Options.objective_power = user_settings.objective_power;
-    Options.objective_energy = user_settings.objective_energy;
-    Options.objective_exec_time = user_settings.objective_exec_time;
-    Options.save_spaces = user_settings.save_spaces;
-    Options.save_PD_STATS = user_settings.save_PD_STATS;
-    Options.save_estimation = user_settings.save_estimation;
-    Options.benchmark = user_settings.benchmark;
-
-    Options.auto_clock = user_settings.auto_clock;
+    Options = user_settings;
 
     estimator.set_autoclock(user_settings.auto_clock);
-    Options.hyperblock = user_settings.hyperblock;
 
     // Number of objectives 
     n_obj = 0;
