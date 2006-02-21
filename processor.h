@@ -35,20 +35,18 @@ class Processor {
 	~Processor();
 	
 	void set_to_default();
+	void set_config(const Configuration&);
 
-	struct configuration
-	{
-	    Parameter integer_units;
-	    Parameter float_units;
-	    Parameter branch_units;
-	    Parameter memory_units;
+	Parameter integer_units;
+	Parameter float_units;
+	Parameter branch_units;
+	Parameter memory_units;
 
-	    Parameter gpr_static_size;
-	    Parameter fpr_static_size;
-	    Parameter pr_static_size;
-	    Parameter cr_static_size;
-	    Parameter btr_static_size;
-	} config;
+	Parameter gpr_static_size;
+	Parameter fpr_static_size;
+	Parameter pr_static_size;
+	Parameter cr_static_size;
+	Parameter btr_static_size;
 };
 
 #endif

@@ -27,8 +27,6 @@
 
 using namespace std;
 
-extern "C" double logtwo_area(double);
-
 enum cache_type { L1D_CACHE,L1I_CACHE,L2U_CACHE };
 
 class Mem_hierarchy {
@@ -57,11 +55,12 @@ class Mem_hierarchy {
 	Cache L2U;
 
 	void set_to_default();
+	void set_config(const Configuration&);
+
 	void print_cache_config(const Cache& cache) const;
 	bool test_valid_cache(const Cache& cache) const ;
 	bool test_valid_cache(int C, int B, int A) const ;
 	bool test_valid_config() const;
-
 };
 
 #endif
