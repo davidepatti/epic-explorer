@@ -62,7 +62,7 @@ struct User_Settings
     bool auto_clock;
     bool save_objectives_details;
     string default_settings_file;
-    bool fuzzy_enabled;
+    int fuzzy_enabled;
 };
 
 struct Space_mask

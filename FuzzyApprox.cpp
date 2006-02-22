@@ -164,14 +164,13 @@ bool CFuzzyFunctionApproximation::Learn(REAL* InputValue, REAL* OutputValue) {
 }
 
 bool CFuzzyFunctionApproximation::Reliable() {
-	if (prove < 500) return (false); //impone di farne almeno 445
+	return (false); //impone di farne almeno 445
 	//REAL erro = 0.0f;
 	//for(int i=0;i<OutDim;++i) {
 	//	erro += (errmedio[i] * 100.0f )/ REAL(prove);
 	//}
 	//fprintf(stdout, "\n\n\n\n************ L'errore di stima e' : %f ************\n",erro);
 	//if (erro > threshold) return (false);
-	return (true); 
 }
 
 bool CFuzzyFunctionApproximation::EstimateG(REAL* InputValue, REAL* Outputs) {

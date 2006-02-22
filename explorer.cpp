@@ -47,7 +47,6 @@ Explorer::Explorer(Trimaran_interface * ti)
     Options.save_estimation = false;
 
     Options.save_objectives_details = false;
-    fuzzy_enabled = false;
     force_simulation = false;
 
     current_space = "SPACE_NOT_SET";
@@ -64,7 +63,7 @@ Explorer::~Explorer()
 
 void Explorer::set_fuzzy(bool v)
 {
-    fuzzy_enabled = v;
+    Options.fuzzy_enabled = v;
 }
 
 
@@ -1811,141 +1810,85 @@ vector<Simulation> Explorer::sort_by_energydelay_product(vector<Simulation> sims
 #define BIG_ENERGY      MAXDOUBLE
 #define BIG_AREA        MAXDOUBLE
 
-//**************************************************************
-void Explorer::start_GA(const GA_parameters& parameters)
-{
-  current_algo="GA";
-  HashGA ht_ga(DEF_HASH_TABLE_SIZE); // maybe static?
-  SPEA   ga;
-
-  static ExportUserData eud;
-  eud.explorer = this;
-  eud.ht_ga = &ht_ga;
-  eud.history.clear();
-
-  static GA_parameters ga_parameters;
-  ga_parameters.population_size = parameters.population_size;
-  ga_parameters.pcrossover = parameters.pcrossover;
-  ga_parameters.pmutation = parameters.pmutation;
-  ga_parameters.max_generations = parameters.max_generations;
-
-  Exploration_stats stats;
-  stats.space_size = get_space_size();
-  stats.feasible_size = get_feasible_size();
-  stats.start_time = time(NULL);
-  reset_sim_counter();
-
-  init_GA(ga, &eud, &ga_parameters);
-
-  string file_name = Options.benchmark+"_GA_"+current_space;
-
-  while ( !ga.done() )
-    {
-      ga.step(); // evolve
-
-      // save Pareto-set every report_pareto_step generations
-      if (ga.currentGeneration() % parameters.report_pareto_step == 0)
-      	{
-      	  vector<Simulation> pareto = get_pareto(eud.history);
-
-	  char temp[10];
-	  sprintf(temp, "_%d",ga.currentGeneration());
-	  save_simulations(pareto, file_name+string(temp)+".pareto.exp", SHOW_ALL);
-
-	  ga_show_info(ga, eud, file_name+".info.stat");
-	}
-    }
-
-  // save history
-  save_simulations(eud.history, file_name+".history.stat", SHOW_ALL);
-
-  // save statistics
-  stats.end_time = time(NULL);
-  stats.n_sim = get_sim_counter();
-  save_stats(stats, file_name+".stat");
-}
-
 //******************************************************************************************//
 
-void Explorer::start_GA_Fuzzy(const GA_parameters& parameters)
+void Explorer::start_GA(const GA_parameters& parameters)
 {
-  current_algo="GA_Fuzzy";
-  HashGA ht_ga(DEF_HASH_TABLE_SIZE); // maybe static?
-  HashGA ht_hy(DEF_HASH_TABLE_SIZE);
-  SPEA   ga;
-
-  static ExportUserData eud;
-  eud.explorer = this;
-  eud.ht_ga = &ht_ga;
-  eud.ht_hy = &ht_hy;
-  eud.history.clear();
-
-  /*
-  vector <Simulation> vsim = load_simulations("history_cache.old");
-
-  for(int i=0; i<vsim.size(); ++i) {
-	vsim[i].exec_time = vsim[i].exec_time / 1000;
-  	eud.ht_hy->addT(vsim[i]);
-  }
-  */
-
-  static GA_parameters ga_parameters;
-
-  ga_parameters.population_size = parameters.population_size;
-  ga_parameters.pcrossover = parameters.pcrossover;
-  ga_parameters.pmutation = parameters.pmutation;
-  ga_parameters.max_generations = parameters.max_generations;
-
-  Exploration_stats stats;
-  stats.space_size = get_space_size();
-  stats.feasible_size = get_feasible_size();
-  stats.start_time = time(NULL);
-  reset_sim_counter();
-
-  init_GA_Fuzzy(ga, &eud, &ga_parameters);
-
-  string file_name = Options.benchmark+"_FUZZY_"+current_space;
-
-  //---- FuzzyApprox
-  fuzzy_approx.Init(2.0f, getParameterRanges(), 2);
-  // 2.0f = threshold
-  // 2 = Number of objectives
-  SimulateBestWorst(eud);
-
-  vector<Simulation> pareto;
-  eud.pareto = pareto;
-  //-----
-  
-  while ( !ga.done() )
+    current_algo="GA";
+    if (Options.fuzzy_enabled)
     {
-      ga.step(); // evolve
+	current_algo+="_fuzzy";
+    }
 
-      // save Pareto-set every report_pareto_step generations
-      if (ga.currentGeneration() % parameters.report_pareto_step == 0)
-      	{
-      	  //pareto = get_pareto(eud.history);
-	  pareto = eud.pareto;
+    HashGA ht_ga(DEF_HASH_TABLE_SIZE); // maybe static?
+    HashGA ht_hy(DEF_HASH_TABLE_SIZE);
+    SPEA   ga;
 
-	  char temp[10];
-	  sprintf(temp, "_%d",ga.currentGeneration());
-	  save_simulations(pareto, file_name+string(temp)+".pareto.exp", SHOW_ALL);
+    static ExportUserData eud;
+    eud.explorer = this;
+    eud.ht_ga = &ht_ga;
+    eud.ht_hy = &ht_hy;
+    eud.history.clear();
 
-  	  save_simulations(eud.history, file_name+".history.stat", SHOW_ALL);
-	  ga_show_info(ga, eud, file_name+".info.stat");
+    static GA_parameters ga_parameters;
+
+    ga_parameters.population_size = parameters.population_size;
+    ga_parameters.pcrossover = parameters.pcrossover;
+    ga_parameters.pmutation = parameters.pmutation;
+    ga_parameters.max_generations = parameters.max_generations;
+
+    Exploration_stats stats;
+    stats.space_size = get_space_size();
+    stats.feasible_size = get_feasible_size();
+    stats.start_time = time(NULL);
+    reset_sim_counter();
+
+    init_GA(ga, &eud, &ga_parameters);
+
+    string file_name = Options.benchmark+"_"+current_algo+"_"+current_space;
+
+    if (Options.fuzzy_enabled)
+    {
+	fuzzy_approx.Init(2.0f, getParameterRanges(), 2);
+	// 2.0f = threshold
+	// 2 = Number of objectives
+    }
+    SimulateBestWorst(eud);
+
+    vector<Simulation> pareto;
+    eud.pareto = pareto;
+
+    while ( !ga.done() )
+    {
+	ga.step(); // evolve
+
+	// save Pareto-set every report_pareto_step generations
+	if (ga.currentGeneration() % parameters.report_pareto_step == 0)
+	{
+	    //pareto = get_pareto(eud.history);
+	    pareto = eud.pareto;
+
+	    char temp[10];
+	    sprintf(temp, "_%d",ga.currentGeneration());
+	    save_simulations(pareto, file_name+string(temp)+".pareto.exp", SHOW_ALL);
+
+	    save_simulations(eud.history, file_name+".history.stat", SHOW_ALL);
+	    ga_show_info(ga, eud, file_name+".info.stat");
 	}
     }
 
-  // save history
-  //save_simulations(eud.history, file_name+".history.stat", SHOW_ALL);
+    // save history
+    //save_simulations(eud.history, file_name+".history.stat", SHOW_ALL);
 
-  // save statistics
-  stats.end_time = time(NULL);
-  stats.n_sim = get_sim_counter();
-  save_stats(stats, file_name+".stat");
+    // save statistics
+    stats.end_time = time(NULL);
+    stats.n_sim = get_sim_counter();
+    save_stats(stats, file_name+".stat");
 }
 
 
 //********************************************************************
+
 
 void Explorer::init_GA(SPEA& ga, ExportUserData* eud,GA_parameters* ga_parameters)
 {
@@ -1979,50 +1922,6 @@ void Explorer::init_GA(SPEA& ga, ExportUserData* eud,GA_parameters* ga_parameter
   alleles.push_back(values2alleles(processor.btr_static_size.get_values()));
 
   IND individual(alleles, GA_Evaluator, eud);
-  individual.metric(DefaultObjectiveDistance);
-
-  ga.initialize(individual);
-
-  ga.maxGenerations(ga_parameters->max_generations);
-  ga.pCrossover(ga_parameters->pcrossover);
-  ga.pMutate(ga_parameters->pmutation);
-  ga.pop1Size(ga_parameters->population_size);
-  ga.pop2Size(ga_parameters->population_size);
-}
-//********************************************************************
-
-void Explorer::init_GA_Fuzzy(SPEA& ga, ExportUserData* eud,GA_parameters* ga_parameters)
-{
-
-  ga.objectiveDimensions(n_obj); 
-
-  ga.minimize(); /* minimization of the objectives */
-  vector<vector<AlleleString::Allele> > alleles;
-  // memory hierarchy parameters
-  alleles.push_back(values2alleles(mem_hierarchy.L1D.block_size.get_values()));
-  alleles.push_back(values2alleles(mem_hierarchy.L1D.size.get_values()));
-  alleles.push_back(values2alleles(mem_hierarchy.L1D.associativity.get_values()));
-
-  alleles.push_back(values2alleles(mem_hierarchy.L1I.block_size.get_values()));
-  alleles.push_back(values2alleles(mem_hierarchy.L1I.size.get_values()));
-  alleles.push_back(values2alleles(mem_hierarchy.L1I.associativity.get_values()));
-  
-  alleles.push_back(values2alleles(mem_hierarchy.L2U.block_size.get_values()));
-  alleles.push_back(values2alleles(mem_hierarchy.L2U.size.get_values()));
-  alleles.push_back(values2alleles(mem_hierarchy.L2U.associativity.get_values()));
-
-  // processor parameters
-  alleles.push_back(values2alleles(processor.integer_units.get_values()));
-  alleles.push_back(values2alleles(processor.float_units.get_values()));
-  alleles.push_back(values2alleles(processor.memory_units.get_values()));
-  alleles.push_back(values2alleles(processor.branch_units.get_values()));
-  alleles.push_back(values2alleles(processor.gpr_static_size.get_values()));
-  alleles.push_back(values2alleles(processor.fpr_static_size.get_values()));
-  alleles.push_back(values2alleles(processor.cr_static_size.get_values()));
-  alleles.push_back(values2alleles(processor.pr_static_size.get_values()));
-  alleles.push_back(values2alleles(processor.btr_static_size.get_values()));
-
-  IND individual(alleles, GA_Fuzzy_Evaluator, eud);
   individual.metric(DefaultObjectiveDistance);
 
   ga.initialize(individual);
@@ -2105,117 +2004,7 @@ void GA_Evaluator(IND& ind, ObjectiveVector& scores, void *user_data)
 
 /*************************************************************************/
 
-void GA_Fuzzy_Evaluator(IND& ind, ObjectiveVector& scores, void *user_data)
-{
-  double exec_time, energy, area;
-  bool   feasible;
-
-  feasible = GA_Fuzzy_Evaluation(ind, user_data, exec_time, energy, area);
-
-  if (((ExportUserData*)user_data)->explorer->get_obj_number()==2) 
-  {
-      if (feasible)
-	{
-	  scores[IDX_CYCLES] = exec_time;
-	  scores[IDX_ENERGY] = energy;
-	}
-      else
-	{
-	  scores[IDX_CYCLES] = BIG_CYCLES;
-	  scores[IDX_ENERGY] = BIG_ENERGY;
-	}
-  }
-  else // 3 objectives
-  {
-
-      if (feasible)
-	{
-	  scores[IDX_CYCLES] = exec_time;
-	  scores[IDX_ENERGY] = energy;
-	  scores[IDX_AREA]   = area;
-	}
-      else
-	{
-	  scores[IDX_CYCLES] = BIG_CYCLES;
-	  scores[IDX_ENERGY] = BIG_ENERGY;
-	  scores[IDX_AREA]   = BIG_AREA;   
-	}
-  }
-
-}
-
-/*************************************************************************/
-
 bool GA_Evaluation(IND& ind, void *user_data, double& exec_time, double& energy,double& area)
-{
-  ExportUserData *eud      = (ExportUserData *)user_data;
-  Explorer       *explorer = eud->explorer;
-  HashGA         *ht_ga    = eud->ht_ga;
-
-  Configuration conf;
-
-  conf.L1D_block = ind[0];
-  conf.L1D_size  = ind[1];
-  conf.L1D_assoc = ind[2];
-
-  conf.L1I_block = ind[3];
-  conf.L1I_size  = ind[4];
-  conf.L1I_assoc = ind[5];
-  
-  conf.L2U_block = ind[6];
-  conf.L2U_size  = ind[7];
-  conf.L2U_assoc = ind[8];
-
-  conf.integer_units = ind[9];
-  conf.float_units   = ind[10];
-  conf.memory_units  = ind[11];
-  conf.branch_units  = ind[12];
-
-  conf.gpr_static_size = ind[13];
-  conf.fpr_static_size = ind[14];
-  conf.cr_static_size  = ind[15];
-  conf.pr_static_size  = ind[16];
-  conf.btr_static_size = ind[17];
-
-  if ( !conf.is_feasible() ) return false;
-
-  Simulation sim;
-  sim.config = conf;
-  Simulation *psim = ht_ga->searchT(sim);
-  if (psim == NULL)
-    {
-      vector<Configuration> vconf;
-      vconf.push_back(conf);
-
-      vector<Simulation> vsim = explorer->simulate_space(vconf);
-      assert(vsim.size() == 1);
-
-      sim.energy = vsim[0].energy;
-      sim.area   = vsim[0].area;
-      sim.exec_time = vsim[0].exec_time;
-      sim.clock_freq = vsim[0].clock_freq;
-      ht_ga->addT(sim);
-      
-      eud->history.push_back(sim);
-    }
-  else
-    {
-      sim.energy = psim->energy;
-      sim.area   = psim->area;
-      sim.exec_time = psim->exec_time;      
-      sim.clock_freq = psim->clock_freq;      
-    }
-  
-  exec_time = sim.exec_time;
-  energy  = sim.energy;
-  area   = sim.area;
-  
-  return true;
-}
-
-/*************************************************************************/
-
-bool GA_Fuzzy_Evaluation(IND& ind, void *user_data, double& exec_time, double& energy,double& area)
 {
     ExportUserData *eud      = (ExportUserData *)user_data;
     Explorer       *explorer = eud->explorer;
@@ -3062,7 +2851,7 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
 
     bool processor_changed;
     bool compilation_changed;
-    bool do_simulation = (force_simulation || (!(fuzzy_enabled && fuzzy_approx.Reliable())));
+    bool do_simulation = (force_simulation || (!(Options.fuzzy_enabled && fuzzy_approx.Reliable())));
 
     // -------------------------------------------------------------------
     if (do_simulation)
@@ -3119,19 +2908,36 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
 
 	    dyn_stats = trimaran_interface->get_dynamic_stats();
 
-	    if (fuzzy_enabled) fuzzy_approx.Learn(space[i],dyn_stats);
+	    estimate = estimator.get_estimate(dyn_stats,mem_hierarchy,processor);
+	    current_sim.area = estimate.total_area;
+	    current_sim.exec_time = estimate.execution_time;
+	    current_sim.clock_freq = estimate.clock_freq;
+	    current_sim.simulated = do_simulation;
+
+	    if (Options.fuzzy_enabled==1) 
+		fuzzy_approx.Learn(space[i],current_sim);
+
+	    if (Options.fuzzy_enabled==2)
+		fuzzy_approx.Learn(space[i],dyn_stats);
 	}
 	else  
 	{   // using fuzzy approximation instead of simulation
-	    dyn_stats = fuzzy_approx.EstimateG(space[i]);
+	    assert(fuzzy_enabled);
+
+	    if (Options.fuzzy_enabled=1)
+		current_sim = fuzzy_approx.Estimate1(space[i]);
+	    else // fuzzy_enabled = 2
+	    {
+		dyn_stats = fuzzy_approx.Estimate2(space[i]);
+		estimate = estimator.get_estimate(dyn_stats,mem_hierarchy,processor);
+
+		current_sim.area = estimate.total_area;
+		current_sim.exec_time = estimate.execution_time;
+		current_sim.clock_freq = estimate.clock_freq;
+		current_sim.simulated = do_simulation;
+	    }
 	}
 
-	estimate = estimator.get_estimate(dyn_stats,mem_hierarchy,processor);
-
-	current_sim.area = estimate.total_area;
-	current_sim.exec_time = estimate.execution_time;
-	current_sim.clock_freq = estimate.clock_freq;
-	current_sim.simulated = do_simulation;
 
 	if (Options.objective_energy) current_sim.energy = estimate.total_system_energy;
 	else if (Options.objective_power) current_sim.energy = estimate.total_average_power;

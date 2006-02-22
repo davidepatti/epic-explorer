@@ -1,4 +1,5 @@
 #include "FuzzyApprox.h"
+#include "common.h"
 
 using namespace std;
 bool CFuzzyFunctionApproximation::Init(REAL _threshold, 
@@ -35,6 +36,7 @@ bool CFuzzyFunctionApproximation::Init(REAL _threshold,
 
 bool CFuzzyFunctionApproximation::Learn(const Configuration& conf,const Dynamic_stats& dyn)
 {
+    return false;
 }
 
 bool CFuzzyFunctionApproximation::Learn(Configuration conf,Simulation sim) {
@@ -61,9 +63,7 @@ bool CFuzzyFunctionApproximation::Learn(Configuration conf,Simulation sim) {
 	return (Learn(appoggio,&(appoggio[18])));
 }
 
-Dynamic_stats CFuzzyFunctionApproximation::EstimateG(Configuration conf) {
-    Dynamic_stats dyn;
-    /*
+Simulation CFuzzyFunctionApproximation::Estimate1(Configuration conf) {
 	Simulation sim;
 	appoggio[0] = REAL(conf.integer_units);
 	appoggio[1] = REAL(conf.float_units);
@@ -86,29 +86,15 @@ Dynamic_stats CFuzzyFunctionApproximation::EstimateG(Configuration conf) {
 	appoggio[18] = 0.0f;
 	appoggio[19] = 0.0f;
 	EstimateG(appoggio,&(appoggio[18]));
-	sim.config.branch_units = conf.branch_units;
-	sim.config.btr_static_size = conf.btr_static_size;
-	sim.config.cr_static_size = conf.cr_static_size;
-	sim.config.float_units = conf.float_units;
-	sim.config.fpr_static_size = conf.fpr_static_size;
-	sim.config.gpr_static_size = conf.gpr_static_size;
-	sim.config.integer_units = conf.integer_units;
-	sim.config.L1D_assoc = conf.L1D_assoc;
-	sim.config.L1D_block = conf.L1D_block;
-	sim.config.L1D_size = conf.L1D_size;
-	sim.config.L1I_assoc = conf.L1I_assoc;
-	sim.config.L1I_block = conf.L1I_block;
-	sim.config.L1I_size = conf.L1I_size;
-	sim.config.L2U_assoc = conf.L2U_assoc;
-	sim.config.L2U_block = conf.L2U_block;
-	sim.config.L2U_size = conf.L2U_size;
-	sim.config.memory_units = conf.memory_units;
-	sim.config.pr_static_size = conf.pr_static_size;
+	sim.config = conf;
 	sim.area = -1.0f;
 	sim.clock_freq = -1.0f;
 	sim.energy = double(appoggio[18]);
 	sim.exec_time = double(appoggio[19]);
 	return (sim);
-	*/
+	}
+
+Dynamic_stats CFuzzyFunctionApproximation::Estimate2(Configuration conf) {
+    Dynamic_stats dyn;
     return dyn;
 }

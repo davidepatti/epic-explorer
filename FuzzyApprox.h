@@ -22,8 +22,8 @@ public:
   bool Learn(const Configuration& conf,const Dynamic_stats& dyn);
   bool GenerateInputFuzzySets(int Dimensionality, int* InputFuzzySetsNumberVector, REAL *InMinimumValuesVector, REAL *InMaximumValuesVector);
   bool EstimateG(REAL* InputValues,REAL* OutputVector);
-  //Simulation EstimateG(Configuration conf);
-  Dynamic_stats EstimateG(Configuration conf);
+  Simulation Estimate1(Configuration conf);
+  Dynamic_stats Estimate2(Configuration conf);
   bool Reliable();
   int GetRules();
   void Clean();
