@@ -5,6 +5,7 @@ META-TODO: Translate this TODO in english !
 
 unstable version:
 
+- sistemare opzione fuzzy
 - aggiungere popolazione 2 tra i parametri del GA
 - segnale per il flushing dei risultati parziali
 
