@@ -68,7 +68,6 @@ int User_interface::show_menu()
     cout << "\n [x] - Schedule Multiple Explorations"; 
     cout << "\n ";
     cout << "\n [g] - GA\t(genetic algorithm based)";
-    cout << "\n [f] - GA Fuzzy\t(hybrid genetic fuzzy)";
     cout << "\n [d] - DEP\t(dependency graph)";
     cout << "\n [z] - DEP2\t(alternative graph)";
     cout << "\n [m] - DEPMOD\t(simplified graph)";
@@ -138,26 +137,6 @@ int User_interface::show_menu()
 	    cin >> ch;
 	    if (ch=='y')
 	    my_explorer->start_GA(ga_parameters);
-	    break;
-
-    case 'f': 
-	    cout << "\n\n GA Fuzzy based approach ";
-	    cout << "\n-------------------------------";
-	    cout << "\n\n Population size: ";
-	    cin >> ga_parameters.population_size;
-	    cout << " Crossover prob: ";
-	    cin >> ga_parameters.pcrossover;
-	    cout << " Mutation prob: ";
-	    cin >> ga_parameters.pmutation;
-	    cout << " Max Generations: ";
-	    cin >> ga_parameters.max_generations;
-	    cout << " Report pareto step: ";
-	    cin >> ga_parameters.report_pareto_step;
-	    start_exploration_message();
-	    cout << "\n\n Start exploration (y/n) ? ";
-	    cin >> ch;
-	    if (ch=='y')
-	    my_explorer->start_GA_Fuzzy(ga_parameters);
 	    break;
 
 	case 'd':
@@ -346,7 +325,16 @@ void User_interface::edit_user_settings()
 	if (ch=="7") user_settings.save_estimation = !user_settings.save_estimation;
 	if (ch=="8") choose_benchmark();
 	if (ch=="9") user_settings.auto_clock = !user_settings.auto_clock;
-	if (ch=="10") user_settings.fuzzy_enabled = !user_settings.fuzzy_enabled;
+	if (ch=="10") 
+	{
+	    cout << "\n Select fuzzy approximation:";
+	    cout << "\n (0) None";
+	    cout << "\n (1) Single Layer";
+	    cout << "\n (2) Hierarchical";
+	    cout << "\n select: ";
+	    cin >> user_settings.fuzzy_enabled;
+	}
+
 
 	if (ch=="s") save_settings_wrapper();
 	if (ch=="l") load_settings_wrapper();
@@ -684,7 +672,7 @@ void User_interface::load_settings(string settings_file)
        user_settings.save_PD_STATS = false;
        user_settings.save_estimation = false;
        user_settings.auto_clock = false;
-       user_settings.fuzzy_enabled = false;
+       user_settings.fuzzy_enabled = 0;
 
        fp= fopen(settings_file.c_str(),"w");
        fclose(fp);
@@ -711,7 +699,6 @@ void User_interface::load_settings(string settings_file)
 	user_settings.save_PD_STATS = false;
 	user_settings.save_estimation = false;
 	user_settings.auto_clock = false;
-	user_settings.fuzzy_enabled = false;
 
 	go_until("hyperblock",input_file);
 	input_file >> word;
@@ -756,8 +743,7 @@ void User_interface::load_settings(string settings_file)
 	if (word=="ENABLED") user_settings.auto_clock = true;
 
 	go_until("fuzzy_enabled",input_file);
-	input_file >> word;
-	if (word=="ENABLED") user_settings.auto_clock = true;
+	input_file >> user_settings.fuzzy_enabled;
 
 	my_explorer->set_options(user_settings);
    }
@@ -841,7 +827,7 @@ void User_interface::save_settings(string settings_file)
 	output_file << "\nsave_PD_STATS " << status_string(user_settings.save_PD_STATS);
 	output_file << "\nsave_estimation " << status_string(user_settings.save_estimation);
 	output_file << "\nAUTO_CLOCK " << status_string(user_settings.auto_clock);
-	output_file << "\nfuzzy_enabled " << status_string(user_settings.fuzzy_enabled);
+	output_file << "\nfuzzy_enabled " << user_settings.fuzzy_enabled;
 
 	cout << "\n Ok, saved current settings in " << settings_file;
     }

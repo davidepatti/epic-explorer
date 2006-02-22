@@ -60,7 +60,6 @@ public:
   void start_PBSA();
   void start_RAND(int n);
   void start_GA(const GA_parameters& parameters); 
-  void start_GA_Fuzzy(const GA_parameters& parameters); 
   void start_EXHA();
   void test(); // for testing only
 
@@ -178,7 +177,6 @@ private:
   Dynamic_stats dyn_stats;
   Configuration current_config;
 
-  bool fuzzy_enabled;
   bool force_simulation;
 
   string base_dir;
@@ -202,6 +200,4 @@ private:
 // Evaluation functions for GA-based exploration
 void GA_Evaluator(IND& ind, ObjectiveVector& scores, void *user_data); 
 bool GA_Evaluation(IND& ind, void *user_data, double& exec_time, double& power, double& area); 
-void GA_Fuzzy_Evaluator(IND& ind, ObjectiveVector& scores, void *user_data); 
-bool GA_Fuzzy_Evaluation(IND& ind, void *user_data, double& exec_time, double& power, double& area); 
 #endif
