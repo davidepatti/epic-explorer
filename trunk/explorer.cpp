@@ -2924,7 +2924,7 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
 	{   // using fuzzy approximation instead of simulation
 	    assert(fuzzy_enabled);
 
-	    if (Options.fuzzy_enabled=1)
+	    if (Options.fuzzy_enabled==1)
 		current_sim = fuzzy_approx.Estimate1(space[i]);
 	    else // fuzzy_enabled = 2
 	    {
