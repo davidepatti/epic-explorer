@@ -82,6 +82,12 @@ void Explorer::set_options(const struct User_Settings& user_settings)
     if (Options.objective_area) n_obj++;
     if (Options.objective_energy) n_obj++;
 
+    if (Options.fuzzy_enabled>0)
+    {
+	fuzzy_approx.Init(2.0f, getParameterRanges(), 2);
+	// 2.0f = threshold
+	// 2 = Number of objectives
+    }
 }
 
 
@@ -1847,12 +1853,6 @@ void Explorer::start_GA(const GA_parameters& parameters)
 
     string file_name = Options.benchmark+"_"+current_algo+"_"+current_space;
 
-    if (Options.fuzzy_enabled)
-    {
-	fuzzy_approx.Init(2.0f, getParameterRanges(), 2);
-	// 2.0f = threshold
-	// 2 = Number of objectives
-    }
     SimulateBestWorst(eud);
 
     vector<Simulation> pareto;
@@ -4070,6 +4070,14 @@ void Explorer::load_space_file(const string& filename)
 
 	processor.set_to_default();
 	trimaran_interface->save_processor_config(processor);
+
+	if (Options.fuzzy_enabled>0)
+	{
+	    fuzzy_approx.Init(2.0f, getParameterRanges(), 2);
+	    // 2.0f = threshold
+	    // 2 = Number of objectives
+	}
+
    }
 
 }
