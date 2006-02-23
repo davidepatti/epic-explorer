@@ -82,9 +82,9 @@ void Explorer::set_options(const struct User_Settings& user_settings)
     if (Options.objective_area) n_obj++;
     if (Options.objective_energy) n_obj++;
 
-    if (Options.fuzzy_enabled>0)
+    if (Options.fuzzy_enabled==1)
     {
-	fuzzy_approx.Init(2.0f, getParameterRanges(), 2);
+	fuzzy_approx.Init(2.0f, n_obj);
 	// 2.0f = threshold
 	// 2 = Number of objectives
     }
@@ -2913,7 +2913,10 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
 	    current_sim.exec_time = estimate.execution_time;
 	    current_sim.clock_freq = estimate.clock_freq;
 	    current_sim.simulated = do_simulation;
-
+	    
+	    if (Options.objective_energy) current_sim.energy = estimate.total_system_energy;
+	    else if (Options.objective_power) current_sim.energy = estimate.total_average_power;
+	    
 	    if (Options.fuzzy_enabled==1) 
 		fuzzy_approx.Learn(space[i],current_sim);
 
@@ -2924,26 +2927,26 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
 	{   // using fuzzy approximation instead of simulation
 	    assert(fuzzy_enabled);
 
-	    if (Options.fuzzy_enabled==1)
+	    if (Options.fuzzy_enabled==1) {
 		current_sim = fuzzy_approx.Estimate1(space[i]);
+		current_sim.simulated = false;
+	    }
 	    else // fuzzy_enabled = 2
 	    {
 		dyn_stats = fuzzy_approx.Estimate2(space[i]);
 		estimate = estimator.get_estimate(dyn_stats,mem_hierarchy,processor);
 
+	        if (Options.objective_energy) current_sim.energy = estimate.total_system_energy;
+	        else if (Options.objective_power) current_sim.energy = estimate.total_average_power;
 		current_sim.area = estimate.total_area;
 		current_sim.exec_time = estimate.execution_time;
 		current_sim.clock_freq = estimate.clock_freq;
-		current_sim.simulated = do_simulation;
+		current_sim.simulated = false;
 	    }
 	}
-
-
-	if (Options.objective_energy) current_sim.energy = estimate.total_system_energy;
-	else if (Options.objective_power) current_sim.energy = estimate.total_average_power;
-
-	assert( (Options.objective_energy && (!Options.objective_power)) ||
-	        ( (!Options.objective_energy) && Options.objective_power) );
+        cout << "\n" << current_sim.energy << " ___ " << current_sim.exec_time << "\n";
+	//assert( (Options.objective_energy && (!Options.objective_power)) ||
+	//        ( (!Options.objective_energy) && Options.objective_power) );
 
 	simulations.push_back(current_sim);
 
@@ -4073,7 +4076,7 @@ void Explorer::load_space_file(const string& filename)
 
 	if (Options.fuzzy_enabled>0)
 	{
-	    fuzzy_approx.Init(2.0f, getParameterRanges(), 2);
+	    fuzzy_approx.FuzzySetsInit(getParameterRanges());
 	    // 2.0f = threshold
 	    // 2 = Number of objectives
 	}

@@ -64,7 +64,7 @@ bool CFuzzyFunctionApproximation::GenerateInputFuzzySets(int dim, int *numbers, 
 bool CFuzzyFunctionApproximation::StartUp(int N, REAL thres) {
 	// Creates the Rule Table
 
-  	OutDim = 2; // Provvisorio
+  	//OutDim = 2; // Provvisorio
 
 	threshold = thres;
 		
@@ -97,9 +97,6 @@ bool CFuzzyFunctionApproximation::StartUp(int N, REAL thres) {
 	stima = new REAL[OutDim];
 	if (stima == NULL) return (false);
 
-	appoggio = new REAL[InDim+OutDim];
-	if (stima == NULL) return (false);
-
 	calcola = false;
 
 	prove = 0;
@@ -111,10 +108,11 @@ bool CFuzzyFunctionApproximation::Learn(REAL* InputValue, REAL* OutputValue) {
 
 	int i,j;
 
-	fprintf(stdout,"----------------------- Fuzzy Learning");
-	for (i=0;i<2; i++)
-	  fprintf(stdout, "%f, ", OutputValue[i]);
-	fprintf(stdout, "\n");
+	fprintf(stdout,"\n----------------------- Fuzzy System is Learning ------------------------------------\n");
+	for (i=0;i<OutDim; i++)
+	  cout << OutputValue[i] <<"\t";
+	fprintf(stdout, "---- %u \n", prove);
+	//wait_key();
 
 	int rulen = RuleTable->getRuleNumber();
 	REAL m = 1.0f, mm;
@@ -129,9 +127,10 @@ bool CFuzzyFunctionApproximation::Learn(REAL* InputValue, REAL* OutputValue) {
 			errore[i] = fabs(OutputValue[i] - stima[i]);
 			errmedio[i] += double(errore[i]/OutputValue[i]);
 		} 
-		prove++;
 	}
 
+	prove++;
+	
 	for(i=0;i<InDim;++i) {;
 		if (InputValue[i] > InputCenters[Sets[i]]) {
 			if (InputValue[i] < InputCenters[Sets[i]+InputSetsNumber[i]-1]) {
@@ -164,13 +163,14 @@ bool CFuzzyFunctionApproximation::Learn(REAL* InputValue, REAL* OutputValue) {
 }
 
 bool CFuzzyFunctionApproximation::Reliable() {
-	return (false); //impone di farne almeno 445
+	if (prove < 1000) return (false); //impone di farne almeno 445
 	//REAL erro = 0.0f;
 	//for(int i=0;i<OutDim;++i) {
 	//	erro += (errmedio[i] * 100.0f )/ REAL(prove);
 	//}
 	//fprintf(stdout, "\n\n\n\n************ L'errore di stima e' : %f ************\n",erro);
 	//if (erro > threshold) return (false);
+	return (true);
 }
 
 bool CFuzzyFunctionApproximation::EstimateG(REAL* InputValue, REAL* Outputs) {
@@ -205,6 +205,8 @@ bool CFuzzyFunctionApproximation::EstimateG(REAL* InputValue, REAL* Outputs) {
 			estimatedValues[j] = 0.0f;
 #ifdef VERBOSE_ON
 		fprintf(stdout,"\nIl valore stimato per l'obiettivo %d è %f",j,estimatedValues[j]);
+		//wait_key();
+
 #endif
 	}
 
@@ -225,7 +227,6 @@ void CFuzzyFunctionApproximation::Clean() {
   threshold=0;
   calcola=false;
   delete InputSetsNumber;
-  delete appoggio;
   delete InputsMin;
   delete InputsMax;
   delete InputCenters;
