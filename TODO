@@ -5,8 +5,10 @@ META-TODO: Translate this TODO in english !
 
 unstable version:
 
+- il fuzzy_approx funziona correttamente solo con GA...
+- segnale (*) per le configurazioni che sono state stimate funziona in
+  modo casuale
 - sistemare opzione fuzzy, scrive enabled anzichè 0,1,2
-- inserire inizializzazione fuzzy_approx globale
 - aggiungere popolazione 2 tra i parametri del GA
 - segnale per il flushing dei risultati parziali
 

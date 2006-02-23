@@ -13,7 +13,9 @@ public:
   CFuzzyFunctionApproximation() {};
   ~CFuzzyFunctionApproximation();
 
-  bool Init(REAL _threshold, const vector<pair<int,int> >& min_max, int nouts);
+  bool Init(REAL _threshold, int nouts);
+  
+  bool FuzzySetsInit(const vector<pair<int,int> >& min_max);
 
   bool StartUp(int MaxNumberOfRules, float threshold);
 
@@ -31,7 +33,6 @@ public:
 private:
   int InDim,OutDim;
   int *InputSetsNumber;
-  REAL *appoggio;
   REAL *InputsMin;
   REAL *InputsMax;
   REAL *InputCenters;
