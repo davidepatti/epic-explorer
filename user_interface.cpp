@@ -301,7 +301,7 @@ void User_interface::edit_user_settings()
 	cout << "\n  (7) - save estimation detail files --> " << status_string(user_settings.save_estimation);
 	cout << "\n  (8) - Benchmark                    --> " << trimaran_interface->get_benchmark_name();
 	cout << "\n  (9) - Automatic clock freq         --> " << status_string(user_settings.auto_clock);
-	cout << "\n (10) - Fuzzy simulation             --> " << status_string(user_settings.fuzzy_enabled);
+	cout << "\n (10) - Fuzzy simulation             --> " << user_settings.fuzzy_enabled;
 	cout << "\n ----------------------------------------------------------";
 	cout << "\n\n (s) - Save current settings to file";
 	cout << "\n (l) - Load settings from file";
