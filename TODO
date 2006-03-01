@@ -5,10 +5,10 @@ META-TODO: Translate this TODO in english !
 
 unstable version:
 
+- aggiungere scelta del profilo di compilazione
 - il fuzzy_approx funziona correttamente solo con GA...
 - segnale (*) per le configurazioni che sono state stimate funziona in
   modo casuale
-- sistemare opzione fuzzy, scrive enabled anzichè 0,1,2
 - aggiungere popolazione 2 tra i parametri del GA
 - segnale per il flushing dei risultati parziali
 
@@ -27,6 +27,7 @@ unstable version:
 
 FATTO :
 
+- sistemare opzione fuzzy, scrive enabled anzichè 0,1,2
 - Scalare Vdd a 1.3
 - 10% sull'access time
 - Salvare informazioni sul sottospazio considerato direttamente nel
