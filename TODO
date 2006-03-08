@@ -4,7 +4,7 @@ META-TODO: Translate this TODO in english !
 ------------------------
 
 unstable version:
-
+- Permettere l'uso di epic da remoto !
 - aggiungere scelta del profilo di compilazione
 - il fuzzy_approx funziona correttamente solo con GA...
 - segnale (*) per le configurazioni che sono state stimate funziona in

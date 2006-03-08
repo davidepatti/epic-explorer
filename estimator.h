@@ -74,6 +74,8 @@ public:
 
 	void set_base_dir(const string& dir);
 	
+	// it's needed to be public /////////////////////////////////////
+	double get_processor_area(const Processor& processor);
 private:
 	double CLOCK_FREQ;
 	double CLOCK_T;
@@ -98,7 +100,7 @@ private:
 	int max_reg_size(const Processor& p);
 
 	// area estimation models /////////////////////////////////////
-	double get_processor_area(const Processor& processor);
+	//double get_processor_area(const Processor& processor);
 	double get_mem_hierarchy_area(const Mem_hierarchy& mem_hierarchy);
 	double get_cache_area(const Mem_hierarchy::Cache& cache);
 	double get_total_area(Processor& processor, Mem_hierarchy& mem_hierarchy);

@@ -47,7 +47,7 @@ Explorer::Explorer(Trimaran_interface * ti)
     Options.save_estimation = false;
 
     Options.save_objectives_details = false;
-    force_simulation = false;
+    force_simulation = true;
 
     current_space = "SPACE_NOT_SET";
 
@@ -2064,6 +2064,7 @@ bool GA_Evaluation(IND& ind, void *user_data, double& exec_time, double& energy,
 	sim.area   = vsim[0].area;
 	sim.exec_time = vsim[0].exec_time;
 	sim.clock_freq = vsim[0].clock_freq;
+	sim.simulated = vsim[0].simulated;
 
 	eud->history.push_back(sim);
 	eud->pareto.push_back(sim);
@@ -2073,15 +2074,15 @@ bool GA_Evaluation(IND& ind, void *user_data, double& exec_time, double& energy,
 	    ht_ga->addT(sim);
 	else 
 	{
-	    if (pos = explorer->simulation_present(sim,eud->pareto)) {
-		psim = eud->ht_hy->searchT(sim);
-		if (psim != NULL) sim = *psim;
-		else 
-		{
-		    explorer->set_force_simulation(true);
-		    sim = explorer->simulate_space(vconf)[0];
-		    explorer->set_force_simulation(false);
-		}
+	    if ((pos = explorer->simulation_present(sim,eud->pareto)) > -1) {
+		//psim = eud->ht_hy->searchT(sim);
+		//if (psim != NULL) sim = *psim;
+		//else 
+		//{
+		explorer->set_force_simulation(true);
+		sim = explorer->simulate_space(vconf)[0];
+		explorer->set_force_simulation(false);
+		//}
 		eud->history[eud->history.size()-1] = sim;
 		eud->pareto[pos] = sim;
 		ht_ga->addT(sim);
@@ -2371,7 +2372,7 @@ vector<Simulation> Explorer::get_pareto3d(const vector<Simulation>& simulations)
 	    dominated = true;
 
       // avoid repeated pareto configs
-      if ( (!dominated) && (!simulation_present(simulations[i],pareto_set)) )
+      if ( (!dominated) && (simulation_present(simulations[i],pareto_set) > -1) )
 	pareto_set.push_back(simulations[i]);
   }
 
@@ -2912,7 +2913,7 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
 	    current_sim.area = estimate.total_area;
 	    current_sim.exec_time = estimate.execution_time;
 	    current_sim.clock_freq = estimate.clock_freq;
-	    current_sim.simulated = do_simulation;
+	    current_sim.simulated = true;//do_simulation;
 	    
 	    if (Options.objective_energy) current_sim.energy = estimate.total_system_energy;
 	    else if (Options.objective_power) current_sim.energy = estimate.total_average_power;
@@ -2930,6 +2931,7 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
 	    if (Options.fuzzy_enabled==1) {
 		current_sim = fuzzy_approx.Estimate1(space[i]);
 		current_sim.simulated = false;
+		current_sim.area = estimator.get_processor_area(processor);//estimate.total_area;
 	    }
 	    else // fuzzy_enabled = 2
 	    {
@@ -2944,7 +2946,7 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
 		current_sim.simulated = false;
 	    }
 	}
-        cout << "\n" << current_sim.energy << " ___ " << current_sim.exec_time << "\n";
+        //cout << "\n" << current_sim.energy << " ___ " << current_sim.exec_time << "\n";
 	//assert( (Options.objective_energy && (!Options.objective_power)) ||
 	//        ( (!Options.objective_energy) && Options.objective_power) );
 
@@ -2954,7 +2956,7 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
 	//  when doing simulation some interesting info can be optionally saved 
 	if (do_simulation)
 	{
-	    if (Options.save_PD_STATS)  // trimran PD_STATS file report
+	    if (Options.save_PD_STATS)  // trimaran PD_STATS file report
 	    {
 		string command;
 		string epic_path = get_base_dir()+"/trimaran-workspace/epic-explorer";
@@ -3594,9 +3596,9 @@ bool Explorer::configuration_present(const Configuration& conf, const vector<Con
 ////////////////////////////////////////////////////////////////////////////
 int Explorer::simulation_present(const Simulation& sim,const vector<Simulation>& simulations) const
 {
-    if (simulations.size()==0) return (0);
+    if (simulations.size()==0) return (-1);
 
-    for (int i=0;i<simulations.size();i++)
+    for (int i=0;i<simulations.size();++i)
     {
 	if ( 
 		(simulations[i].area == sim.area) &&
@@ -3605,7 +3607,7 @@ int Explorer::simulation_present(const Simulation& sim,const vector<Simulation>&
 	   )
 	    return (i);
     }
-    return (0);
+    return (-1);
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -3705,7 +3707,7 @@ void Explorer::append_simulations(vector<Simulation>& dest,const vector<Simulati
 {
     for (unsigned int i=0;i<new_sims.size();i++) 
     {
-	if (!simulation_present(new_sims[i],dest)) dest.push_back(new_sims[i]);
+	if (simulation_present(new_sims[i],dest) > -1) dest.push_back(new_sims[i]);
     }
 }
 
