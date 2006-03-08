@@ -163,7 +163,7 @@ bool CFuzzyFunctionApproximation::Learn(REAL* InputValue, REAL* OutputValue) {
 }
 
 bool CFuzzyFunctionApproximation::Reliable() {
-	if (prove < 1000) return (false); //impone di farne almeno 445
+	if (prove < 500) return (false); //impone di farne almeno 445
 	//REAL erro = 0.0f;
 	//for(int i=0;i<OutDim;++i) {
 	//	erro += (errmedio[i] * 100.0f )/ REAL(prove);

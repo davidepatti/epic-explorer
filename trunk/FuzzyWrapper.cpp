@@ -98,7 +98,7 @@ Simulation CFuzzyFunctionApproximation::Estimate1(Configuration conf) {
 	appoggio[19] = 0.0f;
 	EstimateG(appoggio,&(appoggio[18]));
 	sim.config = conf;
-	sim.area = 0.0f;
+	sim.area = -1.0f;
 	sim.clock_freq = 0.0f;
 	sim.energy = double(appoggio[18]);
 	sim.exec_time = double(appoggio[19]);
