@@ -10,7 +10,7 @@ using namespace std;
 class CFuzzyFunctionApproximation {
 
 public:
-  CFuzzyFunctionApproximation() {};
+  CFuzzyFunctionApproximation();
   ~CFuzzyFunctionApproximation();
 
   bool Init(REAL _threshold, int nouts);

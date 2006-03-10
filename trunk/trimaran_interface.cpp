@@ -319,9 +319,13 @@ void Trimaran_interface::set_environment() {
     path = base_dir+"/trimaran-workspace/epic-explorer";
     command = "mkdir "+path;
 
-    system(command.c_str());
+    if (chdir(path.c_str())==-1)
+    {
+	system(command.c_str());
+        assert(chdir(path.c_str())!=-1);
+    }
+	
 
-    chdir(path.c_str());
 }
 
 void Trimaran_interface::set_base_dir(const string& dir)

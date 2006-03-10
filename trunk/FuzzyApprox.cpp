@@ -5,12 +5,38 @@
 #include "FuzzyApprox.h"
 
 
+CFuzzyFunctionApproximation::CFuzzyFunctionApproximation() {
+
+  InDim = 0;
+  OutDim = 0;
+  InputSetsNumber = 0;
+  InputsMin = 0;
+  InputsMax = 0;
+  InputCenters = 0;
+  RuleTable = 0;
+  newRule.antecedents = NULL;
+  newRule.degrees = NULL;
+  newRule.consequents = NULL;
+  estimatedValues = 0;
+  degrees = 0;
+  alpha = 0;
+  Sets = 0;
+  count = 0;
+  calcola = 0;
+  errore = 0;
+  errmedio = 0;
+  prove = 0;
+  stima = 0;
+  threshold = 0;
+}
 bool CFuzzyFunctionApproximation::GenerateInputFuzzySets(int dim, int *numbers, REAL *Min, REAL *Max) {
-	
+
+
 	//Total number of sets
 	InDim = dim;
 	int number = 0;
 	
+	if (Sets != NULL) delete Sets;
 	Sets = new int[InDim];
 	if (Sets == NULL) return (false);
 
@@ -20,19 +46,24 @@ bool CFuzzyFunctionApproximation::GenerateInputFuzzySets(int dim, int *numbers, 
 	}
 
 	//Alloacate vectors
+	if (InputCenters != NULL) delete InputCenters;
 	InputCenters = new REAL[number];
 	if (InputCenters == NULL) return (false);
 	memset(InputCenters,0,sizeof(REAL)*number);
 	
+	if (InputSetsNumber != NULL) delete InputSetsNumber;
 	InputSetsNumber = new int[InDim];
 	if (InputSetsNumber == NULL) return (false);
 
+	if (InputsMin != NULL) delete InputsMin;
 	InputsMin = new REAL[InDim];
 	if (InputsMin == NULL) return (false);
 
+	if (InputsMax != NULL) delete InputsMax;
 	InputsMax = new REAL[InDim];
 	if (InputsMax == NULL) return (false);
 
+	if (alpha != NULL) delete alpha;
 	alpha = new REAL[InDim];
 	if (alpha == NULL) return (false);
 
@@ -68,32 +99,43 @@ bool CFuzzyFunctionApproximation::StartUp(int N, REAL thres) {
 
 	threshold = thres;
 		
+	if (RuleTable != NULL) delete RuleTable;
 	RuleTable = new CRuleList(N,InDim,OutDim);
 
 	count = 0;
 
+	if (estimatedValues != NULL) delete estimatedValues;
 	estimatedValues = new REAL[OutDim];
 	if (estimatedValues == NULL) return (false);
 
+	
+	if (degrees != NULL) delete degrees;
 	degrees = new REAL[OutDim];
 	if (degrees == NULL) return (false);
 
+	
+	if (newRule.antecedents != NULL) delete newRule.antecedents;
 	newRule.antecedents = new int[InDim];
 	if (newRule.antecedents == NULL) return (false);
 
+	if (newRule.consequents != NULL) delete newRule.consequents;
 	newRule.consequents = new REAL[OutDim];
 	if (newRule.consequents == NULL) return (false);
 
+	if (newRule.degrees != NULL) delete newRule.degrees;
 	newRule.degrees = new REAL[OutDim];
 	if (newRule.degrees == NULL) return (false);
 
+	if (errore != NULL) delete errore;
 	errore = new REAL[OutDim];
 	if (errore == NULL) return (false);
 
+	if (errmedio != NULL) delete errmedio;
 	errmedio = new double[OutDim];
 	if (errmedio == NULL) return (false);
 	memset(errmedio,0,sizeof(double)*OutDim);
 
+	if (stima != NULL) delete stima;
 	stima = new REAL[OutDim];
 	if (stima == NULL) return (false);
 
@@ -112,7 +154,6 @@ bool CFuzzyFunctionApproximation::Learn(REAL* InputValue, REAL* OutputValue) {
 	for (i=0;i<OutDim; i++)
 	  cout << OutputValue[i] <<"\t";
 	fprintf(stdout, "---- %u \n", prove);
-	//wait_key();
 
 	int rulen = RuleTable->getRuleNumber();
 	REAL m = 1.0f, mm;
@@ -163,7 +204,8 @@ bool CFuzzyFunctionApproximation::Learn(REAL* InputValue, REAL* OutputValue) {
 }
 
 bool CFuzzyFunctionApproximation::Reliable() {
-	if (prove < 500) return (false); //impone di farne almeno 445
+	if (prove < 2) return (false); //impone di farne almeno 445
+	cout << "\n\n\n *************+  Prove = " << prove << endl;
 	//REAL erro = 0.0f;
 	//for(int i=0;i<OutDim;++i) {
 	//	erro += (errmedio[i] * 100.0f )/ REAL(prove);

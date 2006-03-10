@@ -15,6 +15,7 @@ bool CFuzzyFunctionApproximation::Init(REAL _threshold,
   //if (GetRules() > 0) Clean();
 
   OutDim = nouts;
+  InDim = 18;
 
   //  if (!StartUp(10000, _threshold)) return (false);
   if (!StartUp(10000, 5)) return (false);
@@ -40,6 +41,8 @@ bool CFuzzyFunctionApproximation::FuzzySetsInit(const vector<pair<int,int> >& mi
   int InSets[18] = {5,5,5,5,	3,3,3,3,3,	9,4,3,	9,4,3,	9,4,3};
   
   if (!GenerateInputFuzzySets(nins, InSets, InMin, InMax)) return (false);
+  delete InMin;
+  delete InMax;
   return (true);
 }
 

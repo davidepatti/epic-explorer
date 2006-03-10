@@ -47,11 +47,13 @@ Explorer::Explorer(Trimaran_interface * ti)
     Options.save_estimation = false;
 
     Options.save_objectives_details = false;
-    force_simulation = true;
+    force_simulation = false;
 
-    current_space = "SPACE_NOT_SET";
+    current_space = "default_space.sub";
 
     set_base_dir(ti->get_base_dir());
+
+    load_space_file(ti->get_base_dir()+"/trimaran-workspace/epic-explorer/SUBSPACES/"+current_space);
 }
 
 //********************************************************************
@@ -2852,7 +2854,7 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
 
     bool processor_changed;
     bool compilation_changed;
-    bool do_simulation = (force_simulation || (!(Options.fuzzy_enabled && fuzzy_approx.Reliable())));
+    bool do_simulation;
 
     // -------------------------------------------------------------------
     if (do_simulation)
@@ -2881,6 +2883,8 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
 	processor.set_config(space[i]);
 	mem_hierarchy.set_config(space[i]);
 	current_sim.config = space[i];
+
+	do_simulation = (force_simulation || (!(Options.fuzzy_enabled && fuzzy_approx.Reliable())));
 
 	if (do_simulation)
 	{
@@ -4076,12 +4080,9 @@ void Explorer::load_space_file(const string& filename)
 	processor.set_to_default();
 	trimaran_interface->save_processor_config(processor);
 
-	if (Options.fuzzy_enabled>0)
-	{
-	    fuzzy_approx.FuzzySetsInit(getParameterRanges());
+        fuzzy_approx.FuzzySetsInit(getParameterRanges());
 	    // 2.0f = threshold
 	    // 2 = Number of objectives
-	}
 
    }
 
