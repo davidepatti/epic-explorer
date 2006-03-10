@@ -27,8 +27,6 @@ User_interface::User_interface(const string& dir){
 
     trimaran_interface = new Trimaran_interface(base_dir);
     my_explorer = new Explorer(trimaran_interface);
-    my_explorer->load_space_file(epic_path+"SUBSPACES/default_space.sub");
-    my_explorer->set_space_name(string("default_space.sub"));
 
     user_settings.default_settings_file = epic_path + "epic_default.conf";
     load_settings(user_settings.default_settings_file);

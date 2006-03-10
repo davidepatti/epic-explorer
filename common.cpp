@@ -94,7 +94,7 @@ string skip_to(ifstream& ifs,const string& target)
 
 void wait_key()
 {
-    cout << "\n\n Press any key to continue..";
+    cout << "\n\n Press any key to continue.." << endl;
     getchar();
     getchar();
 }
