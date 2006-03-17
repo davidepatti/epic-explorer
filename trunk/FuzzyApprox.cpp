@@ -24,7 +24,7 @@ CFuzzyFunctionApproximation::CFuzzyFunctionApproximation() {
   count = 0;
   calcola = 0;
   errore = 0;
-  errmedio = 0;
+  errmatrix = NULL;
   prove = 0;
   stima = 0;
   threshold = 0;
@@ -92,12 +92,14 @@ bool CFuzzyFunctionApproximation::GenerateInputFuzzySets(int dim, int *numbers, 
 };
 
 
-bool CFuzzyFunctionApproximation::StartUp(int N, REAL thres) {
+bool CFuzzyFunctionApproximation::StartUp(int N, REAL thres,int _min, int _max) {
 	// Creates the Rule Table
 
   	//OutDim = 2; // Provvisorio
 
 	threshold = thres;
+	min_sims = _min;
+	max_sims = _max;
 		
 	if (RuleTable != NULL) delete RuleTable;
 	RuleTable = new CRuleList(N,InDim,OutDim);
@@ -130,10 +132,20 @@ bool CFuzzyFunctionApproximation::StartUp(int N, REAL thres) {
 	errore = new REAL[OutDim];
 	if (errore == NULL) return (false);
 
-	if (errmedio != NULL) delete errmedio;
-	errmedio = new double[OutDim];
-	if (errmedio == NULL) return (false);
-	memset(errmedio,0,sizeof(double)*OutDim);
+	if (errmatrix != NULL) {
+	    for (int i=0; i<OutDim; ++i) {
+		if (errmatrix[i] != NULL) delete errmatrix[i];
+	    }
+	    delete errmatrix;
+	}
+	errmatrix = new REAL*[OutDim];
+	if (errmatrix == NULL) return (false);
+	for (int i=0; i<OutDim; ++i) {
+	    errmatrix[i] = new REAL[ERR_MEMORY];
+	    if (errmatrix[i] == NULL) return (false);
+	    memset(errmatrix[i],0,sizeof(REAL)*ERR_MEMORY);
+	}
+	
 
 	if (stima != NULL) delete stima;
 	stima = new REAL[OutDim];
@@ -144,6 +156,12 @@ bool CFuzzyFunctionApproximation::StartUp(int N, REAL thres) {
 	prove = 0;
 
 	return (true);
+}
+
+int CFuzzyFunctionApproximation::position() {
+    int temp = posx;
+    posx = (posx+1)%ERR_MEMORY;
+    return (temp);
 }
 
 bool CFuzzyFunctionApproximation::Learn(REAL* InputValue, REAL* OutputValue) {
@@ -162,11 +180,12 @@ bool CFuzzyFunctionApproximation::Learn(REAL* InputValue, REAL* OutputValue) {
 	memset(newRule.consequents,0,sizeof(int)*OutDim);
 	memset(newRule.degrees,0,sizeof(REAL)*OutDim);
 	
-	if (rulen > 0) EstimateG(InputValue,stima);
-	if (rulen > 0  && stima[0] > 0.0f) {
+	if (rulen > 0 && prove < max_sims) 
+	{
+		EstimateG(InputValue,stima);
 		for(i=0;i<OutDim;++i) {
 			errore[i] = fabs(OutputValue[i] - stima[i]);
-			errmedio[i] += double(errore[i]/OutputValue[i]);
+			errmatrix[i][position()] = REAL(errore[i]/OutputValue[i]);
 		} 
 	}
 
@@ -204,16 +223,31 @@ bool CFuzzyFunctionApproximation::Learn(REAL* InputValue, REAL* OutputValue) {
 }
 
 bool CFuzzyFunctionApproximation::Reliable() {
-	if (prove < 2) return (false); //impone di farne almeno 445
-	cout << "\n\n\n *************+  Prove = " << prove << endl;
-	//REAL erro = 0.0f;
-	//for(int i=0;i<OutDim;++i) {
-	//	erro += (errmedio[i] * 100.0f )/ REAL(prove);
-	//}
-	//fprintf(stdout, "\n\n\n\n************ L'errore di stima e' : %f ************\n",erro);
-	//if (erro > threshold) return (false);
-	return (true);
+    
+    REAL errmax = 0.0f;
+    
+    memset(errore,0,sizeof(REAL)*OutDim);
+    
+    if (prove < min_sims) return (false);
+    
+    if (prove > max_sims) return (true);
+    
+    for(int i=0; i<OutDim; ++i) {
+	for(int j=0; j<ERR_MEMORY; ++j) {
+	    errore[i] += errmatrix[i][j];
+	}
+	errore[i] /= ERR_MEMORY;
+        errmax += errore[i]*errore[i];
+    }
+
+    errmax = sqrt(errmax);
+
+    if (errmax < threshold) return (true);
+
+
+    return (false);
 }
+
 
 bool CFuzzyFunctionApproximation::EstimateG(REAL* InputValue, REAL* Outputs) {
 	int i,j,k;
@@ -276,7 +310,10 @@ void CFuzzyFunctionApproximation::Clean() {
   delete alpha;
   delete Sets;
   delete errore;
-  delete errmedio;
+  for(int i=0; i<OutDim; ++i) {
+      delete errmatrix[i];
+  }
+  delete errmatrix;
   delete stima;
   delete RuleTable;
 }

@@ -2,8 +2,7 @@
 #include "common.h"
 
 using namespace std;
-bool CFuzzyFunctionApproximation::Init(REAL _threshold, 
-				       int nouts)
+bool CFuzzyFunctionApproximation::Init(REAL _threshold, int _min, int _max, int nouts)
 {
 
   cout << "\n--------------------------------------------------------";
@@ -18,7 +17,7 @@ bool CFuzzyFunctionApproximation::Init(REAL _threshold,
   InDim = 18;
 
   //  if (!StartUp(10000, _threshold)) return (false);
-  if (!StartUp(10000, 5)) return (false);
+  if (!StartUp(10000, _threshold,_min,_max)) return (false);
  
   return (true);
 }

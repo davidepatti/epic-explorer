@@ -62,7 +62,12 @@ struct User_Settings
     bool auto_clock;
     bool save_objectives_details;
     string default_settings_file;
-    int fuzzy_enabled;
+    struct 
+    {
+	int enabled;
+	float threshold;
+	int min,max;
+    } fuzzy_settings;
 };
 
 struct Space_mask
