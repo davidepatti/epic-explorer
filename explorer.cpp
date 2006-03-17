@@ -63,10 +63,12 @@ Explorer::~Explorer()
     cout << "\n Destroying explorer...";
 }
 
+/*
 void Explorer::set_fuzzy(bool v)
 {
-    Options.fuzzy_enabled = v;
+    Options.fuzzy_settings.enabled = v;
 }
+*/
 
 
 //********************************************************************
@@ -84,11 +86,9 @@ void Explorer::set_options(const struct User_Settings& user_settings)
     if (Options.objective_area) n_obj++;
     if (Options.objective_energy) n_obj++;
 
-    if (Options.fuzzy_enabled==1)
+    if (Options.fuzzy_settings.enabled==1)
     {
-	fuzzy_approx.Init(2.0f, n_obj);
-	// 2.0f = threshold
-	// 2 = Number of objectives
+	fuzzy_approx.Init(Options.fuzzy_settings.threshold, Options.fuzzy_settings.min, Options.fuzzy_settings.max,n_obj);
     }
 }
 
@@ -1823,7 +1823,7 @@ vector<Simulation> Explorer::sort_by_energydelay_product(vector<Simulation> sims
 void Explorer::start_GA(const GA_parameters& parameters)
 {
     current_algo="GA";
-    if (Options.fuzzy_enabled)
+    if (Options.fuzzy_settings.enabled)
     {
 	current_algo+="_fuzzy";
     }
@@ -2884,7 +2884,7 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
 	mem_hierarchy.set_config(space[i]);
 	current_sim.config = space[i];
 
-	do_simulation = (force_simulation || (!(Options.fuzzy_enabled && fuzzy_approx.Reliable())));
+	do_simulation = (force_simulation || (!(Options.fuzzy_settings.enabled && fuzzy_approx.Reliable())));
 
 	if (do_simulation)
 	{
@@ -2922,22 +2922,22 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
 	    if (Options.objective_energy) current_sim.energy = estimate.total_system_energy;
 	    else if (Options.objective_power) current_sim.energy = estimate.total_average_power;
 	    
-	    if (Options.fuzzy_enabled==1) 
+	    if (Options.fuzzy_settings.enabled==1) 
 		fuzzy_approx.Learn(space[i],current_sim);
 
-	    if (Options.fuzzy_enabled==2)
+	    if (Options.fuzzy_settings.enabled==2)
 		fuzzy_approx.Learn(space[i],dyn_stats);
 	}
 	else  
 	{   // using fuzzy approximation instead of simulation
-	    assert(fuzzy_enabled);
+	    assert(fuzzy_settings.enabled);
 
-	    if (Options.fuzzy_enabled==1) {
+	    if (Options.fuzzy_settings.enabled==1) {
 		current_sim = fuzzy_approx.Estimate1(space[i]);
 		current_sim.simulated = false;
 		current_sim.area = estimator.get_processor_area(processor);//estimate.total_area;
 	    }
-	    else // fuzzy_enabled = 2
+	    else // fuzzy_settings.enabled = 2
 	    {
 		dyn_stats = fuzzy_approx.Estimate2(space[i]);
 		estimate = estimator.get_estimate(dyn_stats,mem_hierarchy,processor);

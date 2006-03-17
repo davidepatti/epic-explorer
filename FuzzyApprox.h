@@ -5,6 +5,8 @@
 #include "common.h"
 #include "RuleList.h"
 
+#define ERR_MEMORY 20
+
 using namespace std;
 
 class CFuzzyFunctionApproximation {
@@ -13,11 +15,11 @@ public:
   CFuzzyFunctionApproximation();
   ~CFuzzyFunctionApproximation();
 
-  bool Init(REAL _threshold, int nouts);
+  bool Init(REAL _threshold, int min, int max, int nouts);
   
   bool FuzzySetsInit(const vector<pair<int,int> >& min_max);
 
-  bool StartUp(int MaxNumberOfRules, float threshold);
+  bool StartUp(int MaxNumberOfRules, float threshold, int _min, int _max);
 
   bool Learn(REAL* InputValues, REAL* OutputValues);
   bool Learn(Configuration conf,Simulation sim);
@@ -31,6 +33,7 @@ public:
   void Clean();
 
 private:
+  int position();
   int InDim,OutDim;
   int *InputSetsNumber;
   REAL *InputsMin;
@@ -45,9 +48,11 @@ private:
   int count;
   bool calcola;
   REAL *errore;
-  double *errmedio;
+  REAL **errmatrix;
   int prove;
   REAL *stima;
   REAL threshold;
+  int min_sims,max_sims;
+  int posx;
 };
 #endif
