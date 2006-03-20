@@ -19,7 +19,7 @@ public:
   
   bool FuzzySetsInit(const vector<pair<int,int> >& min_max);
 
-  bool StartUp(int MaxNumberOfRules, float threshold, int _min, int _max);
+  bool StartUp(int MaxNumberOfRules, REAL threshold, int _min, int _max);
 
   bool Learn(REAL* InputValues, REAL* OutputValues);
   bool Learn(Configuration conf,Simulation sim);
@@ -54,5 +54,6 @@ private:
   REAL threshold;
   int min_sims,max_sims;
   int posx;
+  FILE* fuzzy_log;
 };
 #endif

@@ -28,6 +28,18 @@ CFuzzyFunctionApproximation::CFuzzyFunctionApproximation() {
   prove = 0;
   stima = 0;
   threshold = 0;
+  char *stri = getenv("HOME");
+  char pathx[50];
+
+    time_t t = time(NULL);
+    char * data;
+
+    data = asctime(localtime(&t));
+
+  sprintf(pathx,"%s/trimaran-workspace/epic-explorer/fuzzy_log.txt",stri);
+  fuzzy_log = fopen(pathx,"a");
+  fprintf(fuzzy_log,"\n\n--------------------------------\n %s - Fuzzy Function Approximation Initialized\n----------------------------\n\n",data);
+  fflush(fuzzy_log);
 }
 bool CFuzzyFunctionApproximation::GenerateInputFuzzySets(int dim, int *numbers, REAL *Min, REAL *Max) {
 
@@ -99,6 +111,7 @@ bool CFuzzyFunctionApproximation::StartUp(int N, REAL thres,int _min, int _max) 
 
 	threshold = thres;
 	min_sims = _min;
+	if (min_sims <= ERR_MEMORY) min_sims = ERR_MEMORY+1;
 	max_sims = _max;
 		
 	if (RuleTable != NULL) delete RuleTable;
@@ -168,10 +181,12 @@ bool CFuzzyFunctionApproximation::Learn(REAL* InputValue, REAL* OutputValue) {
 
 	int i,j;
 
-	fprintf(stdout,"\n----------------------- Fuzzy System is Learning ------------------------------------\n");
+	fprintf(fuzzy_log,"\n----------------------- Fuzzy System is Learning ------------------------------------\n");
 	for (i=0;i<OutDim; i++)
-	  cout << OutputValue[i] <<"\t";
-	fprintf(stdout, "---- %u \n", prove);
+	  fprintf(fuzzy_log,"%lf \t", OutputValue[i]);
+	fprintf(fuzzy_log, "---- %u \n", prove);
+
+	fflush(fuzzy_log);
 
 	int rulen = RuleTable->getRuleNumber();
 	REAL m = 1.0f, mm;
@@ -183,9 +198,10 @@ bool CFuzzyFunctionApproximation::Learn(REAL* InputValue, REAL* OutputValue) {
 	if (rulen > 0 && prove < max_sims) 
 	{
 		EstimateG(InputValue,stima);
+		j = position();
 		for(i=0;i<OutDim;++i) {
 			errore[i] = fabs(OutputValue[i] - stima[i]);
-			errmatrix[i][position()] = REAL(errore[i]/OutputValue[i]);
+			errmatrix[i][j] = REAL(errore[i]/OutputValue[i]);
 		} 
 	}
 
@@ -223,28 +239,43 @@ bool CFuzzyFunctionApproximation::Learn(REAL* InputValue, REAL* OutputValue) {
 }
 
 bool CFuzzyFunctionApproximation::Reliable() {
-    
     REAL errmax = 0.0f;
     
     memset(errore,0,sizeof(REAL)*OutDim);
     
     if (prove < min_sims) return (false);
-    
+    if (prove == min_sims) {
+	    fprintf(fuzzy_log,"\nMinimum number of simulations %d reached.\n", min_sims);
+	    fflush(fuzzy_log);
+    }
+    if (prove == max_sims) {
+	    fprintf(fuzzy_log,"\nMaximum number of simulation %d reached.\n", max_sims);
+	    fflush(fuzzy_log);
+    }
     if (prove > max_sims) return (true);
     
     for(int i=0; i<OutDim; ++i) {
+	//fprintf(fuzzy_log,"\n");
+	//fflush(fuzzy_log);
 	for(int j=0; j<ERR_MEMORY; ++j) {
 	    errore[i] += errmatrix[i][j];
+	    //fprintf(fuzzy_log,"%.2lf,", errmatrix[i][j]*100);
 	}
+	//fflush(fuzzy_log);
 	errore[i] /= ERR_MEMORY;
         errmax += errore[i]*errore[i];
     }
 
-    errmax = sqrt(errmax);
+    errmax = sqrt(errmax)*100;
 
-    if (errmax < threshold) return (true);
+    if (errmax < threshold) {
+	    fprintf(fuzzy_log,"\nNumber of sims %d, error %% is %lf < threshold %lf.",prove,errmax,threshold); 
+	    fflush(fuzzy_log);
+	    return (true);
+    }
 
-
+    fprintf(fuzzy_log,"\nNumber of sims %d, error %% is %lf > threshold %lf.",prove,errmax,threshold);
+    fflush(fuzzy_log);
     return (false);
 }
 
@@ -279,11 +310,9 @@ bool CFuzzyFunctionApproximation::EstimateG(REAL* InputValue, REAL* Outputs) {
 			estimatedValues[j] /= degrees[j];
 		else
 			estimatedValues[j] = 0.0f;
-#ifdef VERBOSE_ON
-		fprintf(stdout,"\nIl valore stimato per l'obiettivo %d è %f",j,estimatedValues[j]);
-		//wait_key();
+		fprintf(fuzzy_log,"\nIl valore stimato per l'obiettivo %d è %f",j,estimatedValues[j]);
+		fflush(fuzzy_log);
 
-#endif
 	}
 
 
@@ -321,4 +350,5 @@ void CFuzzyFunctionApproximation::Clean() {
 CFuzzyFunctionApproximation::~CFuzzyFunctionApproximation()
 {
 	Clean();
+	fclose(fuzzy_log);
 };
