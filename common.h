@@ -27,7 +27,7 @@
 
 // ---------------------------------------------------------------------------
 
-#define REAL float
+#define REAL double
 #ifndef NULL
 #define NULL 0
 #endif
