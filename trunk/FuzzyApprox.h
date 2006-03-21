@@ -55,5 +55,6 @@ private:
   int min_sims,max_sims;
   int posx;
   FILE* fuzzy_log;
+  FILE* fuzzy_error;
 };
 #endif
