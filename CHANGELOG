@@ -1,11 +1,11 @@
-UNSTABLE
+20060321
 ---------------------------------------
+- Added Fuzzy approximation
 - support for new Trimaran 3.7 
 - post_install.sh script for easier workspace setup
 - moved common routines to common.cpp
 - cleaner class interfaces
 - wait_key() after each error condition
-- support for Fuzzy Genetic approach
 
 
 20050512
