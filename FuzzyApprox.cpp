@@ -29,7 +29,7 @@ CFuzzyFunctionApproximation::CFuzzyFunctionApproximation() {
   stima = 0;
   threshold = 0;
   char *stri = getenv("HOME");
-  char pathx[50];
+  char pathx[50],pathy[50];
 
     time_t t = time(NULL);
     char * data;
@@ -37,9 +37,17 @@ CFuzzyFunctionApproximation::CFuzzyFunctionApproximation() {
     data = asctime(localtime(&t));
 
   sprintf(pathx,"%s/trimaran-workspace/epic-explorer/fuzzy_log.txt",stri);
+  sprintf(pathy,"%s/trimaran-workspace/epic-explorer/fuzzy_error.txt",stri);
+  
   fuzzy_log = fopen(pathx,"a");
+  fuzzy_error = fopen(pathy,"a");
+  
   fprintf(fuzzy_log,"\n\n--------------------------------\n %s - Fuzzy Function Approximation Initialized\n----------------------------\n\n",data);
   fflush(fuzzy_log);
+  
+  fprintf(fuzzy_error,"\n\n--------------------------------\n %s - Fuzzy Function Approximation Initialized\n----------------------------\n\n",data);
+  fflush(fuzzy_error);
+  
 }
 bool CFuzzyFunctionApproximation::GenerateInputFuzzySets(int dim, int *numbers, REAL *Min, REAL *Max) {
 
@@ -181,10 +189,10 @@ bool CFuzzyFunctionApproximation::Learn(REAL* InputValue, REAL* OutputValue) {
 
 	int i,j;
 
-	fprintf(fuzzy_log,"\n----------------------- Fuzzy System is Learning ------------------------------------\n");
-	for (i=0;i<OutDim; i++)
-	  fprintf(fuzzy_log,"%lf \t", OutputValue[i]);
-	fprintf(fuzzy_log, "---- %u \n", prove);
+	fprintf(fuzzy_log,"\n----------------------- Fuzzy System is Learning ------------------------------------");
+	//for (i=0;i<OutDim; i++)
+	//  fprintf(fuzzy_error,"%lf \t", OutputValue[i]);
+	fprintf(fuzzy_log, "---- Sims Number : %u \n", prove);
 
 	fflush(fuzzy_log);
 
@@ -202,7 +210,10 @@ bool CFuzzyFunctionApproximation::Learn(REAL* InputValue, REAL* OutputValue) {
 		for(i=0;i<OutDim;++i) {
 			errore[i] = fabs(OutputValue[i] - stima[i]);
 			errmatrix[i][j] = REAL(errore[i]/OutputValue[i]);
+			fprintf(fuzzy_error,"%.2lf \t",errmatrix[i][j]*100); 
 		} 
+		fprintf(fuzzy_error,"\n");
+		fflush(fuzzy_error);
 	}
 
 	prove++;
@@ -269,12 +280,12 @@ bool CFuzzyFunctionApproximation::Reliable() {
     errmax = sqrt(errmax)*100;
 
     if (errmax < threshold) {
-	    fprintf(fuzzy_log,"\nNumber of sims %d, error %% is %lf < threshold %lf.",prove,errmax,threshold); 
+	    fprintf(fuzzy_log,"\nNumber of sims %d, %% error average on last %d sims is %lf < threshold %lf.",prove,ERR_MEMORY,errmax,threshold); 
 	    fflush(fuzzy_log);
 	    return (true);
     }
 
-    fprintf(fuzzy_log,"\nNumber of sims %d, error %% is %lf > threshold %lf.",prove,errmax,threshold);
+    fprintf(fuzzy_log,"\nNumber of sims %d, %% error average on last %d sims is %lf > threshold %lf.",prove,ERR_MEMORY,errmax,threshold);
     fflush(fuzzy_log);
     return (false);
 }
@@ -310,8 +321,8 @@ bool CFuzzyFunctionApproximation::EstimateG(REAL* InputValue, REAL* Outputs) {
 			estimatedValues[j] /= degrees[j];
 		else
 			estimatedValues[j] = 0.0f;
-		fprintf(fuzzy_log,"\nIl valore stimato per l'obiettivo %d è %f",j,estimatedValues[j]);
-		fflush(fuzzy_log);
+		//fprintf(fuzzy_log,"\nIl valore stimato per l'obiettivo %d è %f",j,estimatedValues[j]);
+		//fflush(fuzzy_log);
 
 	}
 
@@ -351,4 +362,5 @@ CFuzzyFunctionApproximation::~CFuzzyFunctionApproximation()
 {
 	Clean();
 	fclose(fuzzy_log);
+	fclose(fuzzy_error);
 };
