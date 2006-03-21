@@ -1,1 +1,1 @@
-#define VERSION "unstable"
+#define VERSION "20060321-beta"
