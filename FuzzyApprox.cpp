@@ -27,6 +27,7 @@ CFuzzyFunctionApproximation::CFuzzyFunctionApproximation() {
   errmatrix = NULL;
   prove = 0;
   stima = 0;
+  posx = 0;
   threshold = 0;
   char *stri = getenv("HOME");
   char pathx[50],pathy[50];
@@ -192,7 +193,7 @@ bool CFuzzyFunctionApproximation::Learn(REAL* InputValue, REAL* OutputValue) {
 	fprintf(fuzzy_log,"\n----------------------- Fuzzy System is Learning ------------------------------------");
 	//for (i=0;i<OutDim; i++)
 	//  fprintf(fuzzy_error,"%lf \t", OutputValue[i]);
-	fprintf(fuzzy_log, "---- Sims Number : %u \n", prove);
+	fprintf(fuzzy_log, "\n---- Sims Number : %u \n", prove);
 
 	fflush(fuzzy_log);
 
@@ -203,7 +204,9 @@ bool CFuzzyFunctionApproximation::Learn(REAL* InputValue, REAL* OutputValue) {
 	memset(newRule.consequents,0,sizeof(int)*OutDim);
 	memset(newRule.degrees,0,sizeof(REAL)*OutDim);
 	
-	if (rulen > 0 && prove < max_sims) 
+	prove++;
+	
+	if (rulen > 0) 
 	{
 		EstimateG(InputValue,stima);
 		j = position();
@@ -216,7 +219,6 @@ bool CFuzzyFunctionApproximation::Learn(REAL* InputValue, REAL* OutputValue) {
 		fflush(fuzzy_error);
 	}
 
-	prove++;
 	
 	for(i=0;i<InDim;++i) {;
 		if (InputValue[i] > InputCenters[Sets[i]]) {
