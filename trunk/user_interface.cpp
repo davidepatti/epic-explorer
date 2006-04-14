@@ -660,7 +660,7 @@ void User_interface::load_subspace_wrapper()
    string filename;
 
    cout << "\n\n List of available subspace files : \n";
-   string command = "ls "+base_dir+"*.sub";
+   string command = "ls "+base_dir;
    system(command.c_str());
    cout << "\n Enter file name without path ( es. 'my_space.sub' -  Use 'x' to exit) : ";
    cin >> filename;
