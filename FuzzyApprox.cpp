@@ -268,13 +268,13 @@ bool CFuzzyFunctionApproximation::Reliable() {
     if (prove > max_sims) return (true);
     
     for(int i=0; i<OutDim; ++i) {
-	//fprintf(fuzzy_log,"\n");
-	//fflush(fuzzy_log);
+	fprintf(fuzzy_log,"\n");
+	fflush(fuzzy_log);
 	for(int j=0; j<ERR_MEMORY; ++j) {
 	    errore[i] += errmatrix[i][j];
-	    //fprintf(fuzzy_log,"%.2lf,", errmatrix[i][j]*100);
+	    fprintf(fuzzy_log,"%.2lf,", errmatrix[i][j]*100);
 	}
-	//fflush(fuzzy_log);
+	fflush(fuzzy_log);
 	errore[i] /= ERR_MEMORY;
         errmax += errore[i]*errore[i];
     }
