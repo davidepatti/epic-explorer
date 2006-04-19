@@ -96,6 +96,7 @@ struct GA_parameters
     float pmutation;
     int max_generations;
     int report_pareto_step;
+    unsigned long random_seed;
 };
 
 // ---------------------------------------------------------------------------

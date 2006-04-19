@@ -119,6 +119,10 @@ int User_interface::show_menu()
 
 	    cout << "\n\n GA based approach ";
 	    cout << "\n-------------------------------";
+	    cout << "\n\n Enter random seed (0 = auto): ";
+	    cin >> ga_parameters.random_seed;
+	    if (ga_parameters.random_seed == 0) ga_parameters.random_seed = rand();
+	    originalSeed = Seed = ga_parameters.random_seed;
 	    cout << "\n\n Population size: ";
 	    cin >> ga_parameters.population_size;
 	    cout << " Crossover prob: ";
