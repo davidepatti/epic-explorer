@@ -2923,7 +2923,7 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
 	    else if (Options.objective_power) current_sim.energy = estimate.total_average_power;
 	    
 	    if (Options.fuzzy_settings.enabled==1) 
-		fuzzy_approx.Learn(space[i],current_sim);
+		fuzzy_approx.Learn(space[i],current_sim,processor,mem_hierarchy);
 
 	    if (Options.fuzzy_settings.enabled==2)
 		fuzzy_approx.Learn(space[i],dyn_stats);
@@ -2933,7 +2933,7 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
 	    assert(fuzzy_settings.enabled);
 
 	    if (Options.fuzzy_settings.enabled==1) {
-		current_sim = fuzzy_approx.Estimate1(space[i]);
+		current_sim = fuzzy_approx.Estimate1(space[i],processor,mem_hierarchy);
 		current_sim.simulated = false;
 		current_sim.area = estimator.get_processor_area(processor);//estimate.total_area;
 	    }
@@ -3859,7 +3859,60 @@ vector<pair<int,int> > Explorer::getParametersNumber()
 {
 
   vector<pair<int,int> > v;
+  
+  v.push_back(pair<int,int>(1,
+			    processor.integer_units.get_size()) );
 
+  v.push_back(pair<int,int>(1,
+			    processor.float_units.get_size()));
+
+  v.push_back(pair<int,int>(1,
+			    processor.branch_units.get_size()));
+
+  v.push_back(pair<int,int>(1,
+			    processor.memory_units.get_size()));
+
+  v.push_back(pair<int,int>(1,
+			    processor.gpr_static_size.get_size()));
+
+  v.push_back(pair<int,int>(1,
+			    processor.fpr_static_size.get_size()));
+
+  v.push_back(pair<int,int>(1,
+			    processor.pr_static_size.get_size()));
+
+  v.push_back(pair<int,int>(1,
+			    processor.cr_static_size.get_size()));
+
+  v.push_back(pair<int,int>(1,
+			    processor.btr_static_size.get_size()));
+
+  v.push_back(pair<int,int>(1,
+			    mem_hierarchy.L1D.size.get_size()));
+
+  v.push_back(pair<int,int>(1,
+			    mem_hierarchy.L1D.block_size.get_size()));
+
+  v.push_back(pair<int,int>(1,
+			    mem_hierarchy.L1D.associativity.get_size()));
+
+  v.push_back(pair<int,int>(1,
+			    mem_hierarchy.L1I.size.get_size()));
+
+  v.push_back(pair<int,int>(1,
+			    mem_hierarchy.L1I.block_size.get_size()));
+
+  v.push_back(pair<int,int>(1,
+			    mem_hierarchy.L1I.associativity.get_size()));
+
+  v.push_back(pair<int,int>(1,
+			    mem_hierarchy.L2U.size.get_size()));
+
+  v.push_back(pair<int,int>(1,
+			    mem_hierarchy.L2U.block_size.get_size()));
+
+  v.push_back(pair<int,int>(1,
+			    mem_hierarchy.L2U.associativity.get_size()));
   return v;
 }
 	
