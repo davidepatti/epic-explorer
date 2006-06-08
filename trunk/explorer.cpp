@@ -3855,6 +3855,15 @@ void Explorer::reset_sim_counter()
 }
 
 ////////////////////////////////////////////////////////////////////////////
+vector<pair<int,int> > Explorer::getParametersNumber()
+{
+
+  vector<pair<int,int> > v;
+
+  return v;
+}
+	
+////////////////////////////////////////////////////////////////////////////
 vector<pair<int,int> > Explorer::getParameterRanges()
 {
   vector<pair<int,int> > v;
@@ -4080,7 +4089,7 @@ void Explorer::load_space_file(const string& filename)
 	processor.set_to_default();
 	trimaran_interface->save_processor_config(processor);
 
-        fuzzy_approx.FuzzySetsInit(getParameterRanges());
+        fuzzy_approx.FuzzySetsInit(getParametersNumber());
 	    // 2.0f = threshold
 	    // 2 = Number of objectives
 
