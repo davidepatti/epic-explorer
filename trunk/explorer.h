@@ -167,6 +167,7 @@ private:
   void ga_show_info(SPEA& ga, ExportUserData& eud, string fname); // mau
   //---------FuzzyApprox
   vector<pair<int,int> > getParameterRanges();
+  vector<pair<int,int> > getParametersNumber();
   void SimulateBestWorst(ExportUserData& eud);
   //--------------------
 

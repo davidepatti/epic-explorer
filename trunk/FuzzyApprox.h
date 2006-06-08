@@ -3,6 +3,8 @@
 #define FuzzyApprox_H
 #include <vector>
 #include "common.h"
+#include "processor.h"
+#include "mem_hierarchy.h"
 #include "RuleList.h"
 
 #define ERR_MEMORY 20
@@ -22,11 +24,11 @@ public:
   bool StartUp(int MaxNumberOfRules, REAL threshold, int _min, int _max);
 
   bool Learn(REAL* InputValues, REAL* OutputValues);
-  bool Learn(Configuration conf,Simulation sim);
+  bool Learn(Configuration conf,Simulation sim,Processor& p,Mem_hierarchy& mem);
   bool Learn(const Configuration& conf,const Dynamic_stats& dyn);
   bool GenerateInputFuzzySets(int Dimensionality, int* InputFuzzySetsNumberVector, REAL *InMinimumValuesVector, REAL *InMaximumValuesVector);
   bool EstimateG(REAL* InputValues,REAL* OutputVector);
-  Simulation Estimate1(Configuration conf);
+  Simulation Estimate1(Configuration conf,Processor& p,Mem_hierarchy& mem);
   Dynamic_stats Estimate2(Configuration conf);
   bool Reliable();
   int GetRules();

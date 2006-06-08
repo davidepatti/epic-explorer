@@ -155,3 +155,11 @@ int Parameter::get_last()
 {
   return values[values.size()-1];
 }
+
+int Parameter::get_pos(int value)
+{
+	for(int i=0; i<values.size(); ++i)
+		if (values[i] == value) return (i+1);
+
+	return (-1);
+}

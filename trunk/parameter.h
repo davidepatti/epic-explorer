@@ -43,6 +43,7 @@ public:
   void set_to_last();
   void set_random();
 
+  int get_pos(int value);
   bool increase();
   bool decrease();
 

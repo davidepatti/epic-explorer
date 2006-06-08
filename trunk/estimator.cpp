@@ -540,7 +540,7 @@ void Estimator::update_clock_frequency(const double & min_clock_period)
     // if auto clock enabled choose a proper clock rate based on max_clock_rate value
 
     if (autoclock) CLOCK_FREQ = max_clock_freq;
-    //else
+    else
 	CLOCK_FREQ = DEFAULT_CLOCK;
 
     CLOCK_T = 1/(double)CLOCK_FREQ;
