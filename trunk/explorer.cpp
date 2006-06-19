@@ -2069,14 +2069,20 @@ bool GA_Evaluation(IND& ind, void *user_data, double& exec_time, double& energy,
 	sim.simulated = vsim[0].simulated;
 
 	eud->history.push_back(sim);
-	eud->pareto.push_back(sim);
-	eud->pareto = explorer->get_pareto(eud->pareto);
+
+	// Verify if it could be a pareto solution, if it is true the configuration will be simuled 
+	
+	vsim = eud->pareto;
+	
+	vsim.push_back(sim);
+	
+	vsim = explorer->get_pareto(vsim);
 
 	if (cacheable) 
 	    ht_ga->addT(sim);
 	else 
 	{
-	    if ((pos = explorer->simulation_present(sim,eud->pareto)) > -1) {
+	    if ((pos = explorer->simulation_present(sim,vsim)) > -1) {
 		//psim = eud->ht_hy->searchT(sim);
 		//if (psim != NULL) sim = *psim;
 		//else 
@@ -2086,7 +2092,7 @@ bool GA_Evaluation(IND& ind, void *user_data, double& exec_time, double& energy,
 		explorer->set_force_simulation(false);
 		//}
 		eud->history[eud->history.size()-1] = sim;
-		eud->pareto[pos] = sim;
+		eud->pareto.push_back(sim);
 		ht_ga->addT(sim);
 	    }
 	}
