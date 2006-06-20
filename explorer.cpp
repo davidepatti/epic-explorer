@@ -2070,18 +2070,19 @@ bool GA_Evaluation(IND& ind, void *user_data, double& exec_time, double& energy,
 
 	eud->history.push_back(sim);
 
-	// Verify if it could be a pareto solution, if it is true the configuration will be simuled 
-	
-	vsim = eud->pareto;
-	
-	vsim.push_back(sim);
-	
-	vsim = explorer->get_pareto(vsim);
-
-	if (cacheable) 
+	if (cacheable) {
 	    ht_ga->addT(sim);
+	    eud->pareto.push_back(sim);
+	    eud->pareto = explorer->get_pareto(eud->pareto);
+	}
 	else 
 	{
+	// Verify if it could be a pareto solution, if it is true the configuration will be simuled 
+	
+	    vsim = eud->pareto;
+	    vsim.push_back(sim);
+	    vsim = explorer->get_pareto(vsim);
+
 	    if ((pos = explorer->simulation_present(sim,vsim)) > -1) {
 		//psim = eud->ht_hy->searchT(sim);
 		//if (psim != NULL) sim = *psim;
@@ -2094,6 +2095,7 @@ bool GA_Evaluation(IND& ind, void *user_data, double& exec_time, double& energy,
 		eud->history[eud->history.size()-1] = sim;
 		eud->pareto.push_back(sim);
 		ht_ga->addT(sim);
+		eud->pareto = explorer->get_pareto(eud->pareto);
 	    }
 	}
 
@@ -2169,6 +2171,8 @@ void Explorer::SimulateBestWorst(ExportUserData& eud)
   eud.history.push_back(sim_best_worst[1]);
   eud.ht_ga->addT(sim_best_worst[0]);
   eud.ht_ga->addT(sim_best_worst[1]);
+  eud.pareto.push_back(sim_best_worst[0]);
+  eud.pareto.push_back(sim_best_worst[1]);
 
 }
 

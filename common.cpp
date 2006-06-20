@@ -105,8 +105,9 @@ int count_word(const string& w, ifstream& ifs)
     while ( ifs>>word ) if (word==w) n++;
     return n;
 }
-template<typename T> std::string to_string(const T& t){
-     std::stringstream s;
+
+template<typename T> string to_string(const T& t){
+     stringstream s;
      s << t;
      return s.str();
 }
