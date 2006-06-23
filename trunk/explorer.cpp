@@ -2079,11 +2079,7 @@ bool GA_Evaluation(IND& ind, void *user_data, double& exec_time, double& energy,
 	{
 	// Verify if it could be a pareto solution, if it is true the configuration will be simuled 
 	
-	    vsim = eud->pareto;
-	    vsim.push_back(sim);
-	    vsim = explorer->get_pareto(vsim);
-
-	    if ((pos = explorer->simulation_present(sim,vsim)) > -1) {
+	    if (isinPareto(sim,eud->pareto)) {
 		//psim = eud->ht_hy->searchT(sim);
 		//if (psim != NULL) sim = *psim;
 		//else 
@@ -2271,6 +2267,26 @@ vector<Simulation> Explorer::sort_by_area(vector<Simulation> sims)
     return temp;
 }
 
+/////////////////////////////////////////////////////////////////////////////
+bool isinPareto(Simulation sim, const vector<Simulation>& simulations)
+{
+    
+
+    //if (sim.energy < simulations[simulations.size()-1].energy) || (sim.exec_time < simulations[0].exec_time) return (true);
+    
+    for(int i=0;i<simulations.size();++i)
+    {
+	if (sim.energy>=simulations[i].energy)
+	{
+	    if (sim.exec_time<=simulations[i].exec_time)
+		return (true);	    
+	}
+    }
+
+    return (false);
+
+}
+/////////////////////////////////////////////////////////////////////////////
 // wrap function which determines the right pareto function to be 
 // called 
 vector<Simulation> Explorer::get_pareto(const vector<Simulation>& simulations)
