@@ -35,7 +35,7 @@ bool CFuzzyFunctionApproximation::FuzzySetsInit(const vector<pair<int,int> >& mi
   {
 		InMin[i] = min_max[i].first;
 		InMax[i] = min_max[i].second;
-		InSets[i] = int(InMax[i]) - 1;
+		InSets[i] = int(InMax[i]);
   }
 
   //int InSets[18] = {5,5,2,3,	3,3,3,3,3,	9,4,3,	9,4,3,	9,4,3};

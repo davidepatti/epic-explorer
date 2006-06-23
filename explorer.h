@@ -159,7 +159,7 @@ public:
 
 
 private:
-
+  
   // private methods 
   void init_GA(SPEA& ga, ExportUserData* eud,GA_parameters* ga_parameters); // mau
   void init_GA_Fuzzy(SPEA& ga, ExportUserData* eud,GA_parameters* ga_parameters); // mau
@@ -197,6 +197,9 @@ private:
   int DEP_phase2_time(float P,int * n_ott);
 
 };
+  // Functions for GA-fuzzy
+  bool isinPareto(Simulation sim, const vector<Simulation>& simulations);
+
 
 // Evaluation functions for GA-based exploration
 void GA_Evaluator(IND& ind, ObjectiveVector& scores, void *user_data); 
