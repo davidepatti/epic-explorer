@@ -2271,16 +2271,10 @@ vector<Simulation> Explorer::sort_by_area(vector<Simulation> sims)
 bool isinPareto(Simulation sim, const vector<Simulation>& simulations)
 {
     
-
-    //if (sim.energy < simulations[simulations.size()-1].energy) || (sim.exec_time < simulations[0].exec_time) return (true);
-    
     for(int i=0;i<simulations.size();++i)
     {
-	if (sim.energy>=simulations[i].energy)
-	{
-	    if (sim.exec_time<=simulations[i].exec_time)
-		return (true);	    
-	}
+	if ((sim.energy>=simulations[i].energy) && (sim.exec_time<=simulations[i].exec_time))
+		return (true);
     }
 
     return (false);
