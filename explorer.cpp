@@ -2273,7 +2273,7 @@ bool isinPareto(Simulation sim, const vector<Simulation>& simulations)
     
     for(int i=0;i<simulations.size();++i)
     {
-	if ((sim.energy>=simulations[i].energy) && (sim.exec_time<=simulations[i].exec_time))
+	if ((sim.energy<=simulations[i].energy) && (sim.exec_time<=simulations[i].exec_time))
 		return (true);
     }
 
