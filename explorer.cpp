@@ -2056,8 +2056,8 @@ bool GA_Evaluation(IND& ind, void *user_data, double& exec_time, double& energy,
 	psim = eud->ht_hy->searchT(sim);
 	if (psim != NULL) 
 	    vsim.push_back(*psim);
-	    else 
-		vsim = explorer->simulate_space(vconf);
+	else 
+	    vsim = explorer->simulate_space(vconf);
 
 	bool cacheable = vsim[0].simulated;
 	int pos = 0;
@@ -2079,7 +2079,7 @@ bool GA_Evaluation(IND& ind, void *user_data, double& exec_time, double& energy,
 	{
 	// Verify if it could be a pareto solution, if it is true the configuration will be simuled 
 	
-	    if (isinPareto(sim,eud->pareto)) {
+	    if (isDominated(sim,eud->pareto)) {
 		//psim = eud->ht_hy->searchT(sim);
 		//if (psim != NULL) sim = *psim;
 		//else 
@@ -2089,8 +2089,8 @@ bool GA_Evaluation(IND& ind, void *user_data, double& exec_time, double& energy,
 		explorer->set_force_simulation(false);
 		//}
 		eud->history[eud->history.size()-1] = sim;
-		eud->pareto.push_back(sim);
 		ht_ga->addT(sim);
+		eud->pareto.push_back(sim);
 		eud->pareto = explorer->get_pareto(eud->pareto);
 	    }
 	}
@@ -2268,16 +2268,16 @@ vector<Simulation> Explorer::sort_by_area(vector<Simulation> sims)
 }
 
 /////////////////////////////////////////////////////////////////////////////
-bool isinPareto(Simulation sim, const vector<Simulation>& simulations)
+bool isDominated(Simulation sim, const vector<Simulation>& simulations)
 {
     
     for(int i=0;i<simulations.size();++i)
     {
-	if ((sim.energy<=simulations[i].energy) && (sim.exec_time<=simulations[i].exec_time))
-		return (true);
+	if ((sim.energy>=simulations[i].energy) && (sim.exec_time>=simulations[i].exec_time))
+		return (false);
     }
 
-    return (false);
+    return (true);
 
 }
 /////////////////////////////////////////////////////////////////////////////

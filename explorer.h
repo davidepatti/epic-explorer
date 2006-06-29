@@ -198,7 +198,7 @@ private:
 
 };
   // Functions for GA-fuzzy
-  bool isinPareto(Simulation sim, const vector<Simulation>& simulations);
+  bool isDominated(Simulation sim, const vector<Simulation>& simulations);
 
 
 // Evaluation functions for GA-based exploration

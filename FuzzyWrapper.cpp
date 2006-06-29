@@ -43,6 +43,7 @@ bool CFuzzyFunctionApproximation::FuzzySetsInit(const vector<pair<int,int> >& mi
   if (!GenerateInputFuzzySets(nins, InSets, InMin, InMax)) return (false);
   delete InMin;
   delete InMax;
+  delete InSets;
   return (true);
 }
 

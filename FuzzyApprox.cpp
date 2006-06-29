@@ -99,11 +99,11 @@ bool CFuzzyFunctionApproximation::GenerateInputFuzzySets(int dim, int *numbers, 
 	REAL step = 0;
 	for (int i=0;i<InDim;++i) {
 		if (InputSetsNumber[i] == 1) {
-			InputCenters[Sets[i]] = InputsMax[i];//+0.1f;
+			InputCenters[Sets[i]] = InputsMax[i]+0.1f;
 			continue;
 		}
-		//InputsMax[i] += InputsMax[i]*0.01f;
-		//InputsMin[i] -= InputsMin[i]*0.01f;
+		InputsMax[i] += InputsMax[i]*0.01f;
+		InputsMin[i] -= InputsMin[i]*0.01f;
 		step = (InputsMax[i]-InputsMin[i])/REAL(InputSetsNumber[i]-1);
 		alpha[i] = step / sqrt(5.545f);
 		for (int j=0;j<InputSetsNumber[i];++j) {
