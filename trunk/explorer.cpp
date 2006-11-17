@@ -3731,7 +3731,7 @@ void Explorer::append_simulations(vector<Simulation>& dest,const vector<Simulati
 {
     for (unsigned int i=0;i<new_sims.size();i++) 
     {
-	if (simulation_present(new_sims[i],dest) > -1) dest.push_back(new_sims[i]);
+	if (simulation_present(new_sims[i],dest) < 0 ) dest.push_back(new_sims[i]);
     }
 }
 
