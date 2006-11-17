@@ -1,3 +1,11 @@
+20060321-r1
+--------------------------------------
+Just maintained version of previous release:
+- fixed a severe bug on append_simulations(...) introduced in 20060321, however GA based
+  algorithm shouldn't have been affected.
+- various fuzzy approximation fixes.
+
+
 20060321
 ---------------------------------------
 - Added Fuzzy approximation
