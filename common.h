@@ -9,6 +9,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <sstream>
 #include "hash.h"
 
 #define DEFAULT_BENCH "wave"
