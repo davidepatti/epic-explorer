@@ -108,7 +108,7 @@ public:
   bool configuration_present(const Configuration& conf,const vector<Configuration>& space) const;
   int simulation_present(const Simulation& sim,const vector<Simulation>& simulations) const;
 
-  //*********************************************************
+  /*********************************************************/
   // function to manipulate Simulations
 
   vector<Simulation> get_pareto(const vector<Simulation>& simulations);
@@ -149,13 +149,18 @@ public:
     
   void write_log(string mess);
 
-  CFuzzyFunctionApproximation fuzzy_approx;
+  CFunctionApproximation *function_approx;
 
   void set_fuzzy(bool);
   void set_force_simulation(bool);
   void set_space_name(const string& space_name);
   void load_space_file(const string& space_name);
   void save_space_file(const string& space_name);
+
+  
+  vector<pair<int,int> > getParameterRanges();
+  vector<pair<int,int> > getParametersNumber();
+  int n_objectives() {return n_obj;}
 
 
 private:
@@ -166,8 +171,6 @@ private:
   vector<AlleleString::Allele> values2alleles(vector<int> values); // mau
   void ga_show_info(SPEA& ga, ExportUserData& eud, string fname); // mau
   //---------FuzzyApprox
-  vector<pair<int,int> > getParameterRanges();
-  vector<pair<int,int> > getParametersNumber();
   void SimulateBestWorst(ExportUserData& eud);
   //--------------------
 
@@ -181,10 +184,9 @@ private:
   bool force_simulation;
 
   string base_dir;
-
+  int n_obj;
   string current_algo;
   string current_space;
-  int n_obj;
   struct User_Settings Options;
 
   int average_compilation_time, average_exec_time;

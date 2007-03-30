@@ -4,7 +4,6 @@
 #include <math.h>
 #include "FuzzyApprox.h"
 
-
 CFuzzyFunctionApproximation::CFuzzyFunctionApproximation() {
 
   InDim = 0;
@@ -50,6 +49,7 @@ CFuzzyFunctionApproximation::CFuzzyFunctionApproximation() {
   fflush(fuzzy_error);
   
 }
+
 bool CFuzzyFunctionApproximation::GenerateInputFuzzySets(int dim, int *numbers, REAL *Min, REAL *Max) {
   // Functions for GA-fuzzy
   vector<Simulation> isinPareto(Simulation sim, const vector<Simulation>& simulations);
