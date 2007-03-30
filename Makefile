@@ -1,6 +1,7 @@
  #FLAGS = -DNDEBUG
 FLAGS = -DNDEBUG
 #FLAGS = -O2 -DNDEBUG
+#FLAGS = -g -DDEBUG
 GAINC_DIR = -I./MOGA/include
 GALIB_DIR = -L./MOGA/lib
 
@@ -19,7 +20,7 @@ estimator.o: estimator.cpp estimator.h processor.h mem_hierarchy.h \
 	g++ ${FLAGS} -c estimator.cpp
 
 explorer.o: explorer.cpp explorer.h processor.h trimaran_interface.h \
-	mem_hierarchy.h estimator.h parameter.h common.h
+	mem_hierarchy.h estimator.h parameter.h common.h FunctionApprox.h
 	g++ ${GAINC_DIR} ${FLAGS} -c explorer.cpp
 
 processor.o: processor.cpp processor.h parameter.h
@@ -51,7 +52,7 @@ parameter.o: parameter.cpp parameter.h
 common.o: common.cpp common.h 
 	g++ ${FLAGS} -c common.cpp
 
-FuzzyApprox.o: FuzzyApprox.cpp FuzzyApprox.h common.h RuleList.h 
+FuzzyApprox.o: FuzzyApprox.cpp FuzzyApprox.h common.h RuleList.h FunctionApprox.h
 	g++ ${FLAGS} -O3 -funroll-loops -ffast-math -c FuzzyApprox.cpp
 
 RuleList.o: RuleList.cpp RuleList.h common.h 

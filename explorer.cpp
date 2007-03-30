@@ -18,6 +18,7 @@
 
 #include "explorer.h"
 #include "FuzzyApprox.h"
+#include "FannApprox.h"
 
 #include <moea/AlleleStr.h>
 
@@ -48,6 +49,7 @@ Explorer::Explorer(Trimaran_interface * ti)
 
     Options.save_objectives_details = false;
     force_simulation = false;
+    function_approx = NULL;
 
     current_space = "default_space.sub";
 
@@ -86,17 +88,12 @@ void Explorer::set_options(const struct User_Settings& user_settings)
     if (Options.objective_area) n_obj++;
     if (Options.objective_energy) n_obj++;
 
-    if (Options.fuzzy_settings.enabled==1)
-    {
-	fuzzy_approx.Init(Options.fuzzy_settings.threshold, Options.fuzzy_settings.min, Options.fuzzy_settings.max,n_obj);
-    }
 }
 
 
 //********************************************************************
 // Exploration Algorithms
 //********************************************************************
-
 //********************************************************************
 // N Random  explorations of configuration space
 //*******************************************************************
@@ -2042,6 +2039,7 @@ bool GA_Evaluation(IND& ind, void *user_data, double& exec_time, double& energy,
     Simulation sim;
     sim.config = conf;
     Simulation *psim = ht_ga->searchT(sim);
+		
 
     if (psim == NULL) // not present in cache
     {
@@ -2077,17 +2075,17 @@ bool GA_Evaluation(IND& ind, void *user_data, double& exec_time, double& energy,
 	}
 	else 
 	{
-	// Verify if it could be a pareto solution, if it is true the configuration will be simuled 
+	// if it could be a pareto solution, the configuration is simuled 
 	
-	    if (isDominated(sim,eud->pareto)) {
-		//psim = eud->ht_hy->searchT(sim);
-		//if (psim != NULL) sim = *psim;
-		//else 
-		//{
+	    if (!isDominated(sim,eud->pareto)) {
+		//cout << "\nIt is not dominated! Simulate!!!\n";
+
 		explorer->set_force_simulation(true);
+
 		sim = explorer->simulate_space(vconf)[0];
+
 		explorer->set_force_simulation(false);
-		//}
+
 		eud->history[eud->history.size()-1] = sim;
 		ht_ga->addT(sim);
 		eud->pareto.push_back(sim);
@@ -2102,6 +2100,7 @@ bool GA_Evaluation(IND& ind, void *user_data, double& exec_time, double& energy,
 	sim.area   = psim->area;
 	sim.exec_time = psim->exec_time;      
 	sim.clock_freq = psim->clock_freq;      
+	sim.simulated = psim->simulated;
     }
 
     exec_time = sim.exec_time;
@@ -2274,10 +2273,10 @@ bool isDominated(Simulation sim, const vector<Simulation>& simulations)
     for(int i=0;i<simulations.size();++i)
     {
 	if ((sim.energy>=simulations[i].energy) && (sim.exec_time>=simulations[i].exec_time))
-		return (false);
+		return (true);
     }
 
-    return (true);
+    return (false);
 
 }
 /////////////////////////////////////////////////////////////////////////////
@@ -2859,12 +2858,15 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
     // algorithm can make multiple call of simulate_space(...)
     // function. 
 
-    vector<Configuration> previous_space = extract_space(previous_simulations);
 
-    if ((Options.benchmark==previous_benchmark) && 
-	(Options.hyperblock==previous_hyperblock) &&
-	 equivalent_spaces(previous_space,space)) 
-	    return previous_simulations;
+    if (!Options.fuzzy_settings.enabled) {
+    	vector<Configuration> previous_space = extract_space(previous_simulations);
+
+    	if ((Options.benchmark==previous_benchmark) && 
+		(Options.hyperblock==previous_hyperblock) &&
+	 	equivalent_spaces(previous_space,space)) 
+	    	return previous_simulations;
+    }
     // -------------------------------------------------------------------
 
     vector<Simulation> simulations;
@@ -2872,12 +2874,15 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
     Configuration last_config;
 
 
-    bool processor_changed;
-    bool compilation_changed;
+    bool processor_changed = false;
+    bool compilation_changed = false;
     bool do_simulation;
 
+    do_simulation = (force_simulation || (!(Options.fuzzy_settings.enabled && function_approx->Reliable())));
+    
+    
     // -------------------------------------------------------------------
-    if (do_simulation)
+    if (do_simulation && !Options.fuzzy_settings.enabled)
     {
 	if (previous_simulations.size()>0)
 	    last_config = previous_simulations[previous_simulations.size()-1].config;
@@ -2904,7 +2909,6 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
 	mem_hierarchy.set_config(space[i]);
 	current_sim.config = space[i];
 
-	do_simulation = (force_simulation || (!(Options.fuzzy_settings.enabled && fuzzy_approx.Reliable())));
 
 	if (do_simulation)
 	{
@@ -2918,7 +2922,7 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
 	    // previous benchmark or compilation options to be simulated
 	    // changed.
 
-	    if ( (processor_changed) || (i==0 && compilation_changed) ) 
+	    if ( Options.fuzzy_settings.enabled || (processor_changed) || (i==0 && compilation_changed) ) 
 	    {
 		last_config = space[i];
 		trimaran_interface->save_processor_config(processor);
@@ -2943,23 +2947,23 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
 	    else if (Options.objective_power) current_sim.energy = estimate.total_average_power;
 	    
 	    if (Options.fuzzy_settings.enabled==1) 
-		fuzzy_approx.Learn(space[i],current_sim,processor,mem_hierarchy);
+		function_approx->Learn(space[i],current_sim,processor,mem_hierarchy);
 
 	    if (Options.fuzzy_settings.enabled==2)
-		fuzzy_approx.Learn(space[i],dyn_stats);
+		function_approx->Learn(space[i],dyn_stats);
 	}
 	else  
 	{   // using fuzzy approximation instead of simulation
 	    assert(fuzzy_settings.enabled);
 
 	    if (Options.fuzzy_settings.enabled==1) {
-		current_sim = fuzzy_approx.Estimate1(space[i],processor,mem_hierarchy);
+		current_sim = function_approx->Estimate1(space[i],processor,mem_hierarchy);
 		current_sim.simulated = false;
 		current_sim.area = estimator.get_processor_area(processor);//estimate.total_area;
 	    }
 	    else // fuzzy_settings.enabled = 2
 	    {
-		dyn_stats = fuzzy_approx.Estimate2(space[i]);
+		dyn_stats = function_approx->Estimate2(space[i]);
 		estimate = estimator.get_estimate(dyn_stats,mem_hierarchy,processor);
 
 	        if (Options.objective_energy) current_sim.energy = estimate.total_system_energy;
@@ -4161,11 +4165,6 @@ void Explorer::load_space_file(const string& filename)
 
 	processor.set_to_default();
 	trimaran_interface->save_processor_config(processor);
-
-        fuzzy_approx.FuzzySetsInit(getParametersNumber());
-	    // 2.0f = threshold
-	    // 2 = Number of objectives
-
    }
 
 }

@@ -107,7 +107,7 @@ Simulation CFuzzyFunctionApproximation::Estimate1(Configuration conf,Processor& 
 	sim.energy = double(appoggio[18]);
 	sim.exec_time = double(appoggio[19]);
 	sim.simulated = false;
-	//cout << "\n-----------Estimate 1 : " << sim.energy << " __ " << sim.exec_time;
+	cout << "\n-----------Estimate 1 : " << sim.energy << " __ " << sim.exec_time;
 	return (sim);
 	}
 

@@ -93,6 +93,17 @@ int User_interface::show_menu()
     cin >> ch;
 
     string start;
+    
+    if ((user_settings.fuzzy_settings.enabled==1) && (ch == 'g' || ch == 'r' || ch == 's' || ch ==
+    'p' || ch == 'e' || ch == 'm'))  
+   	 {
+    		cout << "\nFuzzy Approximation Enabled\n";
+    		if (my_explorer->function_approx != NULL) free(my_explorer->function_approx);
+		my_explorer->function_approx = new CFuzzyFunctionApproximation();
+		my_explorer->function_approx->FuzzySetsInit(my_explorer->getParametersNumber());
+		my_explorer->function_approx->Init(user_settings.fuzzy_settings.threshold,
+		user_settings.fuzzy_settings.min, user_settings.fuzzy_settings.max,my_explorer->n_objectives());
+    	}
 
     switch (ch)
     {
@@ -114,6 +125,8 @@ int User_interface::show_menu()
 	    cout << "\n\n End of scheduled explorations . ";
 	    wait_key();
 	    break;
+
+
 
     case 'g': // mau
 
@@ -355,7 +368,7 @@ void User_interface::edit_user_settings()
 		cout << "\n Min number of simulations: ";
 		cin >> user_settings.fuzzy_settings.min;
 		cout << "\n Max number of simulations: ";
-		cin >> user_settings.fuzzy_settings.max;
+		cin >> user_settings.fuzzy_settings.max;   
 	    }
 
 	}

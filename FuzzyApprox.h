@@ -6,12 +6,11 @@
 #include "processor.h"
 #include "mem_hierarchy.h"
 #include "RuleList.h"
+#include "FunctionApprox.h"
 
 #define ERR_MEMORY 20
 
-using namespace std;
-
-class CFuzzyFunctionApproximation {
+class CFuzzyFunctionApproximation : public CFunctionApproximation {
 
 public:
   CFuzzyFunctionApproximation();
