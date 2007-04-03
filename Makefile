@@ -9,10 +9,12 @@ all: epic
 
 epic: explorer.o estimator.o area.o time.o processor.o mem_hierarchy.o \
 	main.o user_interface.o trimaran_interface.o \
-	parameter.o common.o FuzzyApprox.o RuleList.o FuzzyWrapper.o
+	parameter.o common.o \
+	FuzzyApprox.o RuleList.o FuzzyWrapper.o FannApprox.o
 	g++  area.o time.o estimator.o explorer.o parameter.o user_interface.o \
 	trimaran_interface.o processor.o mem_hierarchy.o main.o common.o \
 	FuzzyApprox.o RuleList.o FuzzyWrapper.o \
+	FannApprox.o\
 	$(GALIB_DIR) -lmoea -o epic
 
 estimator.o: estimator.cpp estimator.h processor.h mem_hierarchy.h \
@@ -20,7 +22,8 @@ estimator.o: estimator.cpp estimator.h processor.h mem_hierarchy.h \
 	g++ ${FLAGS} -c estimator.cpp
 
 explorer.o: explorer.cpp explorer.h processor.h trimaran_interface.h \
-	mem_hierarchy.h estimator.h parameter.h common.h FunctionApprox.h
+	mem_hierarchy.h estimator.h parameter.h common.h \
+	FunctionApprox.h FuzzyApprox.h FannApprox.h
 	g++ ${GAINC_DIR} ${FLAGS} -c explorer.cpp
 
 processor.o: processor.cpp processor.h parameter.h
@@ -60,6 +63,9 @@ RuleList.o: RuleList.cpp RuleList.h common.h
 
 FuzzyWrapper.o: FuzzyWrapper.cpp FuzzyApprox.h
 	g++ ${FLAGS} -O3 -c FuzzyWrapper.cpp
+
+FannApprox.o: FannApprox.cpp FannApprox.h FunctionApprox.h
+	g++ ${FLAGS} -O3 -c FannApprox.cpp
 
 clean: 
 	rm -f MOGA/include/moea/*.o
