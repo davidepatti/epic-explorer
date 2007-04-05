@@ -94,16 +94,25 @@ int User_interface::show_menu()
 
     string start;
     
-    if ((user_settings.fuzzy_settings.enabled==1) && (ch == 'g' || ch == 'r' || ch == 's' || ch ==
-    'p' || ch == 'e' || ch == 'm'))  
+    if ((ch == 'g' || ch == 'r' || ch == 's' || ch ==
+    'p' || ch == 'e' || ch == 'm'))  {
+    	if (user_settings.approx_settings.enabled==1)
    	 {
     		cout << "\nFuzzy Approximation Enabled\n";
     		if (my_explorer->function_approx != NULL) free(my_explorer->function_approx);
 		my_explorer->function_approx = new CFuzzyFunctionApproximation();
 		my_explorer->function_approx->FuzzySetsInit(my_explorer->getParametersNumber());
-		my_explorer->function_approx->Init(user_settings.fuzzy_settings.threshold,
-		user_settings.fuzzy_settings.min, user_settings.fuzzy_settings.max,my_explorer->n_objectives());
-    	}
+		my_explorer->function_approx->Init(user_settings.approx_settings.threshold,user_settings.approx_settings.min, user_settings.approx_settings.max,my_explorer->n_objectives());
+    	} 
+	else if (user_settings.approx_settings.enabled==2)
+	{
+	
+		cout << "\nArtificial Neural Network Approximation Enabled\n";
+		if (my_explorer->function_approx != NULL) free(my_explorer->function_approx);
+		my_explorer->function_approx = new CAnnFunctionApproximation();
+		my_explorer->function_approx->Init(user_settings.approx_settings.threshold,user_settings.approx_settings.min, user_settings.approx_settings.max,my_explorer->n_objectives());
+    	} 
+    }
 
     switch (ch)
     {
@@ -316,10 +325,10 @@ void User_interface::edit_user_settings()
 	cout << "\n  (7) - save estimation detail files --> " << status_string(user_settings.save_estimation);
 	cout << "\n  (8) - Benchmark                    --> " << trimaran_interface->get_benchmark_name();
 	cout << "\n  (9) - Automatic clock freq         --> " << status_string(user_settings.auto_clock);
-	cout << "\n (10) - Fuzzy simulation             --> " << user_settings.fuzzy_settings.enabled;
-	if (user_settings.fuzzy_settings.enabled>0)
+	cout << "\n (10) - Approximation                --> " << user_settings.approx_settings.enabled;
+	if (user_settings.approx_settings.enabled>0)
 	{
-	    cout << " ( " << user_settings.fuzzy_settings.threshold << " , " << user_settings.fuzzy_settings.min << " - " << user_settings.fuzzy_settings.max << " )";
+	    cout << " ( " << user_settings.approx_settings.threshold << " , " << user_settings.approx_settings.min << " - " << user_settings.approx_settings.max << " )";
 	}
 
 	cout << "\n ----------------------------------------------------------";
@@ -347,28 +356,21 @@ void User_interface::edit_user_settings()
 	if (ch=="9") user_settings.auto_clock = !user_settings.auto_clock;
 	if (ch=="10") 
 	{
-	    cout << "\n Select fuzzy approximation:";
+	    cout << "\n Select Approximation method:";
 	    cout << "\n (0) None";
-	    cout << "\n (1) Single Layer";
-	    cout << "\n (2) Hierarchical";
+	    cout << "\n (1) Fuzzy System";
+	    cout << "\n (2) Artificial Neural Network";
 	    cout << "\n select: ";
-	    cin >> user_settings.fuzzy_settings.enabled;
+	    cin >> user_settings.approx_settings.enabled;
 
-	    if (user_settings.fuzzy_settings.enabled==2) 
-	    {
-		cout << "\n Sorry, Hierarchical fuzzy approx not yet supported!";
-		cout << "\n Enabling Single Layer approximation";
-		wait_key();
-		user_settings.fuzzy_settings.enabled=1;
-	    }
-	    if (user_settings.fuzzy_settings.enabled>0)
+	    if (user_settings.approx_settings.enabled>0)
 	    {
 		cout << "\n Enter % error threshold : ";
-		cin >> user_settings.fuzzy_settings.threshold;
+		cin >> user_settings.approx_settings.threshold;
 		cout << "\n Min number of simulations: ";
-		cin >> user_settings.fuzzy_settings.min;
+		cin >> user_settings.approx_settings.min;
 		cout << "\n Max number of simulations: ";
-		cin >> user_settings.fuzzy_settings.max;   
+		cin >> user_settings.approx_settings.max;   
 	    }
 
 	}
@@ -710,10 +712,10 @@ void User_interface::load_settings(string settings_file)
        user_settings.save_PD_STATS = false;
        user_settings.save_estimation = false;
        user_settings.auto_clock = false;
-       user_settings.fuzzy_settings.enabled = 0;
-       user_settings.fuzzy_settings.threshold = 0;
-       user_settings.fuzzy_settings.min = 0;
-       user_settings.fuzzy_settings.max = 0;
+       user_settings.approx_settings.enabled = 0;
+       user_settings.approx_settings.threshold = 0;
+       user_settings.approx_settings.min = 0;
+       user_settings.approx_settings.max = 0;
 
        fp= fopen(settings_file.c_str(),"w");
        fclose(fp);
@@ -784,16 +786,16 @@ void User_interface::load_settings(string settings_file)
 	if (word=="ENABLED") user_settings.auto_clock = true;
 
 	go_until("fuzzy_enabled",input_file);
-	input_file >> user_settings.fuzzy_settings.enabled;
+	input_file >> user_settings.approx_settings.enabled;
 
 	go_until("fuzzy_threshold",input_file);
-	input_file >> user_settings.fuzzy_settings.threshold;
+	input_file >> user_settings.approx_settings.threshold;
 
 	go_until("fuzzy_min",input_file);
-	input_file >> user_settings.fuzzy_settings.min;
+	input_file >> user_settings.approx_settings.min;
 
 	go_until("fuzzy_max",input_file);
-	input_file >> user_settings.fuzzy_settings.max;
+	input_file >> user_settings.approx_settings.max;
 
 	my_explorer->set_options(user_settings);
    }
@@ -877,10 +879,10 @@ void User_interface::save_settings(string settings_file)
 	output_file << "\nsave_PD_STATS " << status_string(user_settings.save_PD_STATS);
 	output_file << "\nsave_estimation " << status_string(user_settings.save_estimation);
 	output_file << "\nAUTO_CLOCK " << status_string(user_settings.auto_clock);
-	output_file << "\nfuzzy_enabled " << user_settings.fuzzy_settings.enabled;
-	output_file << "\nfuzzy_threshold " << user_settings.fuzzy_settings.threshold;
-	output_file << "\nfuzzy_min " << user_settings.fuzzy_settings.min;
-	output_file << "\nfuzzy_max " << user_settings.fuzzy_settings.max;
+	output_file << "\nfuzzy_enabled " << user_settings.approx_settings.enabled;
+	output_file << "\nfuzzy_threshold " << user_settings.approx_settings.threshold;
+	output_file << "\nfuzzy_min " << user_settings.approx_settings.min;
+	output_file << "\nfuzzy_max " << user_settings.approx_settings.max;
 
 
 	cout << "\n Ok, saved current settings in " << settings_file;

@@ -335,7 +335,7 @@ bool CFuzzyFunctionApproximation::EstimateG(REAL* InputValue, REAL* Outputs) {
 	return (true);
 }
 
-int CFuzzyFunctionApproximation::GetRules() {
+int CFuzzyFunctionApproximation::GetSystem() {
 	return (RuleTable->getRuleNumber());
 }
 

@@ -19,9 +19,8 @@ public:
   bool Init(REAL _threshold, int min, int max, int nouts);
   
   bool FuzzySetsInit(const vector<pair<int,int> >& min_max);
-
   bool StartUp(int MaxNumberOfRules, REAL threshold, int _min, int _max);
-
+ 
   bool Learn(REAL* InputValues, REAL* OutputValues);
   bool Learn(Configuration conf,Simulation sim,Processor& p,Mem_hierarchy& mem);
   bool Learn(const Configuration& conf,const Dynamic_stats& dyn);
@@ -30,7 +29,7 @@ public:
   Simulation Estimate1(Configuration conf,Processor& p,Mem_hierarchy& mem);
   Dynamic_stats Estimate2(Configuration conf);
   bool Reliable();
-  int GetRules();
+  int GetSystem();
   void Clean();
 
 private:

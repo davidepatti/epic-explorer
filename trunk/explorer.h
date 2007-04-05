@@ -30,7 +30,8 @@
 #include "parameter.h"
 #include "hash.h" // mau
 #include "moea/SPEA.h" // mau
-#include "FuzzyApprox.h"
+#include "FuzzyApprox.h" // ale
+#include "FannApprox.h" // ale
 
 // ---------------------------------------------------------------------------
 

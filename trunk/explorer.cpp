@@ -68,7 +68,7 @@ Explorer::~Explorer()
 /*
 void Explorer::set_fuzzy(bool v)
 {
-    Options.fuzzy_settings.enabled = v;
+    Options.approx_settings.enabled = v;
 }
 */
 
@@ -1820,10 +1820,14 @@ vector<Simulation> Explorer::sort_by_energydelay_product(vector<Simulation> sims
 void Explorer::start_GA(const GA_parameters& parameters)
 {
     current_algo="GA";
-    if (Options.fuzzy_settings.enabled)
+    if (Options.approx_settings.enabled == 1)
     {
 	current_algo+="_fuzzy";
-    }
+    } 
+    if (Options.approx_settings.enabled == 2)
+    {
+	current_algo+="_ANN";
+    } 
 
     HashGA ht_ga(DEF_HASH_TABLE_SIZE); // maybe static?
     HashGA ht_hy(DEF_HASH_TABLE_SIZE);
@@ -2711,6 +2715,7 @@ void Explorer::save_simulations(const vector<Simulation>& simulations, string fi
 	    fprintf(fp,"\n%.14f %s",energydelay,conf_string.c_str());
 	}
     }
+    fflush(fp);
     fclose(fp);
 }
 
@@ -2859,7 +2864,7 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
     // function. 
 
 
-    if (!Options.fuzzy_settings.enabled) {
+    if (!Options.approx_settings.enabled) {
     	vector<Configuration> previous_space = extract_space(previous_simulations);
 
     	if ((Options.benchmark==previous_benchmark) && 
@@ -2878,11 +2883,11 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
     bool compilation_changed = false;
     bool do_simulation;
 
-    do_simulation = (force_simulation || (!(Options.fuzzy_settings.enabled && function_approx->Reliable())));
+    do_simulation = (force_simulation || (!(Options.approx_settings.enabled && function_approx->Reliable())));
     
     
     // -------------------------------------------------------------------
-    if (do_simulation && !Options.fuzzy_settings.enabled)
+    if (do_simulation && !Options.approx_settings.enabled)
     {
 	if (previous_simulations.size()>0)
 	    last_config = previous_simulations[previous_simulations.size()-1].config;
@@ -2922,7 +2927,7 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
 	    // previous benchmark or compilation options to be simulated
 	    // changed.
 
-	    if ( Options.fuzzy_settings.enabled || (processor_changed) || (i==0 && compilation_changed) ) 
+	    if ( Options.approx_settings.enabled || (processor_changed) || (i==0 && compilation_changed) ) 
 	    {
 		last_config = space[i];
 		trimaran_interface->save_processor_config(processor);
@@ -2946,22 +2951,22 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
 	    if (Options.objective_energy) current_sim.energy = estimate.total_system_energy;
 	    else if (Options.objective_power) current_sim.energy = estimate.total_average_power;
 	    
-	    if (Options.fuzzy_settings.enabled==1) 
+	    //if (Options.approx_settings.enabled==1) 
 		function_approx->Learn(space[i],current_sim,processor,mem_hierarchy);
 
-	    if (Options.fuzzy_settings.enabled==2)
-		function_approx->Learn(space[i],dyn_stats);
+	    //if (Options.approx_settings.enabled==2)
+	    //	function_approx->Learn(space[i],dyn_stats);
 	}
 	else  
 	{   // using fuzzy approximation instead of simulation
-	    assert(fuzzy_settings.enabled);
+	    assert(approx_settings.enabled);
 
-	    if (Options.fuzzy_settings.enabled==1) {
+	    //if (Options.approx_settings.enabled) {
 		current_sim = function_approx->Estimate1(space[i],processor,mem_hierarchy);
 		current_sim.simulated = false;
 		current_sim.area = estimator.get_processor_area(processor);//estimate.total_area;
-	    }
-	    else // fuzzy_settings.enabled = 2
+	    /*}
+	    else // approx_settings.enabled = 2
 	    {
 		dyn_stats = function_approx->Estimate2(space[i]);
 		estimate = estimator.get_estimate(dyn_stats,mem_hierarchy,processor);
@@ -2972,7 +2977,7 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
 		current_sim.exec_time = estimate.execution_time;
 		current_sim.clock_freq = estimate.clock_freq;
 		current_sim.simulated = false;
-	    }
+	    }*/
 	}
         //cout << "\n" << current_sim.energy << " ___ " << current_sim.exec_time << "\n";
 	//assert( (Options.objective_energy && (!Options.objective_power)) ||

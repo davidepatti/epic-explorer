@@ -15,7 +15,7 @@ epic: explorer.o estimator.o area.o time.o processor.o mem_hierarchy.o \
 	trimaran_interface.o processor.o mem_hierarchy.o main.o common.o \
 	FuzzyApprox.o RuleList.o FuzzyWrapper.o \
 	FannApprox.o\
-	$(GALIB_DIR) -lmoea -o epic
+	$(GALIB_DIR) -lmoea -lfann -o epic
 
 estimator.o: estimator.cpp estimator.h processor.h mem_hierarchy.h \
 	power_densities.h cacti_area_interface.h 
