@@ -21,9 +21,27 @@ public:
   bool Learn(const Configuration& conf,const Dynamic_stats& dyn);
   Simulation Estimate1(Configuration conf,Processor& p,Mem_hierarchy& mem);
   Dynamic_stats Estimate2(Configuration conf);
+  bool FuzzySetsInit(const vector<pair<int,int> >& min_max) {};
   bool Reliable();
-  int GetRules();
+  int GetSystem();
   void Clean();
+
+private:
+  fann_type *calc_out;
+  unsigned int num_input;
+  unsigned int num_output;
+  unsigned int num_layers;
+  float desired_error;
+  unsigned int max_epochs;
+  unsigned int epochs_between_reports;
+  struct fann *ann;
+  struct fann_train_data *train_data, *test_data;
+  int min_sims, max_sims;
+  unsigned int simulations_done;
+  unsigned int train_,test_;
+  FILE *train_file, *test_file, *log_file;
+  int i;
+  bool trained;
 
 };
 #endif
