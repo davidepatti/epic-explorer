@@ -2900,7 +2900,13 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
 	// if the benchmark and/or the compilation option are different
 
 	compilation_changed = (Options.benchmark!=previous_benchmark)||(Options.hyperblock!=previous_hyperblock);
+    } 
+    else
+    {
+    	last_config.invalidate();
+	compilation_changed  = true;
     }
+    
 
     // -------------------------------------------------------------------
     //  main exploration loop
@@ -2951,7 +2957,7 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
 	    if (Options.objective_energy) current_sim.energy = estimate.total_system_energy;
 	    else if (Options.objective_power) current_sim.energy = estimate.total_average_power;
 	    
-	    //if (Options.approx_settings.enabled==1) 
+	    if (Options.approx_settings.enabled>0) 
 		function_approx->Learn(space[i],current_sim,processor,mem_hierarchy);
 
 	    //if (Options.approx_settings.enabled==2)
