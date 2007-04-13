@@ -11,6 +11,7 @@
   //fann_destroy_train(test_data);
   fann_destroy(ann);
   if (train_data != NULL) fann_destroy_train(train_data);
+  fann_save(ann,"ANN_file.txt");
   fclose(train_file);
   fclose(test_file);
   fclose(log_file);
@@ -54,7 +55,6 @@
     fann_set_activation_steepness_hidden(ann, 1.0f);
     fann_set_activation_function_output(ann, FANN_LINEAR);
     fann_set_activation_steepness_output(ann, 1.0f);
-    fann_save(ann,"ANN_file.txt");
 
   fprintf(train_file,"%*u %u %u", 4,train_,num_input,num_output);
   fprintf(test_file,"%*u %u %u", 4,test_,num_input,num_output);
