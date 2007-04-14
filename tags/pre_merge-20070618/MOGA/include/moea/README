@@ -1,0 +1,63 @@
+
+moealib is a C++ library for multi-objective evolutionary algorithms.
+currently included moeas are:
+	Niched Pareto Genetic Algorithm
+	Nondominated Sorting Genetic Algorithm
+	Pareto Tree Searching Genetic Algorithm
+	Strength Pareto Evolutionary Algorithm
+	Vector Evaluated Genetic Algorithm
+
+This library is mainly research-oriented rather than application oriented.
+It is designed together with my research work on MOEA, and actually one 
+result of my work is a new algorithm, Pareto Tree Searching Genetic Algorithm,
+which is also included in the library.
+
+No separate and detailed documents are available now (maybe I will do it later.),
+though there are comments in each head or source file.
+
+Parameters to the moea can be set either by member functions or command line arguments.
+'a.out --help' will give a detailed explanation for the way to enter command line arguments.
+
+See examples in knapsack/ about how a meoa program should be written.
+
+makefiles for moealib and for example programs in knapsack/ are also provided.
+assert() is used frequently in all my source codes, and it aims both at debugging
+and at commenting. Accordingly, there are two versions both for moealib and for example 
+programs, one optimized version(disabling assert()), the other debugging version.
+Please see each makefile for details.
+
+I did all the work under linux, using emacs and g++ complier(thanks to the authors).
+
+Below is a list of all the head files in moealib.
+
+AlleleStr.h        allele string class. 
+Assign.h           class for fitness assign. Beware not all meoas use an explicit assign class. 
+Bin2DecGenome.h    float representation class 'is-a' IND class and 'has-a' mapping object.
+Genome.h           IND class 'is-a' AlleleStr (genome information) and 'has-a' ObjectiveVector.
+Grid_Loc.h         binary string encoded location for grid(node) in Pareto Tree Searching GA.
+MOEA.h             base class for multi-objective evolutionary algorithms.
+NPGA.h             Niched Pareto GA.
+NSGA.h             Nondominated Sorting GA
+Normalizer.h       Vector class 'has-a' object of this class to do metric normalization.
+ObjectiveVector.h  add static member mM to Vector class to indicate minimize or maximize.
+PTSGA.h            Pareto Tree Searching GA.
+PTree.h            Pareto Tree class. similar to population in other moeas.
+PTreeNode.h        node class for Pareto Tree.
+ParameterList.h    MOEA 'has-a' object of this class to (mainly) do command line parsing.
+Pareto.h           The base class for nearly all classes here. Defining static members(mM, etc.)
+Population.h       container class for individuals
+Random.h           random generator defined as macro. copied from genesis.
+Reduction.h        class doing population reduction. Only used by SPEA.
+SPEA.h             Strength Pareto Evolutionary Algorithm.
+Select.h           selection class
+VEGA.h             Vector Evaluated GA
+Vector.h           class template for vector.
+
+
+Author: Xianming Chen
+        Computer Science Department
+        Nankai University, 
+        Tianjin, P.R.China
+email:  xchen@nankai.edu.cn 
+
+March 21, 2001, Xianming Chen.

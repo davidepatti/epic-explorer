@@ -1,0 +1,1824 @@
+/******************************************************************************
+
+                    SOFTWARE LICENSE AGREEMENT NOTICE
+                   -----------------------------------
+
+IT IS A BREACH OF THIS LICENSE AGREEMENT TO REMOVE THIS NOTICE FROM THE FILE
+OR SOFTWARE, OR ANY MODIFIED VERSIONS OF THIS FILE OR SOFTWARE OR DERIVATIVE
+WORKS. 
+___________________________________________________
+
+Copyright Notices/Identification of Licensor(s) of Original Software 
+in the File 
+
+Copyright (C) 1994 Hewlett-Packard Company
+
+All rights reserved by the foregoing, respectively.
+___________________________________________________
+
+Copyright Notices/Identification of Subsequent Licensor(s)/Contributors of 
+Derivative Works
+
+Copyright <Year> <Owner>
+<Optional: For Commercial license rights, contact:_______________>
+
+All rights reserved by the foregoing, respectively.
+___________________________________________________
+
+The code contained in this file, including both binary and source [if released
+by the owner(s)] (hereafter, Software) is subject to copyright by the
+respective Licensor(s) and ownership remains with such Licensor(s).  The
+Licensor(s) of the original Software remain free to license their respective
+proprietary Software for other purposes that are independent and separate from
+this file, without obligation to any party. 
+
+Licensor(s) grant(s) you (hereafter, Licensee) a license to use the Software
+for academic, research and internal business purposes only, without a fee.
+"Internal business purposes" means that Licensee may install, use and execute
+the Software for the purpose of designing and evaluating products.  Licensee
+may submit proposals for research support, and receive funding from private
+and Government sponsors for continued development, support and maintenance of
+the Software for the purposes permitted herein. 
+
+Licensee may also disclose results obtained by executing the Software, as well
+as algorithms embodied therein.  Licensee may redistribute the Software to
+third parties provided that the copyright notices and this License Agreement
+Notice statement are reproduced on all copies and that no charge is associated
+with such copies. No patent or other intellectual property license is granted
+or implied by this Agreement, and this Agreement does not license any acts
+except those expressly recited. 
+
+Licensee may modify the Software to make derivative works (as defined in
+Section 101 of Title 17, U.S. Code) (hereafter, Derivative Works), as
+necessary for its own academic, research and internal business purposes.
+Title to copyrights and other proprietary rights in Derivative Works created
+by Licensee shall be owned by Licensee subject, however, to the underlying
+ownership interest(s) of the Licensor(s) in the copyrights and other
+proprietary rights in the original Software.  All the same rights and licenses
+granted herein and all other terms and conditions contained in this Agreement
+pertaining to the Software shall continue to apply to any parts of the
+Software included in Derivative Works.  Licensee's Derivative Work should
+clearly notify users that it is a modified version and not the original
+Software distributed by the Licensor(s). 
+
+If Licensee wants to make its Derivative Works available to other parties,
+such distribution will be governed by the terms and conditions of this License
+Agreement.  Licensee shall not modify this License Agreement, except that
+Licensee shall clearly identify the contribution of its Derivative Work to
+this file by adding an additional copyright notice to the other copyright
+notices listed above, to be added below the line "Copyright
+Notices/Identification of Subsequent Licensor(s)/Contributors of Derivative
+Works."  A party who is not an owner of such Derivative Work within the
+meaning of U.S. Copyright Law (i.e., the original author, or the employer of
+the author if "work of hire") shall not modify this License Agreement or add
+such party's name to the copyright notices above. 
+
+Each party who contributes Software or makes a Derivative Work to this file
+(hereafter, Contributed Code) represents to each Licensor and to other
+Licensees for its own Contributed Code that: 
+
+(a)  Such Contributed Code does not violate (or cause the Software to
+violate) the laws of the United States, including the export control laws of
+the United States, or the laws of any other jurisdiction. 
+
+(b)  The contributing party has all legal right and authority to make such
+Contributed Code available and to grant the rights and licenses contained in
+this License Agreement without violation or conflict with any law. 
+
+(c)  To the best of the contributing party's knowledge and belief, the
+Contributed Code does not infringe upon any proprietary rights or intellectual
+property rights of any third party. 
+
+LICENSOR(S) MAKE(S) NO REPRESENTATIONS ABOUT THE SUITABILITY OF THE SOFTWARE
+OR DERIVATIVE WORKS FOR ANY PURPOSE.  IT IS PROVIDED "AS IS" 	WITHOUT
+EXPRESS OR IMPLIED WARRANTY, INCLUDING BUT NOT LIMITED TO THE MERCHANTABILITY,
+USE OR FITNESS FOR ANY PARTICULAR PURPOSE AND ANY WARRANTY AGAINST
+INFRINGEMENT OF ANY INTELLECTUAL PROPERTY RIGHTS.  LICENSOR(S) SHALL NOT BE
+LIABLE FOR ANY DAMAGES SUFFERED BY THE USERS OF THE SOFTWARE OR DERIVATIVE
+WORKS. 
+
+Any Licensee wishing to make commercial use of the Software or Derivative
+Works should contact each and every Licensor to negotiate an appropriate
+license for such commercial use, and written permission of all Licensors will
+be required for such a commercial license.  Commercial use includes (1)
+integration of all or part of the source code into a product for sale by or on
+behalf of Licensee to third parties, or (2) distribution of the Software or
+Derivative Works to third parties that need it to utilize a commercial product
+sold or licensed by or on behalf of Licensee. 
+
+By using or copying this Contributed Code, Licensee agrees to abide by the
+copyright law and all other applicable laws of the U.S., and the terms of this
+License Agreement.  Any individual Licensor shall have the right to terminate
+this license immediately by written notice upon Licensee's breach of, or
+non-compliance with, any of its terms.  Licensee may be held legally
+responsible for any copyright infringement that is caused or encouraged by
+Licensee's failure to abide by the terms of this License Agreement. 
+
+******************************************************************************/
+
+/////////////////////////////////////////////////////////////////////////////
+//
+//      File:           hpl_pd_pristine.hmdes2
+//      Authors:        Shail Aditya
+//      Created:        January, 1996
+//      Description:    HPL-PD Architecture Description
+//
+/////////////////////////////////////////////////////////////////////////////
+// HPL-PD Machine Architecture Description (IFMB model)
+
+// Preliminary conversion of PLAYDOH.hmdes1 to hmdes2 format.
+// Written by Shail Aditya 01/16/96
+// Based on John C. Gyllenhaal's example of PA_7100_pristine.hmdes2
+// Based on Rick Hank's PLAYDOH.hmdes1
+
+// Modified by Shail Aditya 3/3/98 
+// Updated to conform to exact HPL-PD opcodes and IO Formats
+// Based on Vinod Kathail's HPL-PD ISA specification
+
+$include ".hpl_pd_ops.hmdes2"
+
+// **************************************************************
+// Registers and Register Files
+
+$def byte_size 8
+$def hw_size   16
+$def word_size 32
+$def sgl_size  32
+$def dbl_size  64
+
+$def speculation 1
+
+SECTION Register
+{
+  $for (N in $0..(gpr_static_size-1)) { "GPR${N}"(); }
+  $for (N in $0..(gpr_rotating_size-1)) { "GPR[${N}]"(); }
+
+  $for (N in $0..(fpr_static_size-1)) { "FPR${N}"(); }
+  $for (N in $0..(fpr_rotating_size-1)) { "FPR[${N}]"(); }
+
+  $for (N in $0..(pr_static_size-1)) { "PR${N}"(); }
+  $for (N in $0..(pr_rotating_size-1)) { "PR[${N}]"(); }
+
+  $for (N in $0..(btr_static_size-1)) { "BTR${N}"(); }
+
+  // TBD: need to use control register names from the HPL-PD manual
+  // and define their aliasing relationship with other registers.
+  $for (N in $0..(cr_static_size-1)) { "CR${N}"(); }
+
+  // SLARSEN: Vector registers
+  $for (N in $0..(vir_static_size-1)) { "VIR${N}"(); }
+  $for (N in $0..(vir_rotating_size-1)) { "VIR[${N}]"(); }
+
+  $for (N in $0..(vfr_static_size-1)) { "VFR${N}"(); }
+  $for (N in $0..(vfr_rotating_size-1)) { "VFR[${N}]"(); }
+}
+
+SECTION Register_File
+{
+  GPR(static($for (N in $0..(gpr_static_size-1)) { "GPR${N}" })
+      rotating($for (N in $0..(gpr_rotating_size-1)) { "GPR[${N}]" }) 
+      width(${word_size}) speculative(${speculation}) virtual(I));
+
+  FPR(static($for (N in $0..(fpr_static_size-1)) { "FPR${N}" })
+      rotating($for (N in $0..(fpr_rotating_size-1)) { "FPR[${N}]" }) 
+      width(${dbl_size}) speculative(${speculation}) virtual(F));
+
+  PR(static($for (N in $0..(pr_static_size-1)) { "PR${N}" })
+     rotating($for (N in $0..(pr_rotating_size-1)) { "PR[${N}]" }) 
+     width(1) speculative(${speculation}) virtual(P));
+
+  BTR(static($for (N in $0..(btr_static_size-1)) { "BTR${N}" })
+      rotating() width(${dbl_size}) speculative(0) virtual(B));
+
+  CR(static($for (N in $0..(cr_static_size-1)) { "CR${N}" })
+     rotating() width(${word_size}) speculative(0) virtual(C));
+
+  // SLARSEN: Vector register files
+  VIR(static($for (N in $0..(vir_static_size-1)) { "VIR${N}" })
+      rotating($for (N in $0..(vir_rotating_size-1)) { "VIR[${N}]" }) 
+      width(${word_size}) speculative(${speculation}) virtual(VI));
+
+  VFR(static($for (N in $0..(vfr_static_size-1)) { "VFR${N}" })
+      rotating($for (N in $0..(vfr_rotating_size-1)) { "VFR[${N}]" }) 
+      width(${dbl_size}) speculative(${speculation}) virtual(VF));
+
+  L(width(0) speculative(0) virtual(L));
+  U(width(0) speculative(0) virtual(U));
+
+  // HPL-PD 2.0 extn
+  $def max_short  $={1<<(${short_lit_size}-1)}
+  $def max_memory $={1<<(${memory_lit_size}-1)}
+  $def max_branch $={1<<(${branch_lit_size}-1)}
+  $def max_long   $={1<<(${long_lit_size}-1)}
+
+  s(width(short_lit_size) virtual(L) 
+    intrange($={0-${max_short}} $={${max_short}-1}));
+  m(width(memory_lit_size) virtual(L) 
+    intrange($={0-${max_memory}} $={${max_memory}-1}));
+  n(width(branch_lit_size) virtual(L)
+    intrange($={0-${max_branch}} $={${max_branch}-1}));
+  o(width(long_lit_size) virtual(L) 
+    intrange($={0-${max_long}} $={${max_long}-1}));
+
+}
+
+// **************************************************************
+// Operation Formats (IO Descriptors)
+
+SECTION Field_Type
+{
+  FT_i(regfile(GPR));
+  FT_f(regfile(FPR));
+  FT_p(regfile(PR));
+  FT_c(regfile(CR));
+  FT_b(regfile(BTR));
+  FT_l(regfile(L));
+  FT_u(regfile(U));
+  // HPL-PD 2.0 extn
+  FT_s(regfile(s));
+  FT_m(regfile(m));
+  FT_n(regfile(n));
+  FT_o(regfile(o));
+
+  FT_ic(compatible_with(FT_i FT_c));
+  FT_il(compatible_with(FT_i FT_l));
+ 
+  FT_icb(compatible_with(FT_i FT_c FT_b));
+  FT_icl(compatible_with(FT_i FT_c FT_l));
+  FT_ilb(compatible_with(FT_i FT_l FT_b));
+  FT_iclb(compatible_with(FT_i FT_c FT_l FT_b));
+  FT_ifc(compatible_with(FT_i FT_f FT_c));
+  FT_ifcl(compatible_with(FT_i FT_f FT_c FT_l));
+
+  // SLARSEN: Vector field types
+  FT_I(regfile(VIR));
+  FT_F(regfile(VFR));
+  FT_Il(compatible_with(FT_I FT_l));
+
+  FT_icfbpu(compatible_with(FT_i FT_c FT_f FT_b FT_p FT_u FT_I FT_F));
+  FT_icfbplu(compatible_with(FT_i FT_c FT_f FT_b FT_p FT_l FT_u FT_I FT_F));
+}
+
+SECTION Operation_Format
+{
+  OF_intarith1(pred(FT_p) src(FT_icl) dest(FT_ic));
+  OF_intarith2(pred(FT_p) src(FT_icl FT_icl) dest(FT_ic));
+  OF_intcmpr(pred(FT_p) src(FT_il FT_il) dest(FT_i));
+  OF_intcmpp(pred(FT_p) src(FT_il FT_il) dest(FT_p FT_p));
+  // HPL-PD 2.0 Extn: One target compare-to-predicate operation
+  // OF_intcmppi(pred(FT_p) src(FT_il FT_il) dest(FT_p));
+
+  OF_floatarith1(pred(FT_p) src(FT_f) dest(FT_f));
+  OF_floatarith2(pred(FT_p) src(FT_f FT_f) dest(FT_f));
+  OF_floatarith3(pred(FT_p) src(FT_f FT_f FT_f) dest(FT_f));
+  OF_floatcmpr(pred(FT_p) src(FT_f FT_f) dest(FT_i));
+  OF_floatcmpp(pred(FT_p) src(FT_f FT_f) dest(FT_p FT_p));
+  // HPL-PD 2.0 Extn: One target compare-to-predicate operation
+  // OF_floatcmppi(pred(FT_p) src(FT_f FT_f) dest(FT_p));
+
+  // TBD: B as destination for BTR save/restore
+  OF_intload(pred(FT_p) src(FT_i) dest(FT_icb));
+  OF_floatload(pred(FT_p) src(FT_i) dest(FT_f));
+  OF_intloadinc(pred(FT_p) src(FT_i FT_icl) dest(FT_icb FT_i));
+  OF_floatloadinc(pred(FT_p) src(FT_i FT_icl) dest(FT_f FT_i));
+
+  // RMR load base+disp
+  OF_intloadgdisp(pred(FT_p) src(FT_i FT_il) dest(FT_icb));
+  OF_floatloadgdisp(pred(FT_p) src(FT_i FT_il) dest(FT_f));
+
+  // TBD: B as source for BTR save/restore
+  OF_intstore(pred(FT_p) src(FT_i FT_iclb) dest());  
+  OF_floatstore(pred(FT_p) src(FT_i FT_f) dest());  
+  OF_intstoreinc(pred(FT_p) src(FT_i FT_iclb FT_icl) dest(FT_i));
+  OF_floatstoreinc(pred(FT_p) src(FT_i FT_f FT_icl) dest(FT_i));
+
+  // RMR store base+disp
+  OF_intstoregdisp(pred(FT_p) src(FT_i FT_il FT_iclb) dest());  
+  OF_floatstoregdisp(pred(FT_p) src(FT_i FT_il FT_f) dest());  
+
+  OF_predload(pred(FT_p) src(FT_i) dest(FT_p));
+  OF_predstore(pred(FT_p) src(FT_i FT_p) dest());  
+
+  // Explicit save/restore formats - Shail Aditya 05/26/98
+  OF_intsave(pred(FT_p) src(FT_i FT_ic) dest());
+  OF_intrestore(pred(FT_p) src(FT_i) dest(FT_ic));
+  OF_floatsave(pred(FT_p) src(FT_i FT_f) dest());
+  OF_floatrestore(pred(FT_p) src(FT_i) dest(FT_f));
+  OF_brsave(pred(FT_p) src(FT_i FT_b) dest());
+  OF_brrestore(pred(FT_p) src(FT_i) dest(FT_b));
+
+  // TBD: B as src and dest for BTR moves
+  OF_moveii(pred(FT_p) src(FT_iclb) dest(FT_icb));
+  OF_sext(pred(FT_p) src(FT_i) dest(FT_i));
+  OF_moveif(pred(FT_p) src(FT_il) dest(FT_f));
+  OF_moveff(pred(FT_p) src(FT_f) dest(FT_f));
+  OF_movefi(pred(FT_p) src(FT_f) dest(FT_i));
+  OF_moveip(pred(FT_p) src(FT_i) dest(FT_p));
+  OF_movepp(pred(FT_p) src(FT_p) dest(FT_p));
+  OF_movepi(pred(FT_p) src(FT_p) dest(FT_i));
+  OF_pred(pred() src() dest(FT_p));
+
+  // Move/extract bits to/from pred -- Shail Aditya 05/26/98
+  OF_movegbp(pred(FT_p) src(FT_i FT_il) dest(FT_p));
+  OF_movegcm(pred(FT_p) src(FT_il FT_il FT_c) dest(FT_c));
+
+  // HPL-PD 2.0 extn
+  // For literal moves
+  OF_intlitmove(pred(FT_p) src(FT_o) dest(FT_i));
+  OF_floatlitmove(pred(FT_p) src(FT_o) dest(FT_f));
+  // For new split moves instead of move
+  OF_movegg(pred(FT_p) src(FT_i) dest(FT_i));
+  OF_movegc(pred(FT_p) src(FT_i) dest(FT_c));
+  OF_movecg(pred(FT_p) src(FT_c) dest(FT_i));
+  OF_movebb(pred(FT_p) src(FT_b) dest(FT_b));
+  // For literal moves and pbrs
+  OF_btrlitmove(pred(FT_p) src(FT_n) dest(FT_b));
+  OF_pbrlit(pred(FT_p) src(FT_n FT_n) dest(FT_b));
+
+  // TBD: added B on first src operand for PBR operations -- SAG 10/28/97
+  OF_branch(pred(FT_p) src(FT_ilb FT_l) dest(FT_b));
+
+  // WWF { allow for branch ops to not use pbrs (by adding 'il' flags to src1)
+  OF_brucond(pred(FT_p) src(FT_ilb) dest());
+  OF_brcond(pred(FT_p) src(FT_ilb FT_p) dest());
+  OF_brlink(pred(FT_p) src(FT_ilb) dest(FT_b));
+  OF_brtop(pred() src(FT_ilb FT_c FT_c) dest(FT_p FT_c FT_c));
+  OF_brlc(pred(FT_p) src(FT_ilb FT_c) dest(FT_c));
+
+  OF_brdvi(pred(FT_p) src(FT_ilb FT_i) dest());
+  OF_brdvf(pred(FT_p) src(FT_ilb FT_f) dest());
+  // } WWF
+
+  // SLARSEN: Vector operation formats
+  OF_vec_intarith2(pred(FT_p) src(FT_Il FT_Il) dest(FT_I));
+
+  OF_vec_floatarith1(pred(FT_p) src(FT_F) dest(FT_F));
+  OF_vec_floatarith2(pred(FT_p) src(FT_F FT_F) dest(FT_F));
+
+  OF_vec_sext(pred(FT_p) src(FT_Il) dest(FT_I));
+  OF_vec_moveii(pred(FT_p) src(FT_Il) dest(FT_I));
+  OF_vec_moveff(pred(FT_p) src(FT_F) dest(FT_F));
+  OF_vec_movefi(pred(FT_p) src(FT_F) dest(FT_I));
+  OF_vec_moveif(pred(FT_p) src(FT_Il) dest(FT_F));
+
+  OF_vec_intvsmove(pred(FT_p) src(FT_I FT_il) dest(FT_i));
+  OF_vec_intsvmove(pred(FT_p) src(FT_i FT_il) dest(FT_I));
+  OF_vec_floatvsmove(pred(FT_p) src(FT_F FT_il) dest(FT_f));
+  OF_vec_floatsvmove(pred(FT_p) src(FT_f FT_il) dest(FT_F));
+
+  OF_vec_intload(pred(FT_p) src(FT_i) dest(FT_I));
+  OF_vec_floatload(pred(FT_p) src(FT_i) dest(FT_F));
+  OF_vec_intstore(pred(FT_p) src(FT_i FT_Il) dest());  
+  OF_vec_floatstore(pred(FT_p) src(FT_i FT_F) dest());  
+}
+
+// **************************************************************
+//  Latency Classes
+
+SECTION Operand_Latency
+{
+  // latency times
+  time_null(time(0));
+
+  time_int_alu_sample(time(int_alu_sample));
+  time_int_alu_exception(time(int_alu_exception));
+  time_int_alu_latency(time(int_alu_latency));
+  time_int_alu_reserve(time(int_alu_reserve));
+
+  time_int_cmpp_sample(time(int_cmpp_sample));
+  time_int_cmpp_exception(time(int_cmpp_exception));
+  time_int_cmpp_latency(time(int_cmpp_latency));
+  time_int_cmpp_reserve(time(int_cmpp_reserve));
+
+  time_int_multiply_sample(time(int_multiply_sample));
+  time_int_multiply_exception(time(int_multiply_exception));
+  time_int_multiply_latency(time(int_multiply_latency));
+  time_int_multiply_reserve(time(int_multiply_reserve));
+
+  time_int_divide_sample(time(int_divide_sample));
+  time_int_divide_exception(time(int_divide_exception));
+  time_int_divide_latency(time(int_divide_latency));
+  time_int_divide_reserve(time(int_divide_reserve));
+
+  time_float_alu_sample(time(float_alu_sample));
+  time_float_alu_exception(time(float_alu_exception));
+  time_float_alu_latency(time(float_alu_latency));
+  time_float_alu_reserve(time(float_alu_reserve));
+
+  time_float_cmpp_sample(time(float_cmpp_sample));
+  time_float_cmpp_exception(time(float_cmpp_exception));
+  time_float_cmpp_latency(time(float_cmpp_latency));
+  time_float_cmpp_reserve(time(float_cmpp_reserve));
+
+  time_float_multiply_sample(time(float_multiply_sample));
+  time_float_multiply_exception(time(float_multiply_exception));
+  time_float_multiply_latency(time(float_multiply_latency));
+  time_float_multiply_reserve(time(float_multiply_reserve));
+
+  time_float_divide_sample(time(float_divide_sample));
+  time_float_divide_exception(time(float_divide_exception));
+  time_float_divide_latency(time(float_divide_latency));
+  time_float_divide_reserve(time(float_divide_reserve));
+
+  time_post_increment_add(time(post_increment_add));
+
+  time_load_level1_sample(time(load_level1_sample));
+  time_load_level1_exception(time(load_level1_exception));
+  time_load_level1_latency(time(load_level1_latency));
+  time_load_level1_reserve(time(load_level1_reserve));
+
+  time_load_level2_sample(time(load_level2_sample));
+  time_load_level2_exception(time(load_level2_exception));
+  time_load_level2_latency(time(load_level2_latency));
+  time_load_level2_reserve(time(load_level2_reserve));
+
+  time_load_level3_sample(time(load_level3_sample));
+  time_load_level3_exception(time(load_level3_exception));
+  time_load_level3_latency(time(load_level3_latency));
+  time_load_level3_reserve(time(load_level3_reserve));
+
+  time_dsload_level1_sample(time(dsload_level1_sample));
+  time_dsload_level1_exception(time(dsload_level1_exception));
+  time_dsload_level1_latency(time(dsload_level1_latency));
+  time_dsload_level1_reserve(time(dsload_level1_reserve));
+
+  time_dsload_level2_sample(time(dsload_level2_sample));
+  time_dsload_level2_exception(time(dsload_level2_exception));
+  time_dsload_level2_latency(time(dsload_level2_latency));
+  time_dsload_level2_reserve(time(dsload_level2_reserve));
+
+  time_dsload_level3_sample(time(dsload_level3_sample));
+  time_dsload_level3_exception(time(dsload_level3_exception));
+  time_dsload_level3_latency(time(dsload_level3_latency));
+  time_dsload_level3_reserve(time(dsload_level3_reserve));
+
+  time_store_sample(time(store_sample));
+  time_store_exception(time(store_exception));
+  time_store_latency(time(store_latency));
+  time_store_reserve(time(store_reserve));
+
+  time_dsload_verify_sample(time(dsload_verify_sample));
+  time_dsload_verify_exception(time(dsload_verify_exception));
+  time_dsload_verify_latency(time(dsload_verify_latency));
+  time_dsload_verify_reserve(time(dsload_verify_reserve));
+
+  time_branch_sample(time(branch_sample));
+  time_branch_exception(time(branch_exception));
+  time_branch_latency(time(branch_latency));
+  time_branch_reserve(time(branch_reserve));
+
+  // HPL-PD 2.0 Extn
+  $if ($?{local_memory_units}) {
+  time_load_localmem_sample(time(load_localmem_sample));
+  time_load_localmem_exception(time(load_localmem_exception));
+  time_load_localmem_latency(time(load_localmem_latency));
+  time_load_localmem_reserve(time(load_localmem_reserve));
+  
+  time_store_localmem_sample(time(store_localmem_sample));
+  time_store_localmem_exception(time(store_localmem_exception));
+  time_store_localmem_latency(time(store_localmem_latency));
+  time_store_localmem_reserve(time(store_localmem_reserve));
+  }
+
+  // SLARSEN: Vector operand latencies
+  time_vec_int_alu_sample(time(vec_int_alu_sample));
+  time_vec_int_alu_exception(time(vec_int_alu_exception));
+  time_vec_int_alu_latency(time(vec_int_alu_latency));
+  time_vec_int_alu_reserve(time(vec_int_alu_reserve));
+
+  time_vec_int_multiply_sample(time(vec_int_multiply_sample));
+  time_vec_int_multiply_exception(time(vec_int_multiply_exception));
+  time_vec_int_multiply_latency(time(vec_int_multiply_latency));
+  time_vec_int_multiply_reserve(time(vec_int_multiply_reserve));
+
+  time_vec_int_divide_sample(time(vec_int_divide_sample));
+  time_vec_int_divide_exception(time(vec_int_divide_exception));
+  time_vec_int_divide_latency(time(vec_int_divide_latency));
+  time_vec_int_divide_reserve(time(vec_int_divide_reserve));
+
+  time_vec_float_alu_sample(time(vec_float_alu_sample));
+  time_vec_float_alu_exception(time(vec_float_alu_exception));
+  time_vec_float_alu_latency(time(vec_float_alu_latency));
+  time_vec_float_alu_reserve(time(vec_float_alu_reserve));
+
+  time_vec_float_multiply_sample(time(vec_float_multiply_sample));
+  time_vec_float_multiply_exception(time(vec_float_multiply_exception));
+  time_vec_float_multiply_latency(time(vec_float_multiply_latency));
+  time_vec_float_multiply_reserve(time(vec_float_multiply_reserve));
+
+  time_vec_float_divide_sample(time(vec_float_divide_sample));
+  time_vec_float_divide_exception(time(vec_float_divide_exception));
+  time_vec_float_divide_latency(time(vec_float_divide_latency));
+  time_vec_float_divide_reserve(time(vec_float_divide_reserve));
+
+  time_vec_load_level1_sample(time(load_level1_sample));
+  time_vec_load_level1_exception(time(load_level1_exception));
+  time_vec_load_level1_latency(time(load_level1_latency));
+  time_vec_load_level1_reserve(time(load_level1_reserve));
+
+  time_vec_store_sample(time(store_sample));
+  time_vec_store_exception(time(store_exception));
+  time_vec_store_latency(time(store_latency));
+  time_vec_store_reserve(time(store_reserve));
+
+  time_vec_int_xfr_sample(time(vec_int_xfr_sample));
+  time_vec_int_xfr_exception(time(vec_int_xfr_exception));
+  time_vec_int_xfr_latency(time(vec_int_xfr_latency));
+  time_vec_int_xfr_reserve(time(vec_int_xfr_reserve));
+
+  time_vec_float_xfr_sample(time(vec_float_xfr_sample));
+  time_vec_float_xfr_exception(time(vec_float_xfr_exception));
+  time_vec_float_xfr_latency(time(vec_float_xfr_latency));
+  time_vec_float_xfr_reserve(time(vec_float_xfr_reserve));
+}
+
+SECTION Operation_Latency
+{
+  OL_null(exc(time_null) 
+	  rsv(time_null
+	       time_null
+	       time_null
+	       time_null) 
+ 	 pred(time_null) 
+	 src(time_null 
+	     time_null 
+	     time_null 
+	     time_null) 
+	 sync_src(time_null
+                  time_null) 
+	 dest(time_null
+              time_null
+              time_null
+              time_null) 
+	 sync_dest(time_null
+		   time_null));
+
+  OL_int(exc(time_int_alu_exception) 
+	 rsv(time_int_alu_reserve
+	      time_int_alu_reserve
+	      time_int_alu_reserve
+	      time_int_alu_reserve) 
+ 	 pred(time_int_alu_sample) 
+	 src(time_int_alu_sample 
+	     time_int_alu_sample 
+	     time_int_alu_sample 
+	     time_int_alu_sample) 
+	 sync_src(time_int_alu_sample
+                  time_int_alu_sample) 
+	 dest(time_int_alu_latency
+              time_int_alu_latency
+              time_int_alu_latency
+              time_int_alu_latency) 
+	 sync_dest(time_int_alu_sample
+		   time_int_alu_sample));
+
+  OL_float(exc(time_float_alu_exception) 
+	   rsv(time_float_alu_reserve
+		time_float_alu_reserve
+		time_float_alu_reserve
+		time_float_alu_reserve) 
+ 	 pred(time_float_alu_sample) 
+	 src(time_float_alu_sample 
+	     time_float_alu_sample 
+	     time_float_alu_sample 
+	     time_float_alu_sample) 
+	 sync_src(time_float_alu_sample
+                  time_float_alu_sample) 
+	 dest(time_float_alu_latency
+              time_float_alu_latency
+              time_float_alu_latency
+              time_float_alu_latency) 
+	 sync_dest(time_float_alu_sample
+		   time_float_alu_sample));
+
+  OL_load1(exc(time_load_level1_exception) 
+	   rsv(time_load_level1_reserve
+		time_load_level1_reserve
+		time_load_level1_reserve
+		time_load_level1_reserve)
+ 	 pred(time_load_level1_sample) 
+	 src(time_load_level1_sample 
+	     time_load_level1_sample 
+	     time_load_level1_sample 
+	     time_load_level1_sample) 
+	 sync_src(time_load_level1_sample
+                  time_load_level1_sample) 
+	 dest(time_load_level1_latency
+              time_post_increment_add
+              time_load_level1_latency
+              time_load_level1_latency) 
+	 sync_dest(time_load_level1_sample
+		   time_load_level1_sample));
+
+  OL_load2(exc(time_load_level2_exception) 
+	   rsv(time_load_level2_reserve
+		time_load_level2_reserve
+		time_load_level2_reserve
+		time_load_level2_reserve) 
+ 	 pred(time_load_level2_sample) 
+	 src(time_load_level2_sample 
+	     time_load_level2_sample 
+	     time_load_level2_sample 
+	     time_load_level2_sample) 
+	 sync_src(time_load_level2_sample
+                  time_load_level2_sample) 
+	 dest(time_load_level2_latency
+              time_post_increment_add
+              time_load_level2_latency
+              time_load_level2_latency) 
+	 sync_dest(time_load_level2_sample
+		   time_load_level2_sample));
+
+  OL_load3(exc(time_load_level3_exception) 
+	   rsv(time_load_level3_reserve
+		time_load_level3_reserve
+		time_load_level3_reserve
+		time_load_level3_reserve) 
+ 	 pred(time_load_level3_sample) 
+	 src(time_load_level3_sample 
+	     time_load_level3_sample 
+	     time_load_level3_sample 
+	     time_load_level3_sample) 
+	 sync_src(time_load_level3_sample
+                  time_load_level3_sample) 
+	 dest(time_load_level3_latency
+              time_post_increment_add
+              time_load_level3_latency
+              time_load_level3_latency) 
+	 sync_dest(time_load_level3_sample
+		   time_load_level3_sample));
+
+  OL_dsload1(exc(time_dsload_level1_exception) 
+	     rsv(time_dsload_level1_reserve
+		  time_dsload_level1_reserve
+		  time_dsload_level1_reserve
+		  time_dsload_level1_reserve) 
+ 	 pred(time_dsload_level1_sample) 
+	 src(time_dsload_level1_sample 
+	     time_dsload_level1_sample 
+	     time_dsload_level1_sample 
+	     time_dsload_level1_sample) 
+	 sync_src(time_dsload_level1_sample
+                  time_dsload_level1_sample) 
+	 dest(time_dsload_level1_latency
+              time_post_increment_add
+              time_dsload_level1_latency
+              time_dsload_level1_latency) 
+	 sync_dest(time_dsload_level1_sample
+		   time_dsload_level1_sample));
+
+  OL_dsload2(exc(time_dsload_level2_exception) 
+	     rsv(time_dsload_level2_reserve
+		  time_dsload_level2_reserve
+		  time_dsload_level2_reserve
+		  time_dsload_level2_reserve) 
+ 	 pred(time_dsload_level2_sample) 
+	 src(time_dsload_level2_sample 
+	     time_dsload_level2_sample 
+	     time_dsload_level2_sample 
+	     time_dsload_level2_sample) 
+	 sync_src(time_dsload_level2_sample
+                  time_dsload_level2_sample) 
+	 dest(time_dsload_level2_latency
+              time_post_increment_add
+              time_dsload_level2_latency
+              time_dsload_level2_latency) 
+	 sync_dest(time_dsload_level2_sample
+		   time_dsload_level2_sample));
+
+  OL_dsload3(exc(time_dsload_level3_exception) 
+	     rsv(time_dsload_level3_reserve
+		  time_dsload_level3_reserve
+		  time_dsload_level3_reserve
+		  time_dsload_level3_reserve) 
+ 	 pred(time_dsload_level3_sample) 
+	 src(time_dsload_level3_sample 
+	     time_dsload_level3_sample 
+	     time_dsload_level3_sample 
+	     time_dsload_level3_sample) 
+	 sync_src(time_dsload_level3_sample
+                  time_dsload_level3_sample) 
+	 dest(time_dsload_level3_latency
+              time_post_increment_add
+              time_dsload_level3_latency
+              time_dsload_level3_latency) 
+	 sync_dest(time_dsload_level3_sample
+		   time_dsload_level3_sample));
+
+  OL_dsload_verify(exc(time_dsload_verify_exception) 
+	     rsv(time_dsload_verify_reserve
+		  time_dsload_verify_reserve
+		  time_dsload_verify_reserve
+		  time_dsload_verify_reserve) 
+ 	 pred(time_dsload_verify_sample) 
+	 src(time_dsload_verify_sample 
+	     time_dsload_verify_sample 
+	     time_dsload_verify_sample 
+	     time_dsload_verify_sample) 
+	 sync_src(time_dsload_verify_latency
+                  time_dsload_verify_sample) 
+	 dest(time_dsload_verify_latency
+              time_dsload_verify_latency
+              time_dsload_verify_latency
+              time_dsload_verify_latency) 
+	 sync_dest(time_dsload_verify_latency
+		   time_dsload_verify_latency));
+
+  OL_store(exc(time_store_exception) 
+	   rsv(time_store_reserve
+		time_store_reserve
+		time_store_reserve
+		time_store_reserve) 
+ 	 pred(time_store_sample) 
+	 src(time_store_sample 
+	     time_store_sample 
+	     time_store_sample 
+	     time_store_sample) 
+	 sync_src(time_store_sample
+                  time_store_sample) 
+	 dest(time_store_latency
+              time_store_latency
+              time_store_latency
+              time_store_latency) 
+	 sync_dest(time_store_sample
+		   time_store_sample));
+
+  OL_branch(exc(time_branch_exception) 
+	    rsv(time_branch_reserve
+		 time_branch_reserve
+		 time_branch_reserve
+		 time_branch_reserve) 
+ 	 pred(time_branch_sample) 
+	 src(time_branch_sample 
+	     time_branch_sample 
+	     time_branch_sample 
+	     time_branch_sample) 
+	 sync_src(time_branch_sample
+                  time_branch_sample) 
+	 dest(time_branch_latency
+              time_branch_latency
+              time_branch_latency
+              time_branch_latency) 
+	 sync_dest(time_branch_latency
+		   time_branch_latency));
+
+  OL_intcmpp(exc(time_int_cmpp_exception) 
+	    rsv(time_int_cmpp_reserve
+		 time_int_cmpp_reserve
+		 time_int_cmpp_reserve
+		 time_int_cmpp_reserve) 
+ 	 pred(time_int_cmpp_sample) 
+	 src(time_int_cmpp_sample 
+	     time_int_cmpp_sample 
+	     time_int_cmpp_sample 
+	     time_int_cmpp_sample) 
+	 sync_src(time_int_cmpp_sample
+                  time_int_cmpp_sample) 
+	 dest(time_int_cmpp_latency
+              time_int_cmpp_latency
+              time_int_cmpp_latency
+              time_int_cmpp_latency) 
+	 sync_dest(time_int_cmpp_sample
+		   time_int_cmpp_sample));
+
+  OL_intmpy(exc(time_int_multiply_exception) 
+	    rsv(time_int_multiply_reserve
+		 time_int_multiply_reserve
+		 time_int_multiply_reserve
+		 time_int_multiply_reserve) 
+ 	 pred(time_int_multiply_sample) 
+	 src(time_int_multiply_sample 
+	     time_int_multiply_sample 
+	     time_int_multiply_sample 
+	     time_int_multiply_sample) 
+	 sync_src(time_int_multiply_sample
+                  time_int_multiply_sample) 
+	 dest(time_int_multiply_latency
+              time_int_multiply_latency
+              time_int_multiply_latency
+              time_int_multiply_latency) 
+	 sync_dest(time_int_multiply_sample
+		   time_int_multiply_sample));
+
+  OL_intdiv(exc(time_int_divide_exception) 
+	    rsv(time_int_divide_reserve
+		 time_int_divide_reserve
+		 time_int_divide_reserve
+		 time_int_divide_reserve) 
+ 	 pred(time_int_divide_sample) 
+	 src(time_int_divide_sample 
+	     time_int_divide_sample 
+	     time_int_divide_sample 
+	     time_int_divide_sample) 
+	 sync_src(time_int_divide_sample
+                  time_int_divide_sample) 
+	 dest(time_int_divide_latency
+              time_int_divide_latency
+              time_int_divide_latency
+              time_int_divide_latency) 
+	 sync_dest(time_int_divide_sample
+		   time_int_divide_sample));
+
+  OL_floatcmpp(exc(time_float_cmpp_exception) 
+	      rsv(time_float_cmpp_reserve
+		   time_float_cmpp_reserve
+		   time_float_cmpp_reserve
+		   time_float_cmpp_reserve) 
+ 	 pred(time_float_cmpp_sample) 
+	 src(time_float_cmpp_sample 
+	     time_float_cmpp_sample 
+	     time_float_cmpp_sample 
+	     time_float_cmpp_sample) 
+	 sync_src(time_float_cmpp_sample
+                  time_float_cmpp_sample) 
+	 dest(time_float_cmpp_latency
+              time_float_cmpp_latency
+              time_float_cmpp_latency
+              time_float_cmpp_latency) 
+	 sync_dest(time_float_cmpp_sample
+		   time_float_cmpp_sample));
+
+  OL_floatmpy(exc(time_float_multiply_exception) 
+	      rsv(time_float_multiply_reserve
+		   time_float_multiply_reserve
+		   time_float_multiply_reserve
+		   time_float_multiply_reserve) 
+ 	 pred(time_float_multiply_sample) 
+	 src(time_float_multiply_sample 
+	     time_float_multiply_sample 
+	     time_float_multiply_sample 
+	     time_float_multiply_sample) 
+	 sync_src(time_float_multiply_sample
+                  time_float_multiply_sample) 
+	 dest(time_float_multiply_latency
+              time_float_multiply_latency
+              time_float_multiply_latency
+              time_float_multiply_latency) 
+	 sync_dest(time_float_multiply_sample
+		   time_float_multiply_sample));
+
+  OL_floatdiv(exc(time_float_divide_exception) 
+	      rsv(time_float_divide_reserve
+		   time_float_divide_reserve
+		   time_float_divide_reserve
+		   time_float_divide_reserve) 
+ 	 pred(time_float_divide_sample) 
+	 src(time_float_divide_sample 
+	     time_float_divide_sample 
+	     time_float_divide_sample 
+	     time_float_divide_sample) 
+	 sync_src(time_float_divide_sample
+                  time_float_divide_sample) 
+	 dest(time_float_divide_latency
+              time_float_divide_latency
+              time_float_divide_latency
+              time_float_divide_latency) 
+	 sync_dest(time_float_divide_sample
+		   time_float_divide_sample));
+
+  // HPL-PD 2.0 Extn
+  $if ($?{local_memory_units}) {
+  OL_load_localmem(exc(time_load_localmem_exception) 
+	   rsv(time_load_localmem_reserve
+		time_load_localmem_reserve
+		time_load_localmem_reserve
+		time_load_localmem_reserve)
+ 	 pred(time_load_localmem_sample) 
+	 src(time_load_localmem_sample 
+	     time_load_localmem_sample 
+	     time_load_localmem_sample 
+	     time_load_localmem_sample) 
+	 sync_src(time_load_localmem_sample
+                  time_load_localmem_sample) 
+	 dest(time_load_localmem_latency
+              time_post_increment_add
+              time_load_localmem_latency
+              time_load_localmem_latency) 
+	 sync_dest(time_load_localmem_sample
+		   time_load_localmem_sample));
+
+  OL_store_localmem(exc(time_store_localmem_exception) 
+	   rsv(time_store_localmem_reserve
+		time_store_localmem_reserve
+		time_store_localmem_reserve
+		time_store_localmem_reserve) 
+ 	 pred(time_store_localmem_sample) 
+	 src(time_store_localmem_sample 
+	     time_store_localmem_sample 
+	     time_store_localmem_sample 
+	     time_store_localmem_sample) 
+	 sync_src(time_store_localmem_sample
+                  time_store_localmem_sample) 
+	 dest(time_store_localmem_latency
+              time_store_localmem_latency
+              time_store_localmem_latency
+              time_store_localmem_latency) 
+	 sync_dest(time_store_localmem_sample
+		   time_store_localmem_sample));
+  }
+
+  // SLARSEN: Vector operation latencies
+  OL_vec_int(exc(time_vec_int_alu_exception) 
+	    rsv(time_vec_int_alu_reserve
+	      time_vec_int_alu_reserve
+	      time_vec_int_alu_reserve
+	      time_vec_int_alu_reserve) 
+ 	 pred(time_vec_int_alu_sample) 
+	 src(time_vec_int_alu_sample 
+	     time_vec_int_alu_sample 
+	     time_vec_int_alu_sample 
+	     time_vec_int_alu_sample) 
+	 sync_src(time_vec_int_alu_sample
+                  time_vec_int_alu_sample) 
+	 dest(time_vec_int_alu_latency
+              time_vec_int_alu_latency
+              time_vec_int_alu_latency
+              time_vec_int_alu_latency) 
+	 sync_dest(time_vec_int_alu_sample
+		   time_vec_int_alu_sample));
+
+  OL_vec_intmpy(exc(time_vec_int_multiply_exception) 
+	    rsv(time_vec_int_multiply_reserve
+		 time_vec_int_multiply_reserve
+		 time_vec_int_multiply_reserve
+		 time_vec_int_multiply_reserve) 
+ 	 pred(time_vec_int_multiply_sample) 
+	 src(time_vec_int_multiply_sample 
+	     time_vec_int_multiply_sample 
+	     time_vec_int_multiply_sample 
+	     time_vec_int_multiply_sample) 
+	 sync_src(time_vec_int_multiply_sample
+                  time_vec_int_multiply_sample) 
+	 dest(time_vec_int_multiply_latency
+              time_vec_int_multiply_latency
+              time_vec_int_multiply_latency
+              time_vec_int_multiply_latency) 
+	 sync_dest(time_vec_int_multiply_sample
+		   time_vec_int_multiply_sample));
+
+  OL_vec_intdiv(exc(time_vec_int_divide_exception) 
+	    rsv(time_vec_int_divide_reserve
+		 time_vec_int_divide_reserve
+		 time_vec_int_divide_reserve
+		 time_vec_int_divide_reserve) 
+ 	 pred(time_vec_int_divide_sample) 
+	 src(time_vec_int_divide_sample 
+	     time_vec_int_divide_sample 
+	     time_vec_int_divide_sample 
+	     time_vec_int_divide_sample) 
+	 sync_src(time_vec_int_divide_sample
+                  time_vec_int_divide_sample) 
+	 dest(time_vec_int_divide_latency
+              time_vec_int_divide_latency
+              time_vec_int_divide_latency
+              time_vec_int_divide_latency) 
+	 sync_dest(time_vec_int_divide_sample
+		   time_vec_int_divide_sample));
+
+  OL_vec_float(exc(time_vec_float_alu_exception) 
+	   rsv(time_vec_float_alu_reserve
+		time_vec_float_alu_reserve
+		time_vec_float_alu_reserve
+		time_vec_float_alu_reserve) 
+ 	 pred(time_vec_float_alu_sample) 
+	 src(time_vec_float_alu_sample 
+	     time_vec_float_alu_sample 
+	     time_vec_float_alu_sample 
+	     time_vec_float_alu_sample) 
+	 sync_src(time_vec_float_alu_sample
+                  time_vec_float_alu_sample) 
+	 dest(time_vec_float_alu_latency
+              time_vec_float_alu_latency
+              time_vec_float_alu_latency
+              time_vec_float_alu_latency) 
+	 sync_dest(time_vec_float_alu_sample
+		   time_vec_float_alu_sample));
+
+  OL_vec_floatmpy(exc(time_vec_float_multiply_exception) 
+	      rsv(time_vec_float_multiply_reserve
+		   time_vec_float_multiply_reserve
+		   time_vec_float_multiply_reserve
+		   time_vec_float_multiply_reserve) 
+ 	 pred(time_vec_float_multiply_sample) 
+	 src(time_vec_float_multiply_sample 
+	     time_vec_float_multiply_sample 
+	     time_vec_float_multiply_sample 
+	     time_vec_float_multiply_sample) 
+	 sync_src(time_vec_float_multiply_sample
+                  time_vec_float_multiply_sample) 
+	 dest(time_vec_float_multiply_latency
+              time_vec_float_multiply_latency
+              time_vec_float_multiply_latency
+              time_vec_float_multiply_latency) 
+	 sync_dest(time_vec_float_multiply_sample
+		   time_vec_float_multiply_sample));
+
+  OL_vec_floatdiv(exc(time_vec_float_divide_exception) 
+	      rsv(time_vec_float_divide_reserve
+		   time_vec_float_divide_reserve
+		   time_vec_float_divide_reserve
+		   time_vec_float_divide_reserve) 
+ 	 pred(time_vec_float_divide_sample) 
+	 src(time_vec_float_divide_sample 
+	     time_vec_float_divide_sample 
+	     time_vec_float_divide_sample 
+	     time_vec_float_divide_sample) 
+	 sync_src(time_vec_float_divide_sample
+                  time_vec_float_divide_sample) 
+	 dest(time_vec_float_divide_latency
+              time_vec_float_divide_latency
+              time_vec_float_divide_latency
+              time_vec_float_divide_latency) 
+	 sync_dest(time_vec_float_divide_sample
+		   time_vec_float_divide_sample));
+
+  OL_vec_load1(exc(time_vec_load_level1_exception) 
+	   rsv(time_vec_load_level1_reserve
+		time_vec_load_level1_reserve
+		time_vec_load_level1_reserve
+		time_vec_load_level1_reserve)
+ 	 pred(time_vec_load_level1_sample) 
+	 src(time_vec_load_level1_sample 
+	     time_vec_load_level1_sample 
+	     time_vec_load_level1_sample 
+	     time_vec_load_level1_sample) 
+	 sync_src(time_vec_load_level1_sample
+                  time_vec_load_level1_sample) 
+	 dest(time_vec_load_level1_latency
+              time_post_increment_add
+              time_vec_load_level1_latency
+              time_vec_load_level1_latency) 
+	 sync_dest(time_vec_load_level1_sample
+		   time_vec_load_level1_sample));
+
+  OL_vec_store(exc(time_vec_store_exception) 
+	   rsv(time_vec_store_reserve
+		time_vec_store_reserve
+		time_vec_store_reserve
+		time_vec_store_reserve) 
+ 	 pred(time_vec_store_sample) 
+	 src(time_vec_store_sample 
+	     time_vec_store_sample 
+	     time_vec_store_sample 
+	     time_vec_store_sample) 
+	 sync_src(time_vec_store_sample
+                  time_vec_store_sample) 
+	 dest(time_vec_store_latency
+              time_vec_store_latency
+              time_vec_store_latency
+              time_vec_store_latency) 
+	 sync_dest(time_vec_store_sample
+		   time_vec_store_sample));
+
+  OL_vec_intxfr(exc(time_vec_int_xfr_exception) 
+	      rsv(time_vec_int_xfr_reserve
+		   time_vec_int_xfr_reserve
+		   time_vec_int_xfr_reserve
+		   time_vec_int_xfr_reserve) 
+ 	 pred(time_vec_int_xfr_sample) 
+	 src(time_vec_int_xfr_sample 
+	     time_vec_int_xfr_sample 
+	     time_vec_int_xfr_sample 
+	     time_vec_int_xfr_sample) 
+	 sync_src(time_vec_int_xfr_sample
+                  time_vec_int_xfr_sample) 
+	 dest(time_vec_int_xfr_latency
+              time_vec_int_xfr_latency
+              time_vec_int_xfr_latency
+              time_vec_int_xfr_latency) 
+	 sync_dest(time_vec_int_xfr_sample
+		   time_vec_int_xfr_sample));
+
+  OL_vec_floatxfr(exc(time_vec_float_xfr_exception) 
+	      rsv(time_vec_float_xfr_reserve
+		   time_vec_float_xfr_reserve
+		   time_vec_float_xfr_reserve
+		   time_vec_float_xfr_reserve) 
+ 	 pred(time_vec_float_xfr_sample) 
+	 src(time_vec_float_xfr_sample 
+	     time_vec_float_xfr_sample 
+	     time_vec_float_xfr_sample 
+	     time_vec_float_xfr_sample) 
+	 sync_src(time_vec_float_xfr_sample
+                  time_vec_float_xfr_sample) 
+	 dest(time_vec_float_xfr_latency
+              time_vec_float_xfr_latency
+              time_vec_float_xfr_latency
+              time_vec_float_xfr_latency) 
+	 sync_dest(time_vec_float_xfr_sample
+		   time_vec_float_xfr_sample));
+
+}
+
+// *************************************************************
+// Resource Description
+
+SECTION Resource
+{
+  $for (idx in $0..(integer_units-1)) {
+    R_i${idx}();
+  }
+  $for (idx in $0..(float_units-1)) {
+    R_f${idx}();
+  }
+  $for (idx in $0..(memory_units-1)) {
+    R_m${idx}();
+  }
+  $for (idx in $0..(branch_units-1)) {
+    R_b${idx}();
+  }
+  // HPL-PD 2.0 Extn
+  $if ($?{local_memory_units}) {
+    $for (idx in $0..(local_memory_units-1)) {
+      R_lm${idx}();
+    }
+  }
+
+  // SLARSEN: Vector entries
+  $for (idx in $0..(vec_integer_units-1)) {
+    R_I${idx}();
+  }
+  $for (idx in $0..(vec_float_units-1)) {
+    R_F${idx}();
+  }
+  $for (idx in $0..(vec_integer_xfr_units-1)) {
+    R_xi${idx}();
+  }
+  $for (idx in $0..(vec_float_xfr_units-1)) {
+    R_xf${idx}();
+  }
+
+  // RMR: issue slots
+  R_issue(count(issue_slots));
+}
+
+// Right now we have a basic 0th cycle resource usage for each resource
+
+SECTION Resource_Usage
+{
+  $for (idx in $0..(integer_units-1)) {
+    RU_i${idx}(use(R_i${idx}) time(0));
+  }
+  $for (idx in $0..(float_units-1)) {
+    RU_f${idx}(use(R_f${idx}) time(0));
+  }
+  $for (idx in $0..(memory_units-1)) {
+    RU_m${idx}(use(R_m${idx}) time(0));
+  }
+  $for (idx in $0..(branch_units-1)) {
+    RU_b${idx}(use(R_b${idx}) time(0));
+  }
+  // HPL-PD 2.0 Extn
+  $if ($?{local_memory_units}) {
+  $for (idx in $0..(local_memory_units-1)) {
+    RU_lm${idx}(use(R_lm${idx}) time(0));
+  }}
+
+  // SLARSEN: Vector entries
+  $for (idx in $0..(vec_integer_units-1)) {
+    RU_I${idx}(use(R_I${idx}) time(0));
+  }
+  $for (idx in $0..(vec_float_units-1)) {
+    RU_F${idx}(use(R_F${idx}) time(0));
+  }
+  $for (idx in $0..(vec_integer_xfr_units-1)) {
+    RU_xi${idx}(use(R_xi${idx}) time(0));
+  }
+  $for (idx in $0..(vec_float_xfr_units-1)) {
+    RU_xf${idx}(use(R_xf${idx}) time(0));
+  }
+
+  // RMR: issue slots
+  RU_issue(use(R_issue) time(0));
+
+}
+
+// Right now we have a simple model of one resource usage per reservation table
+
+SECTION Reservation_Table
+{
+  RT_null(use());
+  $for (idx in $0..(integer_units-1)) {
+    RT_i${idx}(use(RU_i${idx} RU_issue));
+  }
+  $for (idx in $0..(float_units-1)) {
+    RT_f${idx}(use(RU_f${idx} RU_issue));
+  }
+  $for (idx in $0..(memory_units-1)) {
+    RT_m${idx}(use(RU_m${idx} RU_issue));
+  }
+  $for (idx in $0..(branch_units-1)) {
+    RT_b${idx}(use(RU_b${idx} RU_issue));
+  }
+  // HPL-PD 2.0 Extn
+  $if ($?{local_memory_units}) {
+  $for (idx in $0..(local_memory_units-1)) {
+    RT_lm${idx}(use(RU_lm${idx} RU_issue));
+  }}
+
+  // SLARSEN: Vector entries
+  $for (idx in $0..(vec_integer_units-1)) {
+    RT_I${idx}(use(RU_I${idx} RU_issue));
+  }
+  $for (idx in $0..(vec_float_units-1)) {
+    RT_F${idx}(use(RU_F${idx} RU_issue));
+  }
+  $for (idx in $0..(vec_integer_xfr_units-1)) {
+    RT_xi${idx}(use(RU_xi${idx} RU_issue));
+  }
+  $for (idx in $0..(vec_float_xfr_units-1)) {
+    RT_xf${idx}(use(RU_xf${idx} RU_issue));
+  }
+}
+
+// *************************************************************
+// Scheduling Alternatives
+
+// Scheduling Alternative describes a unit specific alternative.
+
+SECTION Scheduling_Alternative
+{
+  $for (idx in $0..(integer_units-1)) {
+    SA_intarith1_int_i${idx}(format(OF_intarith1) latency(OL_int) resv(RT_i${idx}));
+    SA_intarith2_int_i${idx}(format(OF_intarith2) latency(OL_int) resv(RT_i${idx}));
+    SA_intarith2_intshift_i${idx}(format(OF_intarith2) latency(OL_int) resv(RT_i${idx}));
+    SA_intarith2_intdiv_i${idx}(format(OF_intarith2) latency(OL_intdiv) resv(RT_i${idx}));
+    SA_intarith2_intmpy_i${idx}(format(OF_intarith2) latency(OL_intmpy) resv(RT_i${idx}));
+
+    SA_intcmpr_int_i${idx}(format(OF_intcmpr) latency(OL_int) resv(RT_i${idx}));
+    SA_intcmpp_int_i${idx}(format(OF_intcmpp) latency(OL_intcmpp) resv(RT_i${idx}));
+
+    SA_sext_int_i${idx}(format(OF_sext) latency(OL_int) resv(RT_i${idx}));
+    SA_moveii_int_i${idx}(format(OF_moveii) latency(OL_int) resv(RT_i${idx}));
+    SA_moveip_int_i${idx}(format(OF_moveip) latency(OL_int) resv(RT_i${idx}));
+    SA_movepp_int_i${idx}(format(OF_movepp) latency(OL_int) resv(RT_i${idx}));
+    SA_movepi_int_i${idx}(format(OF_movepi) latency(OL_int) resv(RT_i${idx}));
+    SA_pred_int_i${idx}(format(OF_pred) latency(OL_int) resv(RT_i${idx}));
+
+    // Move/extract bits to/from pred -- Shail Aditya 05/26/98
+    SA_movegbp_int_i${idx}(format(OF_movegbp) latency(OL_int) resv(RT_i${idx}));
+    SA_movegcm_int_i${idx}(format(OF_movegcm) latency(OL_int) resv(RT_i${idx}));
+
+
+    // HPL-PD 2.0 Extn
+    SA_movegg_int_i${idx}(format(OF_movegg) latency(OL_int) resv(RT_i${idx}));
+    SA_movegc_int_i${idx}(format(OF_movegc) latency(OL_int) resv(RT_i${idx}));
+    SA_movecg_int_i${idx}(format(OF_movecg) latency(OL_int) resv(RT_i${idx}));
+    SA_movebb_int_i${idx}(format(OF_movebb) latency(OL_int) resv(RT_i${idx}));
+    SA_intlitmove_int_i${idx}(format(OF_intlitmove) latency(OL_int) resv(RT_i${idx}));
+    SA_btrlitmove_int_i${idx}(format(OF_btrlitmove) latency(OL_int) resv(RT_i${idx}));
+    SA_pbrlit_int_i${idx}(format(OF_pbrlit) latency(OL_int) resv(RT_i${idx}));
+
+    // Agressive pred_clear, pred_set
+    SA_pred_null_i${idx}(format(OF_pred) latency(OL_int) resv(RT_null));
+    SA_branch_int_i${idx}(format(OF_branch) latency(OL_int) resv(RT_i${idx}));
+  }
+
+  $for (idx in $0..(float_units-1)) {
+    SA_floatarith1_float_f${idx}(format(OF_floatarith1) latency(OL_float) resv(RT_f${idx}));
+    SA_floatarith1_floatdiv_f${idx}(format(OF_floatarith1) latency(OL_floatdiv) resv(RT_f${idx}));
+    SA_floatarith2_float_f${idx}(format(OF_floatarith2) latency(OL_float) resv(RT_f${idx}));
+    SA_floatarith2_floatdiv_f${idx}(format(OF_floatarith2) latency(OL_floatdiv) resv(RT_f${idx}));
+    SA_floatarith2_floatmpy_f${idx}(format(OF_floatarith2) latency(OL_floatmpy) resv(RT_f${idx}));
+    SA_floatarith3_floatmpy_f${idx}(format(OF_floatarith3) latency(OL_floatmpy) resv(RT_f${idx}));
+
+    SA_floatcmpr_float_f${idx}(format(OF_floatcmpr) latency(OL_float) resv(RT_f${idx}));
+    SA_floatcmpp_float_f${idx}(format(OF_floatcmpp) latency(OL_floatcmpp) resv(RT_f${idx}));
+
+    SA_moveff_float_f${idx}(format(OF_moveff) latency(OL_float) resv(RT_f${idx}));
+    SA_convif_float_f${idx}(format(OF_moveif) latency(OL_float) resv(RT_f${idx}));
+    SA_convff_float_f${idx}(format(OF_moveff) latency(OL_float) resv(RT_f${idx}));
+    SA_convfi_float_f${idx}(format(OF_movefi) latency(OL_float) resv(RT_f${idx}));
+
+    // HPL-PD 2.0 Extn
+    SA_floatlitmove_float_f${idx}(format(OF_floatlitmove) latency(OL_float) resv(RT_f${idx}));
+  }
+
+  $for (idx in $0..(memory_units-1)) {
+    // standard loads
+    $for(format in intload intloadinc intloadgdisp floatload floatloadinc floatloadgdisp){
+      $for((src in C1 C2 C3)
+	   (lat in load1 load2 load3)){
+	SA_${format}_std_${src}_m${idx}(format(OF_${format}) latency(OL_${lat}) resv(RT_m${idx}));
+      }
+    }
+
+    // speculative loads
+    $for(format in intload intloadinc intloadgdisp floatload floatloadinc floatloadgdisp){
+      $for((src in C1 C2 C3)
+	   (lat in dsload1 dsload2 dsload3)){
+	SA_${format}_spec_${src}_m${idx}(format(OF_${format}) latency(OL_${lat}) resv(RT_m${idx}));
+      }
+    }
+
+    // speculative load verify
+    SA_intload_verify_m${idx}(format(OF_intload) latency(OL_dsload_verify) resv(RT_m${idx}));
+    SA_floatload_verify_m${idx}(format(OF_floatload) latency(OL_dsload_verify) resv(RT_m${idx}));
+
+    // standard stores
+    $for(format in intstore intstoreinc intstoregdisp floatstore floatstoreinc floatstoregdisp){
+      SA_${format}_std_m${idx}(format(OF_${format}) latency(OL_store) resv(RT_m${idx}));
+    }
+
+    SA_moveif_C1_m${idx}(format(OF_moveif) latency(OL_load1) resv(RT_m${idx}));
+    SA_movefi_C1_m${idx}(format(OF_movefi) latency(OL_load1) resv(RT_m${idx}));
+    SA_predload_C1_m${idx}(format(OF_predload) latency(OL_load1) resv(RT_m${idx}));
+    SA_predstore_store_m${idx}(format(OF_predstore) latency(OL_store) resv(RT_m${idx}));
+
+    // Explicit save/restore formats - Shail Aditya 05/26/98
+    SA_intsave_store_m${idx}(format(OF_intsave) latency(OL_store) resv(RT_m${idx}));
+    SA_intrestore_C1_m${idx}(format(OF_intrestore) latency(OL_load1) resv(RT_m${idx}));
+    SA_floatsave_store_m${idx}(format(OF_floatsave) latency(OL_store) resv(RT_m${idx}));
+    SA_floatrestore_C1_m${idx}(format(OF_floatrestore) latency(OL_load1) resv(RT_m${idx}));
+    SA_brsave_store_m${idx}(format(OF_brsave) latency(OL_store) resv(RT_m${idx}));
+    SA_brrestore_C1_m${idx}(format(OF_brrestore) latency(OL_load1) resv(RT_m${idx}));
+  }
+
+  $for (idx in $0..(branch_units-1)) {
+    SA_brucond_branch_b${idx}(format(OF_brucond) latency(OL_branch) resv(RT_b${idx}));
+    SA_brcond_branch_b${idx}(format(OF_brcond) latency(OL_branch) resv(RT_b${idx}));
+    SA_brlink_branch_b${idx}(format(OF_brlink) latency(OL_branch) resv(RT_b${idx}));
+    SA_brtop_branch_b${idx}(format(OF_brtop) latency(OL_branch) resv(RT_b${idx}));
+    SA_brlc_branch_b${idx}(format(OF_brlc) latency(OL_branch) resv(RT_b${idx}));
+    SA_brdvi_branch_b${idx}(format(OF_brdvi) latency(OL_branch) resv(RT_b${idx}));
+    SA_brdvf_branch_b${idx}(format(OF_brdvf) latency(OL_branch) resv(RT_b${idx}));
+  }
+
+  // HPL-PD 2.0 Extn
+  $if ($?{local_memory_units}) {
+  $for (idx in $0..(local_memory_units-1)) {
+    SA_intload_localmem_lm${idx}(format(OF_intload) latency(OL_load_localmem) resv(RT_lm${idx}));
+    SA_floatload_localmem_lm${idx}(format(OF_floatload) latency(OL_load_localmem) resv(RT_lm${idx}));
+    SA_intstore_localmem_lm${idx}(format(OF_intstore) latency(OL_store_localmem) resv(RT_lm${idx}));
+    SA_floatstore_localmem_lm${idx}(format(OF_floatstore) latency(OL_store_localmem) resv(RT_lm${idx}));
+  }}
+
+  // SLARSEN: Vector units
+  $for (idx in $0..(vec_integer_units-1)) {
+    SA_vec_intarith2_int_I${idx}(format(OF_vec_intarith2) latency(OL_vec_int) resv(RT_I${idx}));
+    SA_vec_intarith2_intdiv_I${idx}(format(OF_vec_intarith2) latency(OL_vec_intdiv) resv(RT_I${idx}));
+    SA_vec_intarith2_intmpy_I${idx}(format(OF_vec_intarith2) latency(OL_vec_intmpy) resv(RT_I${idx}));
+    SA_vec_sext_int_I${idx}(format(OF_vec_sext) latency(OL_vec_int) resv(RT_I${idx}));
+    SA_vec_moveii_int_I${idx}(format(OF_vec_moveii) latency(OL_vec_int) resv(RT_I${idx}));
+  }
+
+  $for (idx in $0..(vec_float_units-1)) {
+    SA_vec_floatarith1_float_F${idx}(format(OF_vec_floatarith1) latency(OL_vec_float) resv(RT_F${idx}));
+    SA_vec_floatarith2_float_F${idx}(format(OF_vec_floatarith2) latency(OL_vec_float) resv(RT_F${idx}));
+    SA_vec_floatarith1_floatdiv_F${idx}(format(OF_vec_floatarith1) latency(OL_vec_floatdiv) resv(RT_F${idx}));
+    SA_vec_floatarith2_floatdiv_F${idx}(format(OF_vec_floatarith2) latency(OL_vec_floatdiv) resv(RT_F${idx}));
+    SA_vec_floatarith2_floatmpy_F${idx}(format(OF_vec_floatarith2) latency(OL_vec_floatmpy) resv(RT_F${idx}));
+
+    SA_vec_moveff_float_F${idx}(format(OF_vec_moveff) latency(OL_vec_float) resv(RT_F${idx}));
+
+    SA_vec_convif_float_F${idx}(format(OF_vec_moveif) latency(OL_vec_float) resv(RT_F${idx}));
+    SA_vec_convff_float_F${idx}(format(OF_vec_moveff) latency(OL_vec_float) resv(RT_F${idx}));
+    SA_vec_convfi_float_F${idx}(format(OF_vec_movefi) latency(OL_vec_float) resv(RT_F${idx}));
+  }
+
+//  $for (idx in $0..(vec_integer_xfr_units-1)) {
+//    SA_vec_intvsmove_int_xi${idx}(format(OF_vec_intvsmove) latency(OL_vec_intxfr) resv(RT_xi${idx}));
+//    SA_vec_intsvmove_int_xi${idx}(format(OF_vec_intsvmove) latency(OL_vec_intxfr) resv(RT_xi${idx}));
+//  }
+//  $for (idx in $0..(vec_float_xfr_units-1)) {
+//    SA_vec_floatvsmove_float_xf${idx}(format(OF_vec_floatvsmove) latency(OL_vec_floatxfr) resv(RT_xf${idx}));
+//    SA_vec_floatsvmove_float_xf${idx}(format(OF_vec_floatsvmove) latency(OL_vec_floatxfr) resv(RT_xf${idx}));
+//  }
+  $for (idx in $0..(memory_units-1)) {
+    SA_vec_intvsmove_int_xi${idx}(format(OF_vec_intvsmove) latency(OL_vec_intxfr) resv(RT_m${idx}));
+    SA_vec_intsvmove_int_xi${idx}(format(OF_vec_intsvmove) latency(OL_vec_intxfr) resv(RT_m${idx}));
+    SA_vec_floatvsmove_float_xf${idx}(format(OF_vec_floatvsmove) latency(OL_vec_floatxfr) resv(RT_m${idx}));
+    SA_vec_floatsvmove_float_xf${idx}(format(OF_vec_floatsvmove) latency(OL_vec_floatxfr) resv(RT_m${idx}));
+  }
+
+  $for (idx in $0..(memory_units-1)) {
+    $for (format in vec_intload vec_floatload) {
+	SA_${format}_C1_m${idx}(format(OF_${format}) latency(OL_vec_load1) resv(RT_m${idx}));
+      }
+
+    $for(format in vec_intstore vec_floatstore){
+      SA_${format}_m${idx}(format(OF_${format}) latency(OL_vec_store) resv(RT_m${idx}));
+    }
+  }
+}
+
+// *************************************************************
+// HPL-PD Operations (Architecture Version 1.0)
+
+SECTION Operation
+{
+  // **** Integer operations ****
+  $for (idx in $0..(integer_units-1)){
+
+    // Table 2: Integer computation operations 
+    $for (class in intarith1_int intarith2_int intarith2_intshift intarith2_intdiv intarith2_intmpy){
+      $for (op in ${OP_${class}}){
+	$for(w in ${int_alu_widths}){
+	  "${op}_${w}.${idx}"(alt(SA_${class}_i${idx}));
+	}
+      }
+    }
+
+    // Table 4: Conversion operations 
+    $for(op in ${OP_sign_extend}){
+      $for(w in ${int_extract_widths}){
+	"${op}_${w}.${idx}"(alt(SA_sext_int_i${idx}));
+      }
+    }
+
+    // Table 5: Move operations
+    $for(class in moveii movepi movegbp movegcm){
+      $for(op in ${OP_${class}}){
+	"${op}.${idx}"(alt(SA_${class}_int_i${idx}));
+      }
+    }
+
+    // Mass clear operation for PR
+    $for(op in ${OP_mass_pred_clear}) {
+      "${op}.${idx}"(alt(SA_pred_int_i${idx}));
+    }
+
+    // Move pseudo operations
+    $for(class in moveip movepp){
+      $for(op in ${OP_${class}}){
+	"${op}.${idx}"(alt(SA_${class}_int_i${idx}));
+      }
+    }
+    $for(op in ${OP_pred_writes}){
+      "${op}.${idx}"(alt(SA_pred_null_i${idx}));
+    }
+
+    // HPL-PD 2.0 Extn
+    // Split moves instead of MOVE
+    $for(class in movegg movegc movecg movebb){
+      $for(op in ${OP_${class}}) {
+	"${op}.${idx}"(alt(SA_${class}_int_i${idx}));
+      }
+    }
+    // Int literal moves to GPR
+    $for(op in ${OP_int_literal_moves}) {
+      "${op}.${idx}"(alt(SA_intlitmove_int_i${idx}));
+    }
+
+    // Table 8: Compare-to-register operations
+    $for(op in ${OP_int_compare_to_reg}){
+      $for(w in ${int_alu_widths}){
+	$for(ic in ${integer_compare_conds}){
+	  "${op}_${w}_${ic}.${idx}"(alt(SA_intcmpr_int_i${idx}));
+	}
+      }
+    }
+
+    // Table 9: Two-target compare-to-predicate operations
+    $for(op in ${OP_int_cmp_pred_two}){
+      $for(w in ${int_alu_widths}){
+	$for(ic in ${integer_compare_conds}){
+	  $for(da1 in ${cmpp_dest_actions}){
+	    $for(da2 in ${cmpp_dest_actions}){	
+	      "${op}_${w}_${ic}_${da1}_${da2}.${idx}"(alt(SA_intcmpp_int_i${idx}));
+	    }
+	  }
+	}
+      }
+    }
+
+/*  ----------
+    // HPL-PD 2.0 extension: One target compare to predicate operations. 
+    $for(op in ${OP_int_cmp_pred_one}){
+      $for(w in ${int_alu_widths}){
+	$for(ic in ${integer_compare_conds}){
+	  $for(da1 in ${cmpp_dest_actions}){
+	    "${op}_${w}_${ic}_${da1}.${idx}"(alt(SA_intcmppi_int_i${idx}));
+	  }
+	}
+      }
+    }
+--------- */
+
+    // Table 16: Prepare to branch (cast on int unit)
+    $for(op in ${OP_pbrs}){
+      "${op}.${idx}"(alt(SA_branch_int_i${idx}));
+    }
+
+    // HPL-PD 2.0 extn
+    // literal moves to BTR
+    $for(op in ${OP_btr_literal_moves}) {
+      "${op}.${idx}"(alt(SA_btrlitmove_int_i${idx}));
+    }
+    // prepare to branch with literals
+    $for(op in ${OP_pbr_with_literals}) {
+      "${op}.${idx}"(alt(SA_pbrlit_int_i${idx}));
+    }
+
+  } // end **** Integer Operations ****
+
+
+  // **** Float Operations ****
+  $for (idx in $0..(float_units-1)){
+
+    // Table 3: Floating-point computation operations
+    $for (class in floatarith1_float floatarith1_floatdiv floatarith2_float floatarith2_floatdiv floatarith2_floatmpy floatarith3_floatmpy){
+      $for(op in ${OP_${class}}){
+	$for(w in ${float_widths}){
+	  "${op}_${w}.${idx}"(alt(SA_${class}_f${idx}));
+	}
+      }
+    }
+
+    // Table 4: Conversion operations 
+    $for(class in convif convfi convff){
+      $for(op in ${OP_${class}}){
+	"${op}.${idx}"(alt(SA_${class}_float_f${idx}));
+      }
+    }
+
+    // Table 5: Move operations
+    $for(op in ${OP_moveff}){
+      $for(w in ${float_widths}){
+	"${op}_${w}.${idx}"(alt(SA_moveff_float_f${idx}));
+      }
+    }
+
+    // HPL-PD 2.0 Extn
+    // Float literal moves to FPR
+    $for(op in ${OP_float_literal_moves}) {
+      "${op}.${idx}"(alt(SA_floatlitmove_float_f${idx}));
+    }
+
+    // Table 8: Compare-to-register operations
+    $for(op in ${OP_float_compare_to_reg}){
+      $for(w in ${float_widths}){
+	$for(fc in ${float_compare_conds}){
+	  "${op}_${w}_${fc}.${idx}"(alt(SA_floatcmpr_float_f${idx}));
+	}
+      }
+    }
+
+    // Table 9: Two-target compare-to-predicate operations
+    $for(op in ${OP_float_cmp_pred_two}){
+      $for(w in ${float_widths}){
+	$for(fc in ${float_compare_conds}){
+	  $for(da1 in ${cmpp_dest_actions}){
+	    $for(da2 in ${cmpp_dest_actions}){	
+	      "${op}_${w}_${fc}_${da1}_${da2}.${idx}"(alt(SA_floatcmpp_float_f${idx}));
+	    }
+	  }
+	}
+      }
+    }
+
+/*  ----------
+    // HPL-PD 2.0 extension: One target compare to predicate operations. 
+    $for(op in ${OP_float_cmp_pred_one}){
+      $for(w in ${float_widths}){
+	$for(fc in ${float_compare_conds}){
+	  $for(da1 in ${cmpp_dest_actions}){
+	    "${op}_${w}_${fc}_${da1}.${idx}"(alt(SA_floatcmppi_float_f${idx}));
+	  }
+	}
+      }
+    }
+--------- */
+
+  } // end **** Float Operations ****
+
+  // **** Memory Operations ****
+  $for (idx in $0..(memory_units-1)){
+
+    // Table 5: Move operations
+    $for (class in moveif movefi){
+      $for(op in ${OP_${class}}){
+	$for(rh in ${float_register_halves}){
+	  "${op}_${rh}.${idx}"(alt(SA_${class}_C1_m${idx}));
+	}
+      }
+    }
+
+    // Table 12, 13, 14: Load/store operations for cache/main memory
+    // Integer load ops
+    $for(class in intload_std intloadinc_std intload_spec intloadinc_spec intloadgdisp_std){
+      $for(op in ${OP_${class}}){
+	$for(ss in ${latency_src_cache_specifiers}){
+	  $for(ts in ${target_cache_specifiers}){
+	    $for(w in ${int_mem_widths}){
+	      "${op}_${w}_${ss}_${ts}.${idx}"(alt(SA_${class}_${ss}_m${idx}));
+	    }
+	  }
+	}
+      }
+    }
+
+    // Float load ops
+    $for(class in floatload_std floatloadinc_std floatload_spec floatloadinc_spec floatloadgdisp_std){
+      $for(op in ${OP_${class}}){
+	$for(ss in ${latency_src_cache_specifiers}){
+	  $for(ts in ${target_cache_specifiers}){
+	    $for(w in ${float_widths}){
+	      "${op}_${w}_${ss}_${ts}.${idx}"(alt(SA_${class}_${ss}_m${idx}));
+	    }
+	  }
+	}
+      }
+    }
+
+    // Integer store ops
+    $for(class in intstore_std intstoreinc_std intstoregdisp_std){
+      $for(op in ${OP_${class}}){
+	$for(ts in ${target_cache_specifiers}){
+	  $for(w in ${int_mem_widths}){
+	    "${op}_${w}_${ts}.${idx}"(alt(SA_${class}_m${idx}));
+	  }
+	}
+      }
+    }
+
+    // Float store ops
+    $for(class in floatstore_std floatstoreinc_std floatstoregdisp_std){
+      $for(op in ${OP_${class}}){
+	$for(ts in ${target_cache_specifiers}){
+	  $for(w in ${float_widths}){
+	    "${op}_${w}_${ts}.${idx}"(alt(SA_${class}_m${idx}));
+	  }
+	}
+      }
+    }
+
+    // Int ldv ops
+    $for(op in ${OP_intload_dv}){
+      $for(w in ${int_mem_widths}){
+	"${op}_${w}.${idx}"(alt(SA_intload_verify_m${idx}));
+      }
+    }
+
+    // Float ldv ops
+    $for(op in ${OP_floatload_dv}){
+      $for(w in ${float_widths}){
+	"${op}_${w}.${idx}"(alt(SA_floatload_verify_m${idx}));
+      }
+    }
+
+    // Explicit save/restore formats - Shail Aditya 05/26/98
+    $for(class in intsave floatsave brsave){
+      $for(op in ${OP_${class}}){
+	"${op}.${idx}"(alt(SA_${class}_store_m${idx}));
+      }
+    }
+    $for(class in intrestore floatrestore brrestore){
+      $for(op in ${OP_${class}}){
+	"${op}.${idx}"(alt(SA_${class}_C1_m${idx}));
+      }
+    }
+
+    // Operations for predicate spilling. These will go away soon.
+    $for(op in ${OP_pfill}){
+      "${op}.${idx}"(alt(SA_predload_C1_m${idx}));
+    }
+    $for(op in ${OP_pspill}){
+      "${op}.${idx}"(alt(SA_predstore_store_m${idx}));
+    }
+
+  } // end **** Memory Operations ****
+
+
+  // HPL-PD 2.0 Extn
+  // **** Local Memory Operations ****
+  $if ($?{local_memory_units}) {
+  $for(lm in ${local_memory_specifiers}){
+    $for (idx in $0..(local_memory_units-1)){
+
+      $for(op in ${OP_intload_local}){
+	$for(w in ${int_mem_widths}){
+	  "${op}_${w}_${lm}.${idx}"(alt(SA_intload_localmem_lm${idx}));
+	}
+      }
+      $for(op in ${OP_floatload_local}){
+	$for(w in ${float_widths}){
+	  "${op}_${w}_${lm}.${idx}"(alt(SA_floatload_localmem_lm${idx}));
+	}
+      }
+      $for(op in ${OP_intstore_local}){
+	$for(w in ${int_mem_widths}){
+	  "${op}_${w}_${lm}.${idx}"(alt(SA_intstore_localmem_lm${idx}));
+	}
+      }
+      $for(op in ${OP_floatstore_local}){
+	$for(w in ${float_widths}){
+	  "${op}_${w}_${lm}.${idx}"(alt(SA_floatstore_localmem_lm${idx}));
+	}
+      }
+    }
+  }} // end *** Local Memory Operations ****
+
+  // **** Branch Operations ****
+  $for (idx in $0..(branch_units-1)){
+    $for(class in brucond brcond brlink brlc brtop brdvi brdvf){
+      $for(op in ${OP_${class}}){
+	"${op}.${idx}"(alt(SA_${class}_branch_b${idx}));
+      }
+    }
+  } // end **** Branch Operations ****
+
+
+  // SLARSEN: Vector operations
+  $for (idx in $0..(vec_integer_units-1)){
+    $for (class in vec_intarith2_int vec_intarith2_intdiv vec_intarith2_intmpy){
+      $for (op in ${OP_${class}}){
+	$for(w in ${int_alu_widths}){
+	  "${op}_${w}.${idx}"(alt(SA_${class}_I${idx}));
+	}
+      }
+    }
+
+    $for(op in ${OP_vec_sign_extend}){
+      $for(w in ${int_extract_widths}){
+	"${op}_${w}.${idx}"(alt(SA_vec_sext_int_I${idx}));
+      }
+    }
+
+    $for(class in vec_moveii){
+      $for(op in ${OP_${class}}){
+	"${op}.${idx}"(alt(SA_${class}_int_I${idx}));
+      }
+    }
+  }
+
+  $for (idx in $0..(vec_float_units-1)){
+    $for (class in vec_floatarith1_float vec_floatarith1_floatdiv vec_floatarith2_float vec_floatarith2_floatdiv vec_floatarith2_floatmpy){
+      $for(op in ${OP_${class}}){
+	$for(w in ${float_widths}){
+	  "${op}_${w}.${idx}"(alt(SA_${class}_F${idx}));
+	}
+      }
+    }
+
+    $for(class in vec_convif vec_convfi vec_convff){
+      $for(op in ${OP_${class}}){
+	"${op}.${idx}"(alt(SA_${class}_float_F${idx}));
+      }
+    }
+
+    $for(op in ${OP_vec_moveff}){
+      $for(w in ${float_widths}){
+	"${op}_${w}.${idx}"(alt(SA_vec_moveff_float_F${idx}));
+      }
+    }
+  }
+
+  // Transfer instructions
+  $for (idx in $0..(vec_integer_xfr_units-1)){
+    $for (class in vec_intvsmove vec_intsvmove){
+      $for (op in ${OP_${class}}){
+        "${op}.${idx}"(alt(SA_${class}_int_xi${idx}));
+      }
+    }
+  }
+   
+  $for (idx in $0..(vec_float_xfr_units-1)){
+    $for (class in vec_floatvsmove vec_floatsvmove){
+      $for (op in ${OP_${class}}){
+        $for(w in ${float_widths}){
+          "${op}_${w}.${idx}"(alt(SA_${class}_float_xf${idx}));
+        }
+      }
+    }
+  }
+
+  // Memory instructions
+  $for (idx in $0..(memory_units-1)){
+    // Vector integer load ops
+    $for(class in vec_intload){
+      $for(op in ${OP_${class}}){
+        $for(w in ${int_mem_widths}){
+	  "${op}_${w}_C1_C1.${idx}"(alt(SA_${class}_C1_m${idx}));
+        }
+      }
+    }
+
+    // Vector float load ops
+    $for(class in vec_floatload){
+      $for(op in ${OP_${class}}){
+        $for(w in ${float_widths}){
+	  "${op}_${w}_C1_C1.${idx}"(alt(SA_${class}_C1_m${idx}));
+	}
+      }
+    }
+
+    // Vector integer store ops
+    $for(class in vec_intstore){
+      $for(op in ${OP_${class}}){
+	$for(w in ${int_mem_widths}){
+	  "${op}_${w}_C1.${idx}"(alt(SA_${class}_m${idx}));
+	}
+      }
+    }
+
+    // Vector float store ops
+    $for(class in vec_floatstore){
+      $for(op in ${OP_${class}}){
+	$for(w in ${float_widths}){
+	  "${op}_${w}_C1.${idx}"(alt(SA_${class}_m${idx}));
+	}
+      }
+    }
+  }
+}
