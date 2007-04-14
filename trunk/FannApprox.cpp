@@ -9,9 +9,9 @@
   
   //fann_destroy_train(train_data);
   //fann_destroy_train(test_data);
+  fann_save(ann,"ANN_file.txt");
   fann_destroy(ann);
   if (train_data != NULL) fann_destroy_train(train_data);
-  fann_save(ann,"ANN_file.txt");
   fclose(train_file);
   fclose(test_file);
   fclose(log_file);
