@@ -30,9 +30,12 @@
 #include "parameter.h"
 #include "hash.h" // mau
 #include "moea/SPEA.h" // mau
-#include "FuzzyApprox.h" // ale
-#include "FannApprox.h" // ale
+#include "FuzzyApprox.h"
 
+// ---------------------------------------------------------------------------
+#define EXPLORER_NOTHING_DONE 0
+#define EXPLORER_BINARY_DONE 1
+#define EXPLORER_ALL_DONE 2
 // ---------------------------------------------------------------------------
 
 class Explorer {
@@ -42,11 +45,9 @@ public:
   Estimator estimator;
 
   Explorer(Trimaran_interface * ti);
-
   ~Explorer();
 
   // Functions to modify explorer options
-    // multiobjective alternatives
   void set_options(const struct User_Settings& user_settings);
   void set_base_dir(const string& dir);
   string get_base_dir() const;
@@ -63,7 +64,6 @@ public:
   void start_GA(const GA_parameters& parameters); 
   void start_EXHA();
   void test(); // for testing only
-
 
   // Main function for simulating a parameter space 
   vector<Simulation> simulate_space(const vector<Configuration>& space);
@@ -109,7 +109,7 @@ public:
   bool configuration_present(const Configuration& conf,const vector<Configuration>& space) const;
   int simulation_present(const Simulation& sim,const vector<Simulation>& simulations) const;
 
-  /*********************************************************/
+  //*********************************************************
   // function to manipulate Simulations
 
   vector<Simulation> get_pareto(const vector<Simulation>& simulations);
@@ -132,7 +132,8 @@ public:
   bool same_intorno(const Simulation& sim1, const Simulation& sim2,double r);
 
   void append_simulations(vector<Simulation>& dest,const vector<Simulation>& new_sims);
-  void save_simulations(const vector<Simulation>& simulations,string filename,int format);
+  void save_simulations(const vector<Simulation>& simulations,const string& filename,int format);
+  void save_configurations(const vector<Configuration>& space,const string& filename);
   void save_stats(const Exploration_stats& stats,const string& filename);
   void save_estimation_file(const Dynamic_stats& ,const Estimate& ,Processor& ,Mem_hierarchy& ,string& filename) const;
   void save_objectives_details(const Dynamic_stats& dyn,const Configuration& conf, const string filename ) const;
@@ -150,7 +151,7 @@ public:
     
   void write_log(string mess);
 
-  CFunctionApproximation *function_approx;
+  CFuzzyFunctionApproximation fuzzy_approx;
 
   void set_fuzzy(bool);
   void set_force_simulation(bool);
@@ -158,20 +159,20 @@ public:
   void load_space_file(const string& space_name);
   void save_space_file(const string& space_name);
 
-  
-  vector<pair<int,int> > getParameterRanges();
-  vector<pair<int,int> > getParametersNumber();
-  int n_objectives() {return n_obj;}
-
 
 private:
-  
+  int get_explorer_status() const;
+  void check_directories_setup(const string& application,const Configuration& config);
+
+
   // private methods 
   void init_GA(SPEA& ga, ExportUserData* eud,GA_parameters* ga_parameters); // mau
   void init_GA_Fuzzy(SPEA& ga, ExportUserData* eud,GA_parameters* ga_parameters); // mau
   vector<AlleleString::Allele> values2alleles(vector<int> values); // mau
   void ga_show_info(SPEA& ga, ExportUserData& eud, string fname); // mau
   //---------FuzzyApprox
+  vector<pair<int,int> > getParameterRanges();
+  vector<pair<int,int> > getParametersNumber();
   void SimulateBestWorst(ExportUserData& eud);
   //--------------------
 
@@ -185,9 +186,20 @@ private:
   bool force_simulation;
 
   string base_dir;
-  int n_obj;
+
+  string epic_dir;
+  string application_dir;
+  string processor_dir;
+  string mem_hierarchy_dir;
+  string cache_dir_name;
+  string machine_dir;
+  string mem_hierarchy_filename;
+  string hmdes_filename;
+  string bench_executable;
+
   string current_algo;
   string current_space;
+  int n_obj;
   struct User_Settings Options;
 
   int average_compilation_time, average_exec_time;
@@ -200,9 +212,6 @@ private:
   int DEP_phase2_time(float P,int * n_ott);
 
 };
-  // Functions for GA-fuzzy
-  bool isDominated(Simulation sim, const vector<Simulation>& simulations);
-
 
 // Evaluation functions for GA-based exploration
 void GA_Evaluator(IND& ind, ObjectiveVector& scores, void *user_data); 
