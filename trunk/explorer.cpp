@@ -18,7 +18,6 @@
 
 #include "explorer.h"
 #include "FuzzyApprox.h"
-#include "FannApprox.h"
 
 #include <moea/AlleleStr.h>
 
@@ -49,13 +48,11 @@ Explorer::Explorer(Trimaran_interface * ti)
 
     Options.save_objectives_details = false;
     force_simulation = false;
-    function_approx = NULL;
 
     current_space = "default_space.sub";
 
-    set_base_dir(ti->get_base_dir());
-
-    load_space_file(ti->get_base_dir()+"/trimaran-workspace/epic-explorer/SUBSPACES/"+current_space);
+    base_dir = string(getenv(BASE_DIR));
+    load_space_file(base_dir+"/trimaran-workspace/epic-explorer/SUBSPACES/"+current_space);
 }
 
 //********************************************************************
@@ -64,13 +61,6 @@ Explorer::~Explorer()
 {
     cout << "\n Destroying explorer...";
 }
-
-/*
-void Explorer::set_fuzzy(bool v)
-{
-    Options.approx_settings.enabled = v;
-}
-*/
 
 
 //********************************************************************
@@ -88,12 +78,17 @@ void Explorer::set_options(const struct User_Settings& user_settings)
     if (Options.objective_area) n_obj++;
     if (Options.objective_energy) n_obj++;
 
+    if (Options.fuzzy_settings.enabled==1)
+    {
+	fuzzy_approx.Init(Options.fuzzy_settings.threshold, Options.fuzzy_settings.min, Options.fuzzy_settings.max,n_obj);
+    }
 }
 
 
 //********************************************************************
 // Exploration Algorithms
 //********************************************************************
+
 //********************************************************************
 // N Random  explorations of configuration space
 //*******************************************************************
@@ -139,7 +134,7 @@ void Explorer::start_RAND(int n)
     }
 
     cout << "\n Ok, created random space " ;
-    cout << "\n\n Valid configurations :" << valid << " of " << n << " requested";
+    cout << "\n\n Valid configurations:" << valid << " of " << n << " requested";
 
 
     vector<Simulation> rand_sims = simulate_space(random_space);
@@ -171,7 +166,7 @@ void Explorer::start_DEP2()
 
     write_log("  -> Starting DEP2 simulation ");
 
-    sprintf(mess,"Space size : %d  , feasible %d ",(int)stats.space_size,(int)stats.feasible_size);
+    sprintf(mess,"Space size: %d , feasible %d ",(int)stats.space_size,(int)stats.feasible_size);
     write_log(mess);
 
     write_log("  -> Starting c5 exploration ");
@@ -294,13 +289,13 @@ void Explorer::start_DEP2()
 //  Dependency Algorithm - DEP
 /// Implementation of system level exploration using clusters .
 //
-// List of clusters :
+// List of clusters:
 //
-//  c1 : L1 data ( size, block_size, associativity)
-//  c2 : L1 instruction ( size, block_size, associativity)
-//  c3 : L2 unified cache ( size, block_size, associativity)
-//  c4 : Functional units ( IU,FPU,BU,MU )
-//  c5 : GPR , c6 : FPR , c7 : PR , c8 : CR , c9 : BTR
+//  c1: L1 data ( size, block_size, associativity)
+//  c2: L1 instruction ( size, block_size, associativity)
+//  c3: L2 unified cache ( size, block_size, associativity)
+//  c4: Functional units ( IU,FPU,BU,MU )
+//  c5: GPR, c6: FPR, c7: PR, c8: CR, c9: BTR
 
 //********************************************************************
 void Explorer::start_DEP()
@@ -320,7 +315,7 @@ void Explorer::start_DEP()
     string filename = Options.benchmark+"_DEP_"+current_space;
 
     
-    // explore c1 and c2 , separately .
+    // explore c1 and c2, separately .
     // all other parameters are set to arbitrary values because c1 and
     // c2 pareto optimal values are assumed indipendent from them
     //
@@ -329,7 +324,7 @@ void Explorer::start_DEP()
 
     write_log("  -> Starting DEP simulation ");
 
-    sprintf(mess,"Space size : %d  , feasible %d ",(int)stats.space_size,(int)stats.feasible_size);
+    sprintf(mess,"Space size: %d , feasible %d ",(int)stats.space_size,(int)stats.feasible_size);
     write_log(mess);
 
     write_log("  -> Starting c1 exploration ");
@@ -339,7 +334,7 @@ void Explorer::start_DEP()
     vector<Configuration> c1_space = build_space(c1_mask);
     
     t = (c1_space.size() * average_exec_time)/60;
-    sprintf(mess," c1 : %d explorations, estimated time %d minutes ",c1_space.size(),t);
+    sprintf(mess," c1: %d explorations, estimated time %d minutes ",c1_space.size(),t);
     write_log(mess);
 
     vector<Simulation> c1_sims = simulate_space(c1_space);
@@ -381,21 +376,21 @@ void Explorer::start_DEP()
     int min_estimated_time = DEP_phase1_time(n_ott_c1,n_ott_c2,2);
     int max_estimated_time = DEP_phase1_time(n_ott_c1,n_ott_c2,est_n_ott_c4);
 
-    sprintf(mess," Approx exploration time : (%d - %d) minutes ",min_estimated_time,max_estimated_time);
+    sprintf(mess," Approx exploration time: (%d - %d) minutes ",min_estimated_time,max_estimated_time);
 
     write_log(mess);
 
-    // now c3 and c4 must be explored , for each combination of c1 and
+    // now c3 and c4 must be explored, for each combination of c1 and
     // c2 pareto-optimal configs. All other parameters are set to
     // arbitrary values.
-    // Order is not important , but c4 exploration is performed for
+    // Order is not important, but c4 exploration is performed for
     // first in order to obtain n_ott_c4 to estimate phase 1
     // algorithm time as soon as possible
     //////////////////////////////////////////////////////////////////
 
     write_log("Starting c4 exploration ");
 
-    // first of all , we cross merge c1 and c2
+    // first of all, we cross merge c1 and c2
 
     vector<Configuration> c1p_c2p_space = build_space_cross_merge(c1_space_pareto,
 	                                                        c2_space_pareto,
@@ -427,11 +422,11 @@ void Explorer::start_DEP()
 
     /////////////////////////////////////////////////////////////////
     // Now it's possible to computer the total time necessary to
-    // perform the first phase of algorithm , because we have n_ott_c1
-    // , n_ott_c2 and n_ott_c4
+    // perform the first phase of algorithm, because we have n_ott_c1
+    //, n_ott_c2 and n_ott_c4
 
     int estimated_time = DEP_phase1_time(n_ott_c1,n_ott_c2,n_ott_c4);
-    sprintf(mess," Estimated Phase 1 time : %d minutes ...",estimated_time);
+    sprintf(mess," Estimated Phase 1 time: %d minutes ...",estimated_time);
 
     write_log(mess);
     /////////////////////////////////////////////////////////////////
@@ -587,7 +582,7 @@ void Explorer::start_DEP()
     save_simulations(c9_sims,filename+"_c9.exp",SHOW_ALL);
     save_simulations(c9_sims_pareto,filename+"_c9.pareto.exp",SHOW_ALL);
 
-    // Phase 1 of alg is finished , we have the pareto optimal
+    // Phase 1 of alg is finished, we have the pareto optimal
     // configuration of all clusters
 
     // Once we have explored c5..c9 considering each pareto of c4, we
@@ -610,9 +605,9 @@ void Explorer::start_DEP()
     write_log("DEP simulation Phase1 ended. ");
 
     /////////////////////////////////////////////////////////////////////////////
-    /// PHASE 2 - merging all clusters , couple by couple . 
+    /// PHASE 2 - merging all clusters, couple by couple . 
     //
-    // c1toN_space :
+    // c1toN_space:
     // resulting space from cross merging c1toN-1_space and cN_space
 
     write_log("Starting Phase 2 . ");
@@ -767,7 +762,7 @@ void Explorer::start_DEP()
 
 
 // ********************************************************************
-// simplified DEP : do not consider monodirectional dependencies
+// simplified DEP: do not consider monodirectional dependencies
 // ********************************************************************
 void Explorer::start_DEPMOD()
 {
@@ -784,7 +779,7 @@ void Explorer::start_DEPMOD()
     string filename = Options.benchmark+"_DEPMOD_"+current_space;
 
     
-    // explore c1 and c2 , separately .
+    // explore c1 and c2, separately .
     // all other parameters are set to arbitrary values because c1 and
     // c2 pareto optimal values are assumed indipendent from them
     //
@@ -796,7 +791,7 @@ void Explorer::start_DEPMOD()
     vector<Configuration> c1_space = build_space(c1_mask);
     
     t = (c1_space.size() * average_exec_time)/60;
-    sprintf(mess," c1 : %d explorations, estimated time %d minutes ",c1_space.size(),t);
+    sprintf(mess," c1: %d explorations, estimated time %d minutes ",c1_space.size(),t);
     write_log(mess);
 
     vector<Simulation> c1_sims = simulate_space(c1_space);
@@ -830,7 +825,7 @@ void Explorer::start_DEPMOD()
 
     write_log("Starting c4 exploration ");
 
-    // first of all , we cross merge c1 and c2
+    // first of all, we cross merge c1 and c2
 
     Space_mask c4_mask = get_space_mask(SET_PROCESSOR_UNITS);
 
@@ -966,7 +961,7 @@ void Explorer::start_DEPMOD()
     save_simulations(c9_sims,filename+"_c9.exp",SHOW_ALL);
     save_simulations(c9_sims_pareto,filename+"_c9.pareto.exp",SHOW_ALL);
 
-    // Phase 1 of alg is finished , we have the pareto optimal
+    // Phase 1 of alg is finished, we have the pareto optimal
     // configuration of all clusters
 
     // Once we have explored c5..c9 considering each pareto of c4, we
@@ -989,9 +984,9 @@ void Explorer::start_DEPMOD()
     write_log("DEPMOD simulation Phase1 ended. ");
 
     /////////////////////////////////////////////////////////////////////////////
-    /// PHASE 2 - merging all clusters , couple by couple . 
+    /// PHASE 2 - merging all clusters, couple by couple . 
     //
-    // c1toN_space :
+    // c1toN_space:
     // resulting space from cross merging c1toN-1_space and cN_space
 
     write_log("Starting Phase 2 . ");
@@ -1267,7 +1262,7 @@ void Explorer::start_PBSA()
     {
 	int index = sorted_index[i];
 
-	// we must combine two configuration spaces :
+	// we must combine two configuration spaces:
 	
 	// a space where only one parameter varies on its range
 	vector<Configuration> param_space = build_space(parameter_masks[index],NO_L2_SIZE_CHECK);
@@ -1323,7 +1318,7 @@ double Explorer::get_pareto_distance(vector<Simulation>& pareto_set,vector<Simul
     double max_energy,min_energy;
     double max_exec_time,min_exec_time;
 
-    // to be more general ,we make no assumption on how pareto_set is ordered,
+    // to be more general,we make no assumption on how pareto_set is ordered,
     // althought get_pareto() or remove dominated() always order
     // from greatest energy to smallest energy.
 
@@ -1335,8 +1330,8 @@ double Explorer::get_pareto_distance(vector<Simulation>& pareto_set,vector<Simul
     max_exec_time = e_sorted[0].exec_time;
     min_exec_time = e_sorted[e_sorted.size()-1].exec_time;
 
-    cout << "\n e : " << min_energy << "   " << max_energy;
-    cout << "\n c : " << min_exec_time << "   " << max_exec_time;
+    cout << "\n e: " << min_energy << "   " << max_energy;
+    cout << "\n c: " << min_exec_time << "   " << max_exec_time;
 
     for (unsigned int i=0;i<pareto_set.size();i++)
     {
@@ -1358,7 +1353,7 @@ double Explorer::get_pareto_distance(vector<Simulation>& pareto_set,vector<Simul
 
     double n_approx = 0;
 
-    // for each point of pareto_set , check if the at least on point
+    // for each point of pareto_set, check if the at least on point
     // from the other set that approximates it with a certain error %
     // on total variation range of pareto.
 
@@ -1369,7 +1364,7 @@ double Explorer::get_pareto_distance(vector<Simulation>& pareto_set,vector<Simul
 	    double d = distance(pareto_set[i1],sim[i2]);
 	    if (d<err)
 	    {
-		cout << "\n ho trovato due vicini : "
+		cout << "\n ho trovato due vicini: "
 		cout << "\n pareto("<< pareto_set[i1].energy << "," << pareto_set[i1].exec_time << ")";
 		cout << "\n    sim("<< sim[i2].energy << "," << sim[i2].exec_time << ")";
 
@@ -1586,7 +1581,7 @@ void Explorer::start_SAP()
 	vector<Simulation> sims = simulate_space(space);
 	vector<Simulation> ordered_sims = sort_by_energydelay_product(sims);
 
-	// base_conf must be updated , considering the optimal value
+	// base_conf must be updated, considering the optimal value
 	// of the the last parameter explored 
 	// base_conf should already have i-1 parameters set to their
 	// optimal val, so the following line should change  the
@@ -1677,7 +1672,7 @@ void Explorer::start_SAPMOD()
 	save_simulations(ordered_sims,path+file,SHOW_ALL);
 
 	// change base_conf assigning most sensitive parameter to its
-	// optimal value , the one that minimizes energy*delay
+	// optimal value, the one that minimizes energy*delay
 	base_conf = ordered_sims[0].config;
 
 	//we must remove the mask corresponding the parameter with max
@@ -1820,14 +1815,10 @@ vector<Simulation> Explorer::sort_by_energydelay_product(vector<Simulation> sims
 void Explorer::start_GA(const GA_parameters& parameters)
 {
     current_algo="GA";
-    if (Options.approx_settings.enabled == 1)
+    if (Options.fuzzy_settings.enabled)
     {
 	current_algo+="_fuzzy";
-    } 
-    if (Options.approx_settings.enabled == 2)
-    {
-	current_algo+="_ANN";
-    } 
+    }
 
     HashGA ht_ga(DEF_HASH_TABLE_SIZE); // maybe static?
     HashGA ht_hy(DEF_HASH_TABLE_SIZE);
@@ -2043,7 +2034,6 @@ bool GA_Evaluation(IND& ind, void *user_data, double& exec_time, double& energy,
     Simulation sim;
     sim.config = conf;
     Simulation *psim = ht_ga->searchT(sim);
-		
 
     if (psim == NULL) // not present in cache
     {
@@ -2058,8 +2048,8 @@ bool GA_Evaluation(IND& ind, void *user_data, double& exec_time, double& energy,
 	psim = eud->ht_hy->searchT(sim);
 	if (psim != NULL) 
 	    vsim.push_back(*psim);
-	else 
-	    vsim = explorer->simulate_space(vconf);
+	    else 
+		vsim = explorer->simulate_space(vconf);
 
 	bool cacheable = vsim[0].simulated;
 	int pos = 0;
@@ -2071,29 +2061,25 @@ bool GA_Evaluation(IND& ind, void *user_data, double& exec_time, double& energy,
 	sim.simulated = vsim[0].simulated;
 
 	eud->history.push_back(sim);
+	eud->pareto.push_back(sim);
+	eud->pareto = explorer->get_pareto(eud->pareto);
 
-	if (cacheable) {
+	if (cacheable) 
 	    ht_ga->addT(sim);
-	    eud->pareto.push_back(sim);
-	    eud->pareto = explorer->get_pareto(eud->pareto);
-	}
 	else 
 	{
-	// if it could be a pareto solution, the configuration is simuled 
-	
-	    if (!isDominated(sim,eud->pareto)) {
-		//cout << "\nIt is not dominated! Simulate!!!\n";
-
+	    if ((pos = explorer->simulation_present(sim,eud->pareto)) > -1) {
+		//psim = eud->ht_hy->searchT(sim);
+		//if (psim != NULL) sim = *psim;
+		//else 
+		//{
 		explorer->set_force_simulation(true);
-
 		sim = explorer->simulate_space(vconf)[0];
-
 		explorer->set_force_simulation(false);
-
+		//}
 		eud->history[eud->history.size()-1] = sim;
+		eud->pareto[pos] = sim;
 		ht_ga->addT(sim);
-		eud->pareto.push_back(sim);
-		eud->pareto = explorer->get_pareto(eud->pareto);
 	    }
 	}
 
@@ -2104,7 +2090,6 @@ bool GA_Evaluation(IND& ind, void *user_data, double& exec_time, double& energy,
 	sim.area   = psim->area;
 	sim.exec_time = psim->exec_time;      
 	sim.clock_freq = psim->clock_freq;      
-	sim.simulated = psim->simulated;
     }
 
     exec_time = sim.exec_time;
@@ -2170,8 +2155,6 @@ void Explorer::SimulateBestWorst(ExportUserData& eud)
   eud.history.push_back(sim_best_worst[1]);
   eud.ht_ga->addT(sim_best_worst[0]);
   eud.ht_ga->addT(sim_best_worst[1]);
-  eud.pareto.push_back(sim_best_worst[0]);
-  eud.pareto.push_back(sim_best_worst[1]);
 
 }
 
@@ -2203,7 +2186,7 @@ vector<Simulation> Explorer::sort_by_exec_time(vector<Simulation> sims)
 
 #ifdef VERBOSE
     for (unsigned int i = 0;i<temp.size();i++)
-	cout << "\n DEBUG temp(ordinato) : " << temp[i].exec_time;
+	cout << "\n DEBUG temp(ordinato): " << temp[i].exec_time;
 #endif
 
     return temp;
@@ -2270,20 +2253,6 @@ vector<Simulation> Explorer::sort_by_area(vector<Simulation> sims)
     return temp;
 }
 
-/////////////////////////////////////////////////////////////////////////////
-bool isDominated(Simulation sim, const vector<Simulation>& simulations)
-{
-    
-    for(int i=0;i<simulations.size();++i)
-    {
-	if ((sim.energy>=simulations[i].energy) && (sim.exec_time>=simulations[i].exec_time))
-		return (true);
-    }
-
-    return (false);
-
-}
-/////////////////////////////////////////////////////////////////////////////
 // wrap function which determines the right pareto function to be 
 // called 
 vector<Simulation> Explorer::get_pareto(const vector<Simulation>& simulations)
@@ -2560,60 +2529,6 @@ Configuration Explorer::create_configuration(const Space_mask& mask,const Config
     return config;
 }
 
-////////////////////////////////////////////////////////////////////////////
-void Explorer::test()
-{
-    // PLACE CODE HERE TO QUICKLY TEST YOUR OWN ALGORITHM
-
-    /* Example 1 ******************************************
-     * using a predefined mask to make an exhaustive
-     * exploration of a subset of parameters
-     * ****************************************************
-    Space_mask mask = get_space_mask(SET_L1D);
-    vector<Configuration> space = build_space(mask);
-    vector<Simulation> res = simulate_space(space);
-
-    string filename = "L1D_EXHA";
-
-    save_simulations(res,filename+".exp",SHOW_L1D);
-    vector<Simulation> pareto_set = get_pareto(res);
-
-    save_simulations(pareto_set,filename+".pareto.exp",SHOW_L1D);
-    */
-
-
-    /* Example 2 ******************************************
-     * exploring a parameter indentified by a string
-     * ****************************************************
-
-    string parameter_name = ....
-    Space_mask mask= get_space_mask(UNSET_ALL);
-
-    if (parameter_name=="gpr_static_size") mask.gpr_static_size = true;
-    else
-    if (parameter_name=="fpr_static_size") mask.fpr_static_size = true;
-    else
-    if (parameter_name=="pr_static_size") mask.pr_static_size = true;
-    else
-    if (parameter_name=="cr_static_size") mask.cr_static_size = true;
-    else
-    if (parameter_name=="btr_static_size") mask.btr_static_size = true;
-
-    // add further code for detecting other parameter names ...
-    
-    vector<Configuration> space = build_space(mask);
-    vector<Simulation> simulations = simulate_space(space);
-    vector<Simulation> pareto_set = get_pareto(simulations);
-
-    string filename = Options.benchmark+"_EXHA_"+parameter_name;
-
-    save_simulations(simulations,filename+".exp",SHOW_ALL);
-    save_simulations(pareto_set,filename+".pareto.exp",SHOW_ALL);
-     */
-}
-
-
-//*************************************************************************
 
 int Explorer::count_needed_recompilations(const vector<Configuration>& space)
 {
@@ -2637,7 +2552,24 @@ int Explorer::count_needed_recompilations(const vector<Configuration>& space)
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void Explorer::save_simulations(const vector<Simulation>& simulations, string filename,int format)
+void Explorer::save_configurations(const vector<Configuration>& space, const string& filename)
+{
+    vector<Simulation> pseudo_sims;
+    Simulation pseudo_sim;
+
+    for (unsigned int i = 0;i< space.size();i++)
+    {
+	pseudo_sim.config = space[i];
+	pseudo_sim.area = 0.0;
+	pseudo_sim.exec_time = 0.0;
+	pseudo_sim.energy = 0.0;
+	pseudo_sim.simulated = false;
+	pseudo_sims.push_back(pseudo_sim);
+    }
+    save_simulations(pseudo_sims,filename,SHOW_ALL);
+}
+////////////////////////////////////////////////////////////////////////////
+void Explorer::save_simulations(const vector<Simulation>& simulations, const string& filename,int format)
 {
     double area,energy;
     double energydelay;
@@ -2646,23 +2578,24 @@ void Explorer::save_simulations(const vector<Simulation>& simulations, string fi
     FILE * fp;
 
     string path = get_base_dir()+"/trimaran-workspace/epic-explorer/";
-    if (Options.hyperblock) filename = "H_"+filename;
+    // TODO: fix this
+    //if (Options.hyperblock) filename = "H_"+filename;
     string file_path = path+filename;
 
     time_t now = time(NULL);
     string uora = string(asctime(localtime(&now)));
     string pretitle = "\n%% Epic Explorer simulation file - created on " + uora;
 
-    string pretitle2 ="\n%% Enabled minimization objectives : ";
-    string pretitle3 ="\n%% Benchmark : "+Options.benchmark;
+    string pretitle2 ="\n%% Enabled minimization objectives: ";
+    string pretitle3 ="\n%% Benchmark: "+Options.benchmark;
 
     if (Options.objective_area) pretitle2+="Area, ";
     if (Options.objective_energy) pretitle2+="Energy, ";
     if (Options.objective_power) pretitle2+= "Average Power, ";
     if (Options.objective_exec_time) pretitle2+="Execution Time";
-    if (Options.hyperblock) pretitle2+="\n%% Hyperblock formation : ENABLED";
+    if (Options.hyperblock) pretitle2+="\n%% Hyperblock formation: ENABLED";
     else
-	pretitle2+="\n%% Hyperblock formation : DISABLED";
+	pretitle2+="\n%% Hyperblock formation: DISABLED";
 
     string title = "\n%% ";
 
@@ -2715,7 +2648,6 @@ void Explorer::save_simulations(const vector<Simulation>& simulations, string fi
 	    fprintf(fp,"\n%.14f %s",energydelay,conf_string.c_str());
 	}
     }
-    fflush(fp);
     fclose(fp);
 }
 
@@ -2768,13 +2700,13 @@ void Explorer::save_stats(const Exploration_stats& stats,const string& file)
 
     int elapsed_time = (int)difftime(stats.end_time,stats.start_time)/60;
 
-    fprintf(fp,"\n Space size : %lf ",stats.space_size);
-    fprintf(fp,"\n Feasible configurations : %lf ",stats.feasible_size);
+    fprintf(fp,"\n Space size: %lf ",stats.space_size);
+    fprintf(fp,"\n Feasible configurations: %lf ",stats.feasible_size);
     fprintf(fp,"\n n. simulations: %d ",stats.n_sim);
-    fprintf(fp,"\n total exploration time : %d minutes ",elapsed_time);
-    fprintf(fp,"\n simulation start : %s ",asctime(localtime(&stats.start_time)));
-    fprintf(fp,"\n simulation end : %s ",asctime(localtime(&stats.end_time)));
-    //fprintf(" needed recompilations : %d ( %d% )",stats.recompilations,stats.recompilations/stats.total_explorations);
+    fprintf(fp,"\n total exploration time: %d minutes ",elapsed_time);
+    fprintf(fp,"\n simulation start: %s ",asctime(localtime(&stats.start_time)));
+    fprintf(fp,"\n simulation end: %s ",asctime(localtime(&stats.end_time)));
+    //fprintf(" needed recompilations: %d ( %d% )",stats.recompilations,stats.recompilations/stats.total_explorations);
 
     fclose(fp);
 }
@@ -2802,239 +2734,220 @@ int Explorer::DEP_phase2_time(float P,int * n_ott)
     est_time = est_time/60;
     return (int)est_time;
 }
+/////////////////////////////////////////////////////////////////7
+void Explorer::check_directories_setup(const string& application, const Configuration& config)
+{
+    epic_dir = get_base_dir()+"/trimaran-workspace/epic-explorer/";
+    application_dir = epic_dir + Options.benchmark;
+    processor_dir = application_dir+"/"+config.get_processor_string();
+    cache_dir_name = config.get_mem_hierarchy_string();
+    mem_hierarchy_dir = processor_dir+"/"+cache_dir_name;
+    machine_dir = processor_dir+"/machines";
+
+    mem_hierarchy_filename = mem_hierarchy_dir+"/cache.cfg";
+    hmdes_filename = machine_dir +"/"+ EXPLORER_HMDES2;
+
+#ifdef TEST
+    cout << "\n >> CHECKING the following Directory Setup: " << endl;
+    cout << epic_dir << endl;
+    cout << application_dir << endl;
+    cout << processor_dir << endl;
+    cout << mem_hierarchy_dir << endl;
+    cout << machine_dir << endl;
+    wait_key();
+#endif
+    string cmd;
+
+    if (!file_exists(application_dir)) goto create_all;
+    if (!file_exists(processor_dir)) goto create_processor_dir;
+    if (!file_exists(machine_dir)) goto create_hmdes_dir;
+    if (!file_exists(mem_hierarchy_dir)) goto create_mem_hierarchy_dir;
+
+create_all:
+    cout << "\n No application_dir " << application_dir << " found, creating it...";
+    cmd = "mkdir "+application_dir;
+    system(cmd.c_str());
+
+create_processor_dir:
+    cout << "\n No processor_dir " << processor_dir << " found, creating it...";
+    cmd = "mkdir "+processor_dir;
+    system(cmd.c_str());
+
+create_hmdes_dir:
+    cout << "\n No machine hmdes dir " << machine_dir << " found, creating it...";
+    cmd = "cp -R "+get_base_dir()+"/trimaran-workspace/machines/ "+processor_dir;
+    system(cmd.c_str());
+
+create_mem_hierarchy_dir:
+    cout << "\n No mem_hierarchy_dir " << mem_hierarchy_dir << " found, creating it...";
+    cmd = "mkdir "+mem_hierarchy_dir;
+    system(cmd.c_str());
+
+#ifdef TEST
+    wait_key();
+#endif
+}
+
+int Explorer::get_explorer_status() const
+{
+    // Note: this should only be invoked after check_directories_setup()
+    // since it assumes that all directories are properly set
+
+    assert(file_exists(application_dir));
+    assert(file_exists(processor_dir));
+    assert(file_exists(machine_dir));
+    assert(file_exists(mem_hierarchy_dir));
+
+    assert(!Options.hyperblock);
+
+    // all simulation steps already done
+    if (file_exists(mem_hierarchy_dir+"/PD_STATS.O")) 
+    {
+	cout << "\nAll simulation steps done for " << mem_hierarchy_dir << endl;
+	//wait_key();
+	return EXPLORER_ALL_DONE;
+    }
+    
+    // app binary exists, but not yet simulated on cache
+    if (file_exists(processor_dir+"/simu_intermediate/"+bench_executable)) 
+    {
+	cout << "\nRequired Cache configuration simulation for "  << mem_hierarchy_dir << endl;
+	//wait_key();
+	return EXPLORER_BINARY_DONE;
+    }
+
+    cout << "\n Required recompilation of Benchmark for " << mem_hierarchy_dir << endl;
+    //wait_key();
+
+    return EXPLORER_NOTHING_DONE;
+}
 
 ////////////////////////////////////////////////////////////////////////////
 vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
 {
-
     static int n_simulate_space_call = 0;
     static int n_exploration_executed = 0; 
 
-    //----------------------------------------------------------------
     if (Options.save_spaces)
     {
 	n_simulate_space_call++;
-
 	if (get_sim_counter()==0)
 	{
-	    // if sim_counter has be resetted , you probably started a
-	    // new exploration alg, so n_simulate_space_call must be
-	    // resetted and n_exploration_executed increased
-	    //
-	    // example : epic_space_EXP_2.12
-	    // 12th explorated space of 2nd exploration algorithm
-	    //
 	    n_simulate_space_call=1;
 	    n_exploration_executed++;
 	}
-
+	// epic_space_EXP_2.12, 12th explorated space of 2nd exploration algorithm
 	char name[40];
 	sprintf(name,"_simulatedspace_%d",n_simulate_space_call);
-
-	string file_name = Options.benchmark+"_"+current_algo+"_"+current_space+string(name);
-
-	// a pseudo vector<Simulation> must be created , because it's only
-	// available a save_simultation() function 
-
-	vector<Simulation> pseudo_sims;
-	Simulation pseudo_sim;
-
-	for (unsigned int i = 0;i< space.size();i++)
-	{
-	    pseudo_sim.config = space[i];
-	    pseudo_sim.area = 0.0;
-	    pseudo_sim.exec_time = 0.0;
-	    pseudo_sim.energy = 0.0;
-	    pseudo_sim.simulated = false;
-	    pseudo_sims.push_back(pseudo_sim);
-	}
-	save_simulations(pseudo_sims,file_name,SHOW_ALL);
-
+	string filename = Options.benchmark+"_"+current_algo+"_"+current_space+string(name);
+	save_configurations(space,filename);
     } 
-    // save simulated spaces option ------------------------------------
-
-
     // -------------------------------------------------------------------
     // This is an optimization to reduce exploration time .  If the
-    // space that has to be explored is the same of the previous call
-    // of simulate space, we can avoid to repeat all the simulations.
-    // NOTE: benchmark and hyperblock formation must be the same too.
-    // NOTE bis: within the exploration of single space an
-    // algorithm can make multiple call of simulate_space(...)
-    // function. 
+    // space, the benchmark and compilation options that has to be
+    // explored is the same of the previous call of simulate space, we
+    // can avoid to repeat all the simulations.
 
+    vector<Configuration> previous_space = extract_space(previous_simulations);
 
-    if (!Options.approx_settings.enabled) {
-    	vector<Configuration> previous_space = extract_space(previous_simulations);
-
-    	if ((Options.benchmark==previous_benchmark) && 
-		(Options.hyperblock==previous_hyperblock) &&
-	 	equivalent_spaces(previous_space,space)) 
-	    	return previous_simulations;
-    }
+    if ((Options.benchmark==previous_benchmark) && 
+	(Options.hyperblock==previous_hyperblock) &&
+	 equivalent_spaces(previous_space,space)) 
+	    return previous_simulations;
     // -------------------------------------------------------------------
 
     vector<Simulation> simulations;
     Simulation current_sim;
     Configuration last_config;
 
-
-    bool processor_changed = false;
-    bool compilation_changed = false;
+    bool processor_changed;
+    bool compilation_changed;
     bool do_simulation;
 
-    do_simulation = (force_simulation || (!(Options.approx_settings.enabled && function_approx->Reliable())));
-    
-    
-    // -------------------------------------------------------------------
-    if (do_simulation && !Options.approx_settings.enabled)
-    {
-	if (previous_simulations.size()>0)
-	    last_config = previous_simulations[previous_simulations.size()-1].config;
-	else 
-	    // first call, current config should always be considered a new one
-	    last_config.invalidate();
-
-	// Even if the simulate_space(...) call uses the same space of the previous call,
-	// we should recompile on the first cycle of the for loop below 
-	// if the benchmark and/or the compilation option are different
-
-	compilation_changed = (Options.benchmark!=previous_benchmark)||(Options.hyperblock!=previous_hyperblock);
-    } 
-    else
-    {
-    	last_config.invalidate();
-	compilation_changed  = true;
-    }
-    
-
-    // -------------------------------------------------------------------
     //  main exploration loop
-    // -------------------------------------------------------------------
+    // *********************************************************
 
     for (unsigned int i = 0;i< space.size();i++)
     {
-	cout << "\n -------> E P I C  E X P L O R E R >>>> simulation n." << i+1 << " / " << space.size();
+	cout << "\n -------> E p i c  E x p l o r e r >>>> simulation n." << i+1 << " / " << space.size();
 
 	processor.set_config(space[i]);
 	mem_hierarchy.set_config(space[i]);
 	current_sim.config = space[i];
 
 
-	if (do_simulation)
+	check_directories_setup(Options.benchmark,space[i]);
+
+	bench_executable = Options.benchmark+"_O";
+	string transitions_file = mem_hierarchy_dir+"/tmp_transition";
+	string pd_stats_file;
+	if (Options.hyperblock) 
+	    pd_stats_file = mem_hierarchy_dir+"/PD_STATS.HS";
+	else
+	    pd_stats_file = mem_hierarchy_dir+"/PD_STATS.O";
+
+	int explorer_status = get_explorer_status();
+
+	if (explorer_status != EXPLORER_ALL_DONE)
 	{
-	    Space_mask mask_processor = get_space_mask(SET_PROCESSOR);
-
-	    processor_changed = last_config.check_difference(space[i],mask_processor);
-
-	    // if a processor parameter changed, we need to update current
-	    // processor config , save hmdes file, and recompile benchmark
-	    // NOTE: for the first loop cycle we must check whether
-	    // previous benchmark or compilation options to be simulated
-	    // changed.
-
-	    if ( Options.approx_settings.enabled || (processor_changed) || (i==0 && compilation_changed) ) 
+	    if (explorer_status != EXPLORER_BINARY_DONE)
 	    {
-		last_config = space[i];
-		trimaran_interface->save_processor_config(processor);
-		trimaran_interface->compile_hmdes_file();
-		trimaran_interface->compile_benchmark();
+		trimaran_interface->save_processor_config(processor,hmdes_filename);
+		trimaran_interface->compile_hmdes_file(machine_dir);
+		trimaran_interface->compile_benchmark(processor_dir);
 	    }
-	    else
-		cout << "\n Processor unchanged, skipping recompilation!";
-
-	    trimaran_interface->save_mem_config(mem_hierarchy);
-	    trimaran_interface->execute_benchmark();
-
-	    dyn_stats = trimaran_interface->get_dynamic_stats();
-
-	    estimate = estimator.get_estimate(dyn_stats,mem_hierarchy,processor);
-	    current_sim.area = estimate.total_area;
-	    current_sim.exec_time = estimate.execution_time;
-	    current_sim.clock_freq = estimate.clock_freq;
-	    current_sim.simulated = true;//do_simulation;
-	    
-	    if (Options.objective_energy) current_sim.energy = estimate.total_system_energy;
-	    else if (Options.objective_power) current_sim.energy = estimate.total_average_power;
-	    
-	    if (Options.approx_settings.enabled>0) 
-		function_approx->Learn(space[i],current_sim,processor,mem_hierarchy);
-
-	    //if (Options.approx_settings.enabled==2)
-	    //	function_approx->Learn(space[i],dyn_stats);
+	    trimaran_interface->save_mem_config(mem_hierarchy,mem_hierarchy_filename);
+	    trimaran_interface->execute_benchmark(processor_dir,cache_dir_name);
 	}
-	else  
-	{   // using fuzzy approximation instead of simulation
-	    assert(approx_settings.enabled);
 
-	    //if (Options.approx_settings.enabled) {
-		current_sim = function_approx->Estimate1(space[i],processor,mem_hierarchy);
-		current_sim.simulated = false;
-		current_sim.area = estimator.get_processor_area(processor);//estimate.total_area;
-	    /*}
-	    else // approx_settings.enabled = 2
-	    {
-		dyn_stats = function_approx->Estimate2(space[i]);
-		estimate = estimator.get_estimate(dyn_stats,mem_hierarchy,processor);
+	dyn_stats = trimaran_interface->get_dynamic_stats(pd_stats_file);
 
-	        if (Options.objective_energy) current_sim.energy = estimate.total_system_energy;
-	        else if (Options.objective_power) current_sim.energy = estimate.total_average_power;
-		current_sim.area = estimate.total_area;
-		current_sim.exec_time = estimate.execution_time;
-		current_sim.clock_freq = estimate.clock_freq;
-		current_sim.simulated = false;
-	    }*/
-	}
-        //cout << "\n" << current_sim.energy << " ___ " << current_sim.exec_time << "\n";
-	//assert( (Options.objective_energy && (!Options.objective_power)) ||
-	//        ( (!Options.objective_energy) && Options.objective_power) );
+	estimate = estimator.get_estimate(dyn_stats,mem_hierarchy,processor,transitions_file);
+	current_sim.area = estimate.total_area;
+	current_sim.exec_time = estimate.execution_time;
+	current_sim.clock_freq = estimate.clock_freq;
+	current_sim.simulated = true;//do_simulation;
 
+	if (Options.objective_energy) current_sim.energy = estimate.total_system_energy;
+	else if (Options.objective_power) current_sim.energy = estimate.total_average_power;
+	
 	simulations.push_back(current_sim);
 
 	// -------------------------------------------------------------------
 	//  when doing simulation some interesting info can be optionally saved 
-	if (do_simulation)
+	if (Options.save_PD_STATS)  // trimaran PD_STATS file report
 	{
-	    if (Options.save_PD_STATS)  // trimaran PD_STATS file report
-	    {
-		string command;
-		string epic_path = get_base_dir()+"/trimaran-workspace/epic-explorer";
-		char temp[10];
-		sprintf(temp,"%d",i);
+	    // TODO: fix this 
+	    assert(false);
+	    string command;
+	    char temp[10];
+	    sprintf(temp,"%d",i);
 
-		if (Options.hyperblock)
-		    command = "cp "+epic_path+"/simu_intermediate/PD_STATS.HS "+epic_path+"/PD_STATS.HS_"+string(temp);
-		else
-		    command = "cp "+epic_path+"/simu_intermediate/PD_STATS.O "+epic_path+"/PD_STATS.O_"+string(temp);
-		system(command.c_str());
-	    }
+	    if (Options.hyperblock)
+		command = "cp "+mem_hierarchy_dir+"/PD_STATS.HS "+mem_hierarchy_dir+"/PD_STATS.HS_"+string(temp);
+	    else
+		command = "cp "+mem_hierarchy_dir+"/PD_STATS.O "+mem_hierarchy_dir+"/PD_STATS.O_"+string(temp);
+	    system(command.c_str());
+	}
 
-	    if (Options.save_estimation) // detailed and verbose estimator report
-	    {
-		char temp[10];
-		sprintf(temp,"%d",i);
-		string filename= Options.benchmark+"_"+current_algo+"_"+current_space+"."+string(temp)+".est";
-		save_estimation_file(dyn_stats,estimate,processor, mem_hierarchy,filename);
-	    }
+	if (Options.save_estimation) // detailed and verbose estimator report
+	{
+	    assert(false);
+	    char temp[10];
+	    sprintf(temp,"%d",i);
+	    string filename= Options.benchmark+"_"+current_algo+"_"+current_space+"."+string(temp)+".est";
+	    save_estimation_file(dyn_stats,estimate,processor, mem_hierarchy,filename);
+	}
 
-	    if (Options.save_objectives_details) // 
-	    {
-		string filename= Options.benchmark+"_"+current_algo+"_"+current_space+".details";
-		save_objectives_details(dyn_stats,current_sim.config,filename);
-	    }
+	if (Options.save_objectives_details) // 
+	{
+	    assert(false);
+	    string filename= Options.benchmark+"_"+current_algo+"_"+current_space+".details";
+	    save_objectives_details(dyn_stats,current_sim.config,filename);
 	}
 	// -------------------------------------------------------------------
 
     } // end for loop
-
-    // when simultation is finished , all default values must be
-    // restored
-
-    processor.set_to_default();
-    trimaran_interface->save_processor_config(processor);
-
-    mem_hierarchy.set_to_default();
-    trimaran_interface->save_mem_config(mem_hierarchy);
 
     sim_counter+=simulations.size();
 
@@ -3048,7 +2961,7 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void Explorer::save_estimation_file( const Dynamic_stats& dynamic_stats , 
+void Explorer::save_estimation_file( const Dynamic_stats& dynamic_stats, 
 				         const Estimate& estimate, 
 					 Processor& processor, 
 					 Mem_hierarchy& mem,
@@ -3068,7 +2981,7 @@ void Explorer::save_estimation_file( const Dynamic_stats& dynamic_stats ,
     }
     else
     {
-	output_file << "\n >>>>>>>> EPIC Explorer estimation file : " << filename;
+	output_file << "\n >>>>>>>> EPIC Explorer estimation file: " << filename;
 	output_file << "\n";
 	output_file << "\n **************************************************";
 	output_file << "\n GPR,FPR,PR,CR,BTR = " <<processor.gpr_static_size.get_val();
@@ -3093,7 +3006,7 @@ void Explorer::save_estimation_file( const Dynamic_stats& dynamic_stats ,
 	output_file << "\n     Total cycles: " << estimate.execution_cycles;
 	output_file << "\n   Compute cycles: " << estimate.compute_cycles;
 	output_file << "\n     Stall cycles: " << estimate.stall_cycles;
-	output_file << "\n   Execution time (ms): " << estimate.execution_time*1000 << " (clock : " << estimate.clock_freq/1e6 << "MHz)";
+	output_file << "\n   Execution time (ms): " << estimate.execution_time*1000 << " (clock: " << estimate.clock_freq/1e6 << "MHz)";
 	if (Options.auto_clock)
 	{
 	    output_file << "\n   L1D access time (ns): " << estimate.L1D_access_time*1e9;
@@ -3105,16 +3018,16 @@ void Explorer::save_estimation_file( const Dynamic_stats& dynamic_stats ,
 	output_file << "\n";
 	output_file << "\n  E n e r g y  &  P o w e r ";
 	output_file << "\n ----------------------------------------------------";
-	output_file << "\n   L1D cache energy (mJ) : " << estimate.L1D_energy*1000;
-	output_file << "\n   L1I cache energy (mJ) : " << estimate.L1I_energy*1000;
-	output_file << "\n   L2U cache energy (mJ) : " << estimate.L2U_energy*1000;
+	output_file << "\n   L1D cache energy (mJ): " << estimate.L1D_energy*1000;
+	output_file << "\n   L1I cache energy (mJ): " << estimate.L1I_energy*1000;
+	output_file << "\n   L2U cache energy (mJ): " << estimate.L2U_energy*1000;
 	output_file << "\n-->  Total Cache energy (mJ) " << estimate.total_cache_energy*1000;
-	output_file << "\n   Main Memory energy (mJ) : " << estimate.main_memory_energy*1000;
-	output_file << "\n   Processor energy (mJ) : " << estimate.total_processor_energy*1000;
-	output_file << "\n\n--> Total System Energy (mJ) : "<< estimate.total_system_energy*1000;
-	output_file << "\n--> Average System Power (W) :"<< estimate.total_average_power;
-	output_file << "\n\n   Total System Energy (no stalls) (mJ) : "<< estimate.NO_MEM_system_energy*1000;
-	output_file << "\n   Average System Power (no stalls) (W) :"<< estimate.NO_MEM_system_energy/(estimate.clock_T*dynamic_stats.total_cycles);
+	output_file << "\n   Main Memory energy (mJ): " << estimate.main_memory_energy*1000;
+	output_file << "\n   Processor energy (mJ): " << estimate.total_processor_energy*1000;
+	output_file << "\n\n--> Total System Energy (mJ): "<< estimate.total_system_energy*1000;
+	output_file << "\n--> Average System Power (W):"<< estimate.total_average_power;
+	output_file << "\n\n   Total System Energy (no stalls) (mJ): "<< estimate.NO_MEM_system_energy*1000;
+	output_file << "\n   Average System Power (no stalls) (W):"<< estimate.NO_MEM_system_energy/(estimate.clock_T*dynamic_stats.total_cycles);
 
 	output_file << "\n";
 	output_file << "\n I n s t r u c t i o n  M i x";
@@ -3222,7 +3135,7 @@ Space_mask Explorer::get_space_mask(Mask_type mask_type) const
 	    break;
 
 	case UNSET_ALL:
-	    // do nothing , mask is already set!
+	    // do nothing, mask is already set!
 	    break;
 
 	case SET_L1D:
@@ -3264,7 +3177,7 @@ Space_mask Explorer::get_space_mask(Mask_type mask_type) const
 	    mask.branch_units = true;
 	    break;
 
-	default :
+	default:
 	    assert(false);
     }
 
@@ -3515,7 +3428,7 @@ vector<Configuration> Explorer::build_space(const Space_mask& mask,Space_opt opt
 // both mask1 and mask2.
 // The parameters that are unset in both mask1 and mask2 will be
 // considered to their default value.
-// Example :
+// Example:
 // s1 = { a1, b1, c1 }     s2 { a3, b3, c3 }
 //      { a2, b2, c2 }        { a4, b4, c4 }
 //
@@ -3725,7 +3638,7 @@ double Explorer::get_space_size() const
 }
 
 ////////////////////////////////////////////////////////////////////////////
-// WARNING : disabled ( returns 0)
+// WARNING: disabled ( returns 0)
 double Explorer::get_feasible_size() const
 {
     Space_mask mask = get_space_mask(SET_ALL);
@@ -3746,7 +3659,7 @@ void Explorer::append_simulations(vector<Simulation>& dest,const vector<Simulati
 {
     for (unsigned int i=0;i<new_sims.size();i++) 
     {
-	if (simulation_present(new_sims[i],dest) < 0 ) dest.push_back(new_sims[i]);
+	if (simulation_present(new_sims[i],dest) > -1) dest.push_back(new_sims[i]);
     }
 }
 
@@ -4175,7 +4088,11 @@ void Explorer::load_space_file(const string& filename)
 	processor.btr_static_size.set_values(values,val);
 
 	processor.set_to_default();
-	trimaran_interface->save_processor_config(processor);
+	//trimaran_interface->save_processor_config(processor,hmdes_filename);
+
+        fuzzy_approx.FuzzySetsInit(getParametersNumber());
+	    // 2.0f = threshold
+	    // 2 = Number of objectives
    }
 
 }
@@ -4313,11 +4230,64 @@ void Explorer::save_space_file(const string& filename)
 void Explorer::set_base_dir(const string& dir)
 {
     base_dir = dir;
-    trimaran_interface->set_base_dir(dir);
-    estimator.set_base_dir(dir);
+    trimaran_interface->set_environment(dir);
 }
 
 string Explorer::get_base_dir() const
 {
     return base_dir;
 }
+////////////////////////////////////////////////////////////////////////////
+void Explorer::test()
+{
+    // PLACE CODE HERE TO QUICKLY TEST YOUR OWN ALGORITHM
+
+    /* Example 1 ******************************************
+     * using a predefined mask to make an exhaustive
+     * exploration of a subset of parameters
+     * ****************************************************
+    Space_mask mask = get_space_mask(SET_L1D);
+    vector<Configuration> space = build_space(mask);
+    vector<Simulation> res = simulate_space(space);
+
+    string filename = "L1D_EXHA";
+
+    save_simulations(res,filename+".exp",SHOW_L1D);
+    vector<Simulation> pareto_set = get_pareto(res);
+
+    save_simulations(pareto_set,filename+".pareto.exp",SHOW_L1D);
+    */
+
+
+    /* Example 2 ******************************************
+     * exploring a parameter indentified by a string
+     * ****************************************************
+
+    string parameter_name = ....
+    Space_mask mask= get_space_mask(UNSET_ALL);
+
+    if (parameter_name=="gpr_static_size") mask.gpr_static_size = true;
+    else
+    if (parameter_name=="fpr_static_size") mask.fpr_static_size = true;
+    else
+    if (parameter_name=="pr_static_size") mask.pr_static_size = true;
+    else
+    if (parameter_name=="cr_static_size") mask.cr_static_size = true;
+    else
+    if (parameter_name=="btr_static_size") mask.btr_static_size = true;
+
+    // add further code for detecting other parameter names ...
+    
+    vector<Configuration> space = build_space(mask);
+    vector<Simulation> simulations = simulate_space(space);
+    vector<Simulation> pareto_set = get_pareto(simulations);
+
+    string filename = Options.benchmark+"_EXHA_"+parameter_name;
+
+    save_simulations(simulations,filename+".exp",SHOW_ALL);
+    save_simulations(pareto_set,filename+".pareto.exp",SHOW_ALL);
+     */
+}
+
+
+//*************************************************************************
