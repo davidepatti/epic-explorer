@@ -19,13 +19,11 @@
 #include "environment.h"
 #include "common.h"
 
-Trimaran_interface::Trimaran_interface(const string& base_dir){
-
+Trimaran_interface::Trimaran_interface(const string& base_dir)
+{
     set_benchmark(string("DEFAULT_BENCH"));
-    set_base_dir(base_dir);
-    set_environment();
+    set_environment(base_dir);
     set_hyperblock(false);
-    updated_dynamic_stats = false;
 }
 
 Trimaran_interface::~Trimaran_interface()
@@ -49,83 +47,81 @@ string Trimaran_interface::get_benchmark_name() const
 }
 
 
-void Trimaran_interface::compile_hmdes_file() const{
+void Trimaran_interface::compile_hmdes_file(const string& machine_dir) const
+{
+    char old_path[50];
+    getcwd(old_path,50);
+    chdir(machine_dir.c_str());
 
     string main_hmdes2 = MAIN_HMDES2;
-    string path = get_base_dir() +"/trimaran-workspace/machines";
-    chdir(path.c_str());
 
     string command ="$IMPACT_REL_PATH/scripts/hc "+main_hmdes2;
     system(command.c_str());
-
-    path = get_base_dir()+"/trimaran-workspace/epic-explorer";
-
-    chdir(path.c_str());
+    chdir(old_path);
 }
 
 
-void Trimaran_interface::compile_benchmark() {
-    // TODO: this and similar functions should acquire hmdes paths
-    // from get_base_dir()
+void Trimaran_interface::compile_benchmark(const string& path) {
+
+    char old_path[50];
+    getcwd(old_path,50);
+    chdir(path.c_str());
+
     string command="";
 
     if (do_hyperblock)
     {
-    command = command +"tcc -host "+TRIMARAN_HOST_PLATFORM+" -bench "+current_benchmark+" -region h -i2s -E\"\" -M$HOME/trimaran-workspace/machines/hpl_pd_elcor_std.lmdes2 -S\"-Fcontrol_flow_trace=yes -Faddress_trace=yes\" -project \"full\" -clean -gui | tee -a compilation.log";
+    command = command + "tcc -host "+TRIMARAN_HOST_PLATFORM+" -bench "+current_benchmark+" -region h -i2s -E\"\" -M"+path+"/machines/hpl_pd_elcor_std.lmdes2 -S\"-Fcontrol_flow_trace=yes -Faddress_trace=yes\" -project \"full\" -clean -gui  | tee -a "+path+"/compilation.log";
     }
     else
     {
-    command =command +"tcc -host "+TRIMARAN_HOST_PLATFORM+" -bench "+current_benchmark+" -region b -i2s -E\"\" -M$HOME/trimaran-workspace/machines/hpl_pd_elcor_std.lmdes2 -S\"-Fcontrol_flow_trace=yes -Faddress_trace=yes\" -project \"full\" -clean -gui | tee -a compilation.log";
+    command = command + "tcc -host "+TRIMARAN_HOST_PLATFORM+" -bench "+current_benchmark+" -region b -i2s -E\"\" -M"+path+"/machines/hpl_pd_elcor_std.lmdes2 -S\"-Fcontrol_flow_trace=yes -Faddress_trace=yes\" -project \"full\" -clean -gui | tee -a "+path+"/compilation.log";
     };
 
     system(command.c_str());
-    
-    updated_dynamic_stats = false;
+
+    chdir(old_path);
 }
 
-void Trimaran_interface::execute_benchmark() 
+void Trimaran_interface::execute_benchmark(const string& path, const string& cache_dir) 
 {
-    // TODO: this and similar functions should acquire hmdes paths
-    // from get_base_dir()
+    char old_path[50];
+    getcwd(old_path,50);
+    chdir(path.c_str());
     // TODO: check proper tcc command options
     string command;
 
     if (do_hyperblock)
     {
-    command =command +"tcc -host "+TRIMARAN_HOST_PLATFORM+" -bench "+current_benchmark+" -region h -m2m -E\"\" -M$HOME/trimaran-workspace/machines/hpl_pd_elcor_std.lmdes2 -S\"-Fcontrol_flow_trace=yes -Faddress_trace=yes\" -project \"full\" -gui | tee -a compilation.log";
+    command = command + "tcc -host "+TRIMARAN_HOST_PLATFORM+" -bench "+current_benchmark+" -region h -m2m -E\"\" -M"+path+"/machines/hpl_pd_elcor_std.lmdes2 -S\"-Fcontrol_flow_trace=yes -Faddress_trace=yes\" -project \"full\" -gui -cache_cfg "+cache_dir+" | tee -a "+path+"/"+cache_dir+"/execution.log";
     }
     else
     {
-    command =command +"tcc -host "+TRIMARAN_HOST_PLATFORM+" -bench "+current_benchmark+" -region b -m2m -E\"\" -M$HOME/trimaran-workspace/machines/hpl_pd_elcor_std.lmdes2 -S\"-Fcontrol_flow_trace=yes -Faddress_trace=yes\" -project \"full\" -gui | tee -a compilation.log";
+    command = command + "tcc -host "+TRIMARAN_HOST_PLATFORM+" -bench "+current_benchmark+" -region b -m2m -E\"\" -M"+path+"/machines/hpl_pd_elcor_std.lmdes2 -S\"-Fcontrol_flow_trace=yes -Faddress_trace=yes\" -project \"full\" -gui -cache_cfg "+cache_dir+" | tee -a "+path+"/"+cache_dir+"/execution.log";
     };
 
     system(command.c_str());
-    updated_dynamic_stats = false;
+    chdir(old_path);
 }
 
 
 // extract dynamic statistics from Trimaran PD_STATS file
 
-void Trimaran_interface::update_dynamic_stats()
+Dynamic_stats Trimaran_interface::get_dynamic_stats(const string& filename)
 {
-    string path;
-
-    if (do_hyperblock) path = "./simu_intermediate/PD_STATS.HS";
-    else
-	path = "./simu_intermediate/PD_STATS.O";
-
-    std::ifstream input_file(path.c_str());
+    std::ifstream input_file(filename.c_str());
 
     string pippo;
+    Dynamic_stats dynamic_stats;
 
     if (!input_file) 
     {
-	cout << "\nError opening file :" << path;
+	cout << "\nError opening file:" << filename;
 	wait_key();
     }
     else
     {
-	std::ifstream input_file(path.c_str());
+	std::ifstream input_file(filename.c_str());
 	go_until("Totals",input_file);
 	pippo = skip_to(input_file,2);
 	dynamic_stats.total_cycles = atoll(pippo.erase(0,63));
@@ -261,21 +257,11 @@ void Trimaran_interface::update_dynamic_stats()
 	dynamic_stats.L2U_w_miss = dynamic_stats.L2U_dw_miss;
 	dynamic_stats.L2U_hit = dynamic_stats.L2U_w_hit+dynamic_stats.L2U_r_hit;
     }
-}
 
-Dynamic_stats Trimaran_interface::get_dynamic_stats() {
-
-    if (!updated_dynamic_stats) 
-    {
-	update_dynamic_stats();
-	updated_dynamic_stats = true;
-    }
     return dynamic_stats;
 }
 
-void Trimaran_interface::set_environment() {
-
-    string base_dir = get_base_dir();
+void Trimaran_interface::set_environment(const string& base_dir) {
 
     setenv("TRIMARAN_ROOT",(base_dir+"/trimaran/").c_str(),1);
 
@@ -313,34 +299,19 @@ void Trimaran_interface::set_environment() {
     setenv("PATH",pp.c_str(),1);
     setenv("DEFAULT_PROJECT",DEFAULT_PROJECT ,1);
 
-    string path;
-    string command;
-
-    path = base_dir+"/trimaran-workspace/epic-explorer";
-    command = "mkdir "+path;
+    string path = base_dir + "/trimaran-workspace/epic-explorer";
 
     if (chdir(path.c_str())==-1)
     {
+	string command = "mkdir "+path;
 	system(command.c_str());
         assert(chdir(path.c_str())!=-1);
     }
-	
-
 }
 
-void Trimaran_interface::set_base_dir(const string& dir)
+void Trimaran_interface::save_processor_config(const Processor& p, const string& path) const
 {
-    base_dir = dir;
-}
-
-string Trimaran_interface::get_base_dir() const
-{
-    return base_dir;
-}
-
-void Trimaran_interface::save_processor_config(const Processor& p) const
-{
-    string filename = get_base_dir()+"/trimaran-workspace/machines/"+EXPLORER_HMDES2;
+    string filename = path;
     std::ofstream output_file(filename.c_str());
 
     if (!output_file) 
@@ -385,9 +356,8 @@ void Trimaran_interface::save_processor_config(const Processor& p) const
     }
 }
 
-void Trimaran_interface::load_processor_config(Processor* p) const
+void Trimaran_interface::load_processor_config(Processor* p,const string& filename) const
 {
-    string filename = get_base_dir()+"/trimaran-workspace/machines/"+EXPLORER_HMDES2;
     std::ifstream input_file(filename.c_str());
 
     if (!input_file) {
@@ -456,9 +426,9 @@ void Trimaran_interface::load_processor_config(Processor* p) const
     }
 }
 
-void Trimaran_interface::save_mem_config(const Mem_hierarchy& mem) const
+void Trimaran_interface::save_mem_config(const Mem_hierarchy& mem, const string& path) const
 {
-    string cache_config_file = get_base_dir() + "/trimaran-workspace/cache.cfg";
+    string cache_config_file = path;
     std::ofstream output_file(cache_config_file.c_str());
 
     if (!output_file) 
@@ -492,16 +462,15 @@ void Trimaran_interface::save_mem_config(const Mem_hierarchy& mem) const
     }
 }
 
-void Trimaran_interface::load_mem_config(Mem_hierarchy* mem) const
+void Trimaran_interface::load_mem_config(Mem_hierarchy* mem,const string& filename) const
 {
-    string cache_config_file = get_base_dir() + "/trimaran-workspace/cache.cfg";
-    std::ifstream input_file(cache_config_file.c_str());
+    std::ifstream input_file(filename.c_str());
 
     int value ;
 
     if (!input_file) 
     {
-	cout << "\nError opening cache config file :" << cache_config_file;
+	cout << "\nError opening cache config file :" << filename;
 	wait_key();
     }
     else

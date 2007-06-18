@@ -42,8 +42,6 @@ public:
 	User_interface(const string& dir);
 	~User_interface();
 	void interact();
-	void set_base_dir(const string&);
-
 private:
 	struct User_Settings user_settings;
 
@@ -81,7 +79,7 @@ private:
 
 	inline string status_string(bool b);
 	string word;
-	string base_dir;
+	string base_path;
 };
 
 #endif

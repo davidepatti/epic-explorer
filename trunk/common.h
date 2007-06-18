@@ -12,6 +12,13 @@
 #include <sstream>
 #include "hash.h"
 
+// IMPORTANT:
+// you should set this to "DIR" if you install trimaran and
+// trimaran-workspace directories to the content of environment
+// variable $DIR
+// Default is $HOME directory
+#define BASE_DIR "HOME"
+
 #define DEFAULT_BENCH "wave"
 #define MAIN_HMDES2 "hpl_pd_elcor_std.hmdes2"
 #define EXPLORER_HMDES2 "explorer.hmdes2"
@@ -46,6 +53,7 @@ long long atoll(const string& s);
 double atof(const string& s);
 string get_base_dir();
 double max(const double& a,const double& b);
+bool file_exists(const string& filename);
 
 typedef unsigned long long uint64;
 
@@ -68,7 +76,7 @@ struct User_Settings
 	int enabled;
 	float threshold;
 	int min,max;
-    } approx_settings;
+    } fuzzy_settings;
 };
 
 struct Space_mask
@@ -130,6 +138,8 @@ struct Configuration
   void invalidate();
   bool check_difference(const Configuration&,Space_mask);
   string to_string() const;
+  string get_processor_string() const;
+  string get_mem_hierarchy_string() const;
 };
 
 struct Simulation 
