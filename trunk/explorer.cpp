@@ -17,8 +17,6 @@
 
 
 #include "explorer.h"
-#include "FuzzyApprox.h"
-
 #include <moea/AlleleStr.h>
 
 #include "common.h"
@@ -48,6 +46,7 @@ Explorer::Explorer(Trimaran_interface * ti)
 
     Options.save_objectives_details = false;
     force_simulation = false;
+    function_approx = NULL;
 
     current_space = "default_space.sub";
 
@@ -78,10 +77,6 @@ void Explorer::set_options(const struct User_Settings& user_settings)
     if (Options.objective_area) n_obj++;
     if (Options.objective_energy) n_obj++;
 
-    if (Options.fuzzy_settings.enabled==1)
-    {
-	fuzzy_approx.Init(Options.fuzzy_settings.threshold, Options.fuzzy_settings.min, Options.fuzzy_settings.max,n_obj);
-    }
 }
 
 
@@ -1815,10 +1810,14 @@ vector<Simulation> Explorer::sort_by_energydelay_product(vector<Simulation> sims
 void Explorer::start_GA(const GA_parameters& parameters)
 {
     current_algo="GA";
-    if (Options.fuzzy_settings.enabled)
+    if (Options.approx_settings.enabled == 1)
     {
 	current_algo+="_fuzzy";
-    }
+    } 
+    if (Options.approx_settings.enabled == 2)
+    {
+	current_algo+="_ANN";
+    } 
 
     HashGA ht_ga(DEF_HASH_TABLE_SIZE); // maybe static?
     HashGA ht_hy(DEF_HASH_TABLE_SIZE);
@@ -2034,6 +2033,7 @@ bool GA_Evaluation(IND& ind, void *user_data, double& exec_time, double& energy,
     Simulation sim;
     sim.config = conf;
     Simulation *psim = ht_ga->searchT(sim);
+		
 
     if (psim == NULL) // not present in cache
     {
@@ -2048,8 +2048,8 @@ bool GA_Evaluation(IND& ind, void *user_data, double& exec_time, double& energy,
 	psim = eud->ht_hy->searchT(sim);
 	if (psim != NULL) 
 	    vsim.push_back(*psim);
-	    else 
-		vsim = explorer->simulate_space(vconf);
+	else 
+	    vsim = explorer->simulate_space(vconf);
 
 	bool cacheable = vsim[0].simulated;
 	int pos = 0;
@@ -2061,25 +2061,29 @@ bool GA_Evaluation(IND& ind, void *user_data, double& exec_time, double& energy,
 	sim.simulated = vsim[0].simulated;
 
 	eud->history.push_back(sim);
-	eud->pareto.push_back(sim);
-	eud->pareto = explorer->get_pareto(eud->pareto);
 
-	if (cacheable) 
+	if (cacheable) {
 	    ht_ga->addT(sim);
+	    eud->pareto.push_back(sim);
+	    eud->pareto = explorer->get_pareto(eud->pareto);
+	}
 	else 
 	{
-	    if ((pos = explorer->simulation_present(sim,eud->pareto)) > -1) {
-		//psim = eud->ht_hy->searchT(sim);
-		//if (psim != NULL) sim = *psim;
-		//else 
-		//{
+	// if it could be a pareto solution, the configuration is simuled 
+	
+	    if (!isDominated(sim,eud->pareto)) {
+		//cout << "\nIt is not dominated! Simulate!!!\n";
+
 		explorer->set_force_simulation(true);
+
 		sim = explorer->simulate_space(vconf)[0];
+
 		explorer->set_force_simulation(false);
-		//}
+
 		eud->history[eud->history.size()-1] = sim;
-		eud->pareto[pos] = sim;
 		ht_ga->addT(sim);
+		eud->pareto.push_back(sim);
+		eud->pareto = explorer->get_pareto(eud->pareto);
 	    }
 	}
 
@@ -2090,6 +2094,7 @@ bool GA_Evaluation(IND& ind, void *user_data, double& exec_time, double& energy,
 	sim.area   = psim->area;
 	sim.exec_time = psim->exec_time;      
 	sim.clock_freq = psim->clock_freq;      
+	sim.simulated = psim->simulated;
     }
 
     exec_time = sim.exec_time;
@@ -2155,6 +2160,8 @@ void Explorer::SimulateBestWorst(ExportUserData& eud)
   eud.history.push_back(sim_best_worst[1]);
   eud.ht_ga->addT(sim_best_worst[0]);
   eud.ht_ga->addT(sim_best_worst[1]);
+  eud.pareto.push_back(sim_best_worst[0]);
+  eud.pareto.push_back(sim_best_worst[1]);
 
 }
 
@@ -2253,6 +2260,19 @@ vector<Simulation> Explorer::sort_by_area(vector<Simulation> sims)
     return temp;
 }
 
+/////////////////////////////////////////////////////////////////////////////
+bool isDominated(Simulation sim, const vector<Simulation>& simulations)
+{
+    
+    for(int i=0;i<simulations.size();++i)
+    {
+	if ((sim.energy>=simulations[i].energy) && (sim.exec_time>=simulations[i].exec_time))
+		return (true);
+    }
+
+    return (false);
+
+}
 // wrap function which determines the right pareto function to be 
 // called 
 vector<Simulation> Explorer::get_pareto(const vector<Simulation>& simulations)
@@ -2848,12 +2868,14 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
     // explored is the same of the previous call of simulate space, we
     // can avoid to repeat all the simulations.
 
-    vector<Configuration> previous_space = extract_space(previous_simulations);
+    if (!Options.approx_settings.enabled) {
+	vector<Configuration> previous_space = extract_space(previous_simulations);
 
-    if ((Options.benchmark==previous_benchmark) && 
-	(Options.hyperblock==previous_hyperblock) &&
-	 equivalent_spaces(previous_space,space)) 
-	    return previous_simulations;
+	if ((Options.benchmark==previous_benchmark) && 
+	    (Options.hyperblock==previous_hyperblock) &&
+	     equivalent_spaces(previous_space,space)) 
+		return previous_simulations;
+    }
     // -------------------------------------------------------------------
 
     vector<Simulation> simulations;
@@ -2864,6 +2886,7 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
     bool compilation_changed;
     bool do_simulation;
 
+    do_simulation = (force_simulation || (!(Options.approx_settings.enabled && function_approx->Reliable())));
     //  main exploration loop
     // *********************************************************
 
@@ -2875,7 +2898,8 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
 	mem_hierarchy.set_config(space[i]);
 	current_sim.config = space[i];
 
-
+	if (do_simulation)
+	{
 	check_directories_setup(Options.benchmark,space[i]);
 
 	bench_executable = Options.benchmark+"_O";
@@ -2911,41 +2935,57 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
 	if (Options.objective_energy) current_sim.energy = estimate.total_system_energy;
 	else if (Options.objective_power) current_sim.energy = estimate.total_average_power;
 	
+	if (Options.approx_settings.enabled>0) 
+		function_approx->Learn(space[i],current_sim,processor,mem_hierarchy);
+	}
+	else  
+	{   // using fuzzy approximation instead of simulation
+	    assert(approx_settings.enabled);
+
+		current_sim = function_approx->Estimate1(space[i],processor,mem_hierarchy);
+		current_sim.simulated = false;
+		current_sim.area = estimator.get_processor_area(processor);
+	    
+	}
+	
 	simulations.push_back(current_sim);
 
 	// -------------------------------------------------------------------
 	//  when doing simulation some interesting info can be optionally saved 
-	if (Options.save_PD_STATS)  // trimaran PD_STATS file report
+	if (do_simulation)
 	{
-	    // TODO: fix this 
-	    assert(false);
-	    string command;
-	    char temp[10];
-	    sprintf(temp,"%d",i);
+	    if (Options.save_PD_STATS)  // trimaran PD_STATS file report
+	    {
+		// TODO: fix this 
+		assert(false);
+		string command;
+		char temp[10];
+		sprintf(temp,"%d",i);
 
-	    if (Options.hyperblock)
-		command = "cp "+mem_hierarchy_dir+"/PD_STATS.HS "+mem_hierarchy_dir+"/PD_STATS.HS_"+string(temp);
-	    else
-		command = "cp "+mem_hierarchy_dir+"/PD_STATS.O "+mem_hierarchy_dir+"/PD_STATS.O_"+string(temp);
-	    system(command.c_str());
-	}
+		if (Options.hyperblock)
+		    command = "cp "+mem_hierarchy_dir+"/PD_STATS.HS "+mem_hierarchy_dir+"/PD_STATS.HS_"+string(temp);
+		else
+		    command = "cp "+mem_hierarchy_dir+"/PD_STATS.O "+mem_hierarchy_dir+"/PD_STATS.O_"+string(temp);
+		system(command.c_str());
+	    }
 
-	if (Options.save_estimation) // detailed and verbose estimator report
-	{
-	    assert(false);
-	    char temp[10];
-	    sprintf(temp,"%d",i);
-	    string filename= Options.benchmark+"_"+current_algo+"_"+current_space+"."+string(temp)+".est";
-	    save_estimation_file(dyn_stats,estimate,processor, mem_hierarchy,filename);
-	}
+	    if (Options.save_estimation) // detailed and verbose estimator report
+	    {
+		assert(false);
+		char temp[10];
+		sprintf(temp,"%d",i);
+		string filename= Options.benchmark+"_"+current_algo+"_"+current_space+"."+string(temp)+".est";
+		save_estimation_file(dyn_stats,estimate,processor, mem_hierarchy,filename);
+	    }
 
-	if (Options.save_objectives_details) // 
-	{
-	    assert(false);
-	    string filename= Options.benchmark+"_"+current_algo+"_"+current_space+".details";
-	    save_objectives_details(dyn_stats,current_sim.config,filename);
+	    if (Options.save_objectives_details) // 
+	    {
+		assert(false);
+		string filename= Options.benchmark+"_"+current_algo+"_"+current_space+".details";
+		save_objectives_details(dyn_stats,current_sim.config,filename);
+	    }
+	    // -------------------------------------------------------------------
 	}
-	// -------------------------------------------------------------------
 
     } // end for loop
 
@@ -4090,9 +4130,6 @@ void Explorer::load_space_file(const string& filename)
 	processor.set_to_default();
 	//trimaran_interface->save_processor_config(processor,hmdes_filename);
 
-        fuzzy_approx.FuzzySetsInit(getParametersNumber());
-	    // 2.0f = threshold
-	    // 2 = Number of objectives
    }
 
 }
@@ -4287,6 +4324,27 @@ void Explorer::test()
     save_simulations(simulations,filename+".exp",SHOW_ALL);
     save_simulations(pareto_set,filename+".pareto.exp",SHOW_ALL);
      */
+}
+
+void Explorer::init_approximation()
+{
+    if (Options.approx_settings.enabled==1)
+    {
+	cout << "\nFuzzy Approximation Enabled\n";
+	if (function_approx != NULL) free(function_approx);
+	function_approx = new CFuzzyFunctionApproximation();
+	function_approx->FuzzySetsInit(getParametersNumber());
+	function_approx->Init(Options.approx_settings.threshold,Options.approx_settings.min, Options.approx_settings.max,n_objectives());
+    } 
+    else if (Options.approx_settings.enabled==2)
+    {
+
+	cout << "\nArtificial Neural Network Approximation Enabled\n";
+	if (function_approx != NULL) free(function_approx);
+	function_approx = new CAnnFunctionApproximation();
+	function_approx->Init(Options.approx_settings.threshold,Options.approx_settings.min, Options.approx_settings.max,n_objectives());
+    } 
+
 }
 
 

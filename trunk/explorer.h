@@ -30,7 +30,8 @@
 #include "parameter.h"
 #include "hash.h" // mau
 #include "moea/SPEA.h" // mau
-#include "FuzzyApprox.h"
+#include "FuzzyApprox.h" // ale
+#include "FannApprox.h" // ale
 
 // ---------------------------------------------------------------------------
 #define EXPLORER_NOTHING_DONE 0
@@ -151,14 +152,18 @@ public:
     
   void write_log(string mess);
 
-  CFuzzyFunctionApproximation fuzzy_approx;
+  CFunctionApproximation *function_approx;
 
   void set_fuzzy(bool);
+  void init_approximation();
   void set_force_simulation(bool);
   void set_space_name(const string& space_name);
   void load_space_file(const string& space_name);
   void save_space_file(const string& space_name);
 
+  vector<pair<int,int> > getParameterRanges();
+  vector<pair<int,int> > getParametersNumber();
+  int n_objectives() {return n_obj;}
 
 private:
   int get_explorer_status() const;
@@ -171,8 +176,6 @@ private:
   vector<AlleleString::Allele> values2alleles(vector<int> values); // mau
   void ga_show_info(SPEA& ga, ExportUserData& eud, string fname); // mau
   //---------FuzzyApprox
-  vector<pair<int,int> > getParameterRanges();
-  vector<pair<int,int> > getParametersNumber();
   void SimulateBestWorst(ExportUserData& eud);
   //--------------------
 
@@ -213,6 +216,8 @@ private:
 
 };
 
+// Functions for GA-fuzzy
+bool isDominated(Simulation sim, const vector<Simulation>& simulations);
 // Evaluation functions for GA-based exploration
 void GA_Evaluator(IND& ind, ObjectiveVector& scores, void *user_data); 
 bool GA_Evaluation(IND& ind, void *user_data, double& exec_time, double& power, double& area); 
