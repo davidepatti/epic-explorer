@@ -22,9 +22,8 @@
 
 int main(int argc, char *argv[])
 {
-    string base_dir = string(getenv("HOME"));
-    User_interface *ui = new User_interface(base_dir);
+    string base_path = string(getenv(BASE_DIR));
+    User_interface *ui = new User_interface(base_path);
     ui->interact();
-
     return EXIT_SUCCESS;
 }
