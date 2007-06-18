@@ -29,8 +29,6 @@
 
 Estimator::Estimator(){
 
-    set_base_dir(string(getenv("HOME")));
-
     set_autoclock(false);
 }
 Estimator::~Estimator(){
@@ -841,7 +839,10 @@ double Estimator::get_main_memory_energy(uint64& n_block_request,int& block_size
     return n_block_request*words_per_block*average_consumption;
 }
 
-Estimate Estimator::get_estimate(const Dynamic_stats& dyn_stats, const Mem_hierarchy& mem, const Processor& processor)
+Estimate Estimator::get_estimate(const Dynamic_stats& dyn_stats, 
+	                         const Mem_hierarchy& mem, 
+				 const Processor& processor,
+				 const string& transitions_file)
 {
     string tmp;
     
@@ -884,11 +885,10 @@ Estimate Estimator::get_estimate(const Dynamic_stats& dyn_stats, const Mem_hiera
 
     FILE * fp;
 
-    if ((fp=fopen(tmp_transitions_file.c_str(),"r"))==NULL)
+    if ((fp=fopen(transitions_file.c_str(),"r"))==NULL)
     {
-	cout << "\nError opening file :" << tmp_transitions_file;
-	cout << "\n No transition prob file found, assuming 0.25 default";
-	wait_key();
+	cout << "\n WARNING: No transition prob file found, assuming 0.25 default!";
+	cout << "\n error opening file :" << transitions_file;
     }
     else
     {
@@ -976,10 +976,4 @@ Estimate Estimator::get_estimate(const Dynamic_stats& dyn_stats, const Mem_hiera
     return estimate;
 }
 
-void Estimator::set_base_dir(const string& dir)
-{
-    base_dir = dir;
-    cache_config_file = base_dir + "/trimaran-workspace/cache.cfg";
-    tmp_transitions_file = base_dir + "/trimaran-workspace/epic-explorer/tmp_transition";
-}
 

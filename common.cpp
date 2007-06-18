@@ -71,6 +71,22 @@ string Configuration::to_string() const
 
 }
 
+string Configuration::get_processor_string() const
+{
+    char s[100];
+    sprintf(s,"%u%u%u%u_%u%u%u%u%u",
+	    integer_units, float_units,branch_units,memory_units, gpr_static_size, fpr_static_size, pr_static_size, cr_static_size, btr_static_size);
+
+    return string(s);
+}
+
+string Configuration::get_mem_hierarchy_string() const
+{
+    char s[100];
+    sprintf(s,"%u%u%u_%u%u%u_%u%u%u",L1D_size, L1D_block, L1D_assoc, L1I_size, L1I_block, L1I_assoc, L2U_size, L2U_block, L2U_assoc);
+
+    return string(s);
+}
 
 void go_until(const string& dest,ifstream& ifs)
 {
@@ -105,9 +121,8 @@ int count_word(const string& w, ifstream& ifs)
     while ( ifs>>word ) if (word==w) n++;
     return n;
 }
-
-template<typename T> string to_string(const T& t){
-     stringstream s;
+template<typename T> std::string to_string(const T& t){
+     std::stringstream s;
      s << t;
      return s.str();
 }
@@ -130,3 +145,22 @@ double max(const double& a,const double& b)
     if (a>b) return a;
     return b;
 }
+
+bool file_exists(const string& filename)
+{
+    FILE *fp;
+    fp=fopen(filename.c_str(),"r");
+
+    if (fp!=NULL)
+    {
+	fclose(fp);
+	return true;
+    }
+
+    return false;
+}
+
+//inline string get_base_path()
+//{
+//    return string(getenv(BASE_DIR));
+//}

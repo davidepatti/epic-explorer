@@ -33,7 +33,6 @@ class Trimaran_interface {
 
 public: 
     
-    
     Trimaran_interface(const string& base_dir); 
     
     ~Trimaran_interface();
@@ -41,35 +40,26 @@ public:
 	void set_benchmark(string new_benchmark);
 	void set_hyperblock(bool hyperblock);
 
-	void set_base_dir(const string& dir);
-	string get_base_dir() const;
+	void set_environment(const string& path);
 
 	string get_benchmark_name() const;
 
-	void compile_hmdes_file() const;
-	void compile_benchmark();
-	void execute_benchmark();
+	void compile_hmdes_file(const string& path) const;
+	void compile_benchmark(const string& path);
+	void execute_benchmark(const string& path,const string& cache_dir);
 
-	void save_processor_config(const Processor&) const;
-	void load_processor_config(Processor*) const;
+	void save_processor_config(const Processor&,const string& path) const;
+	void load_processor_config(Processor*,const string& filename) const;
 
-	void save_mem_config(const Mem_hierarchy&) const;
-	void load_mem_config(Mem_hierarchy*) const;
+	void save_mem_config(const Mem_hierarchy&,const string& path) const;
+	void load_mem_config(Mem_hierarchy*,const string& filename) const;
 
-	Dynamic_stats get_dynamic_stats();
+	Dynamic_stats get_dynamic_stats(const string& filename);
 
 private:
-
 	string current_benchmark; 
-	string base_dir;
+	string base_path;
 	bool do_hyperblock;
-
-	bool updated_dynamic_stats;
-
-	Dynamic_stats dynamic_stats;
-
-	void set_environment();
-	void update_dynamic_stats();
 };
 
 #endif
