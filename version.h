@@ -1,1 +1,1 @@
-#define VERSION "grid testing"
+#define VERSION "2007 beta testing"

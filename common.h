@@ -76,7 +76,7 @@ struct User_Settings
 	int enabled;
 	float threshold;
 	int min,max;
-    } fuzzy_settings;
+    } approx_settings;
 };
 
 struct Space_mask

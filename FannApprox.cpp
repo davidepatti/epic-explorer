@@ -1,5 +1,6 @@
 // Artificial Neural Network Approximation 
 #include "FannApprox.h"
+#include <fann.h>
 
   CAnnFunctionApproximation::CAnnFunctionApproximation() {
   
