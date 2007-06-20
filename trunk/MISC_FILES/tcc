@@ -1,0 +1,824 @@
+#!/bin/sh
+
+# LICENSE NOTICE
+# --------------
+
+# IT IS A BREACH OF THE LICENSE AGREEMENT TO REMOVE THIS NOTICE FROM 
+# THIS FILE OR SOFTWARE OR ANY MODIFIED VERSIONS OF THIS FILE OR SOFTWARE.
+ 
+# Copyright notices/Licensor(s) Identification
+# --------------------------------------------
+
+# Each of the entity(ies) whose name properly appear immediately below in 
+# connection with a copyright notice is a Licensor(s) under the terms that 
+# follow.
+ 
+# Copyright 1998 New York University. All rights reserved by the foregoing, 
+# respectively.
+
+
+# License agreement
+# -----------------
+
+# The code contained in this file including both binary and source (hereafter, 
+# Software) is subject to copyright by Licensor(s) and ownership remains with
+# Licensor(s).
+
+# Licensor(s) grants you (hereafter, Licensee) a license to use the
+# Software for academic, research and internal business purposes only,
+# without a fee.  "Internal business use" means that Licensee may
+# install, use and execute the Software for the purpose of designing
+# and evaluating products.  Licensee may also disclose results
+# obtained by executing the Software, as well as algorithms embodied
+# therein.  Licensee may distribute the Software to third parties
+# provided that the copyright notice and this statement appears on all
+# copies and that no charge is associated with such copies.  No patent
+# or other intellectual property license is granted or implied by this
+# Agreement, and this Agreement does not license any acts except those
+# expressly recited.
+
+# Licensee may make derivative works, which shall also be governed by
+# the terms of this License Agreement. If Licensee distributes any
+# derivative work based on or derived from the Software, then Licensee
+# will abide by the following terms.  Both Licensee and Licensor(s)
+# will be considered joint owners of such derivative work and
+# considered Licensor(s) for the purpose of distribution of such
+# derivative work.  Licensee shall not modify this agreement except
+# that Licensee shall clearly indicate that this is a derivative work
+# by adding an additional copyright notice in the form "Copyright
+# <year> <Owner>" to other copyright notices above, before the line
+# "All rights reserved by the foregoing, respectively".  A party who
+# is not an original author of such derivative works within the
+# meaning of US Copyright Law shall not modify or add his name to the
+# copyright notices above.
+
+# Any Licensee wishing to make commercial use of the Software should
+# contact each and every Licensor(s) to negotiate an appropriate
+# license for such commercial use; permission of all Licensor(s) will
+# be required for such a license.  Commercial use includes (1)
+# integration of all or part of the source code into a product for
+# sale or license by or on behalf of Licensee to third parties, or (2)
+# distribution of the Software to third parties that need it to
+# utilize a commercial product sold or licensed by or on behalf of
+# Licensee.
+
+# LICENSOR (S) MAKES NO REPRESENTATIONS ABOUT THE SUITABILITY OF THIS
+# SOFTWARE FOR ANY PURPOSE.  IT IS PROVIDED "AS IS" WITHOUT EXPRESS OR
+# IMPLIED WARRANTY.  LICENSOR (S) SHALL NOT BE LIABLE FOR ANY DAMAGES
+# SUFFERED BY THE USERS OF THIS SOFTWARE.
+
+# IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN
+# WRITING WILL ANY COPYRIGHT HOLDER, OR ANY OTHER PARTY WHO MAY MODIFY
+# AND/OR REDISTRIBUTE THE PROGRAM AS PERMITTED ABOVE, BE LIABLE FOR
+# DAMAGES, INCLUDING ANY GENERAL, SPECIAL, INCIDENTAL OR CONSEQUENTIAL
+# DAMAGES ARISING OUT OF THE USE OR INABILITY TO USE THE PROGRAM
+# (INCLUDING BUT NOT LIMITED TO LOSS OF DATA OR DATA BEING RENDERED
+# INACCURATE OR LOSSES SUSTAINED BY YOU OR THIRD PARTIES OR A FAILURE
+# OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS), EVEN IF SUCH
+# HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
+# DAMAGES.
+
+# By using or copying this Software, Licensee agrees to abide by the
+# copyright law and all other applicable laws of the U.S., and the
+# terms of this license agreement. Any individual Licensor shall have
+# the right to terminate this license immediately by written notice
+# upon Licensee's breach of, or non-compliance with, any of its
+# terms. Licensee may be held legally responsible for any copyright
+# infringement that is caused or encouraged by Licensee's failure to
+# abide by the terms of this license agreement.
+
+#       This script provides a command line interface to trimaran compilation
+#
+#
+#	The following is the driver that is being used at NYU for our research
+#	work.  We encourage you to write your own to suit your needs but you
+#	are welcome to use our driver as a starting point.
+#
+#       Script written  by Ajay Jayaraj 6/24/99
+#       Script modified by Rodric M. Rabbah 7/2/99
+#
+#
+
+SCRIPT_NAME="tcc"
+TRIMARAN_HOST_TYPE="" 		#default hp, can be x86lin
+HOST_OPTION_SET=0			#host set is false
+STAGE_OPTION_SET=0		#-s option set
+
+BENCHMARK=""
+BENCHMARK_PATH=""
+BENCHMARK_SET=0          	# flag indicating when benchmark has been set
+
+CALLED_FROM_GUI=0			# flag set to 1 when invoked from GUI
+
+REGION_TYPE="-c2O_tr" 	  	#default basic block
+REGION_TYPE_SUBSTR="O_tr"	#default basic block
+REGION_TYPE_SPECIFIED=0 	#if region type not specified, defaults to bb
+LIST_OF_REGIONS=""
+
+IMPACT_PROJECT="full"
+IMPACT_PROJECT_SET=0
+
+VALID_ARGS=1      	 	#true
+IS_TRI_HOME_SET=0       	#false
+OPTIMIZATION_LEVEL=1
+INLINING=""               	#inline by default
+USE_STD_MDES=1           	#use standard MDES file unless otherwise specified
+XPRELINKING_OPTS=""
+XPOSLINKING_OPTS=""
+ARGS_TO_COMPILEBENCH="" 	#stores arguments to be passed on to cb
+ARGS_TO_ELCOR=""
+ARGS_TO_SIMU=""
+
+#by default, run all stages
+RUN_IMPACT=1			#set run impact to true
+RUN_ELCOR=1
+RUN_SIMU=1
+RUN_SIMU_BIN=1
+
+CLEAN_DIRS=0			#doest not remove intermed dirs before running
+RUN_ONLY=0
+
+NICE_VALUE=0
+if [ $# -eq 0 ]; then
+   echo "$SCRIPT_NAME: Error: Wrong Usage";
+   echo "Type $SCRIPT_NAME -help for syntax";
+   VALID_ARGS=0;
+   exit 1;
+fi
+
+#check if env variable TRIMARAN_ROOT is set
+tri_root="${TRIMARAN_ROOT}"
+if [ "$tri_root" = "" ]; then
+    IS_TRI_HOME_SET=0;
+else
+    IS_TRI_HOME_SET=1;
+    echo "Using value or env variable ${TRIMARAN_ROOT} as TRIMARAN_ROOT!";
+fi
+
+while [ $# -gt 0 -a $VALID_ARGS -eq 1 ]
+  do
+  
+ # get the next option specified
+  OPTION="$1";
+  shift
+  
+  case $OPTION in
+	-host)
+	    if [ $# -eq 0 ]; then
+		  echo "$SCRIPT_NAME: Error: host type has to be specified after $OPTION!";
+		  exit 1;
+	    else
+		  host_option=$1;
+		  shift 1;
+		  case $host_option in
+			hp|x86lin|sunos|sunsol)
+			    TRIMARAN_HOST_TYPE=$host_option;
+			    echo "$SCRIPT_NAME: Setting host type to $host_option";;
+			*)
+			    echo "$SCRIPT_NAME: Unknown Host type, $host_option";
+			    exit 1;;
+		  esac
+		  HOST_OPTION_SET=1;
+	    fi;;
+	
+	-root)
+	    if [ $# -eq 0 ]; then
+		  echo "$SCRIPT_NAME: Error: trimaran base dir has to be specified after $OPTION!";
+		  exit 1;
+	    else
+		  if [ -d $1 ]; then
+			if [ $IS_TRI_HOME_SET -eq 0 ]; then
+			    echo "$SCRIPT_NAME: Setting trimaran root to $1";
+			else
+			    echo "$SCRIPT_NAME: Overriding old value of trimaran root, ${TRIMARAN_ROOT}, with $1";
+			fi
+			TRIMARAN_ROOT=`echo $1`;
+			export TRIMARAN_ROOT;
+			IS_TRI_HOME_SET=1;
+		  else
+			echo "$SCRIPT_NAME: Error: Directory $1 is invalid!";
+			exit 1;
+		  fi
+		  shift 1;
+	    fi;;
+	
+	-region)
+	    if [ $# -eq 0 ]; then
+		  echo "$SCRIPT_NAME: Error : Region type has to be specified after $OPTION!"
+		  exit 1;
+	    else
+		  reg_option=$1;
+		  shift
+		  case $reg_option in
+			b|basic)
+			    REGION_TYPE_SPECIFIED=1;
+			    REGION_TYPE_SUBSTR="O_tr";
+			    REGION_TYPE="-c2O_tr";;
+			s|super)
+			    REGION_TYPE_SPECIFIED=1;
+			    REGION_TYPE_SUBSTR="S_tr";
+			    REGION_TYPE="-c2S_tr";;
+			h|hyper)
+			    REGION_TYPE_SPECIFIED=1;
+			    REGION_TYPE_SUBSTR="HS_tr";
+			    REGION_TYPE="-c2HS_tr";;
+			all)
+			    REGION_TYPE_SPECIFIED=1;
+			    REGION_TYPE_SUBSTR="O_tr S_tr HS_tr";
+			    REGION_TYPE="-c2O_tr -c2S_tr -c2HS_tr";;
+			*)
+			    echo "$SCRIPT_NAME: Error: Invalid region option, $reg_option , must be b|s|h";
+			    exit 1;;
+		  esac
+		  ARGS_TO_COMPILEBENCH="$ARGS_TO_COMPILEBENCH $REGION_TYPE";
+	    fi;;
+	
+	-bench)
+	    if [ $# -eq 0 ]; then
+		  echo "$SCRIPT_NAME: Error : A benchmark has to be specified after $OPTION!"
+		  exit 1;
+	    else
+		  BENCHMARK=$1;
+		  BENCHMARK_SET=1;
+		  shift;
+	    fi;;
+	
+	-bench_dir)
+	    if [ $# -eq 0 ]; then
+		  echo "$SCRIPT_NAME: Error : A benchmark path has to be specified after $OPTION!"
+		  exit 1;
+	    else
+		  BENCHMARK_PATH="-bench_dir $1";
+		  shift;
+	    fi;;
+	
+	-nice)
+	    if [ $# -eq 0 ]; then
+		  echo "$SCRIPT_NAME: Error : A value has to be specified after $OPTION!"
+		  exit 1;
+	    else
+		  NICE_VALUE=$1
+		  shift;
+	    fi;;
+	
+	-project)
+	    if [ $# -eq 0 ]; then
+		  echo "$SCRIPT_NAME: Error : A benchmark has to be specified after $OPTION!"
+		  exit 1;
+	    else
+		  IMPACT_PROJECT=$1;
+		  IMPACT_PROJECT_SET=1;
+		  export DEFAULT_PROJECT=$IMPACT_PROJECT
+		  shift;
+	    fi;;
+	
+	-clean)
+	    CLEAN_DIRS=1;;
+	
+	-noinlining)
+	    INLINING="-noinlining";;
+	
+	-gui)
+	    CALLED_FROM_GUI=1;;
+	
+	-s*)
+	    stage_option=${OPTION##-s};
+	    case $stage_option in
+		  i|impact)
+			RUN_ELCOR=0;RUN_SIMU=0;RUN_SIMU_BIN=0;;
+		  e|elcor)
+			RUN_SIMU=0;RUN_SIMU_BIN=0;;
+		  s|simu)
+			RUN_SIMU_BIN=0;;
+		  r|run)
+			;;
+		  *)
+			echo "$SCRIPT_NAME: Error : A stage, i|e|s|r has to be specified after $OPTION!"
+			echo "$SCRIPT_NAME: Error: Invalid option after $OPTION";
+			exit 1;;
+	    esac
+	    STAGE_OPTION_SET=1;;
+	
+	-i2i)
+	    if [ $STAGE_OPTION_SET -eq 1 ]; then
+		  echo "$SCRIPT_NAME: Error: -s and $OPTION cannot be used together!"
+		  exit 1;
+	    fi
+	    RUN_ONLY=1;RUN_IMPACT=1;RUN_ELCOR=0;RUN_SIMU=0;RUN_SIMU_BIN=0;;
+	
+	-i2e)
+	    if [ $STAGE_OPTION_SET -eq 1 ]; then
+		  echo "$SCRIPT_NAME: Error: -s and $OPTION cannot be used together!"
+		  exit 1;
+	    fi
+	    RUN_ONLY=1;RUN_IMPACT=1;RUN_ELCOR=1;RUN_SIMU=0;RUN_SIMU_BIN=0;;
+	
+	-i2s)
+	    if [ $STAGE_OPTION_SET -eq 1 ]; then
+		  echo "$SCRIPT_NAME: Error: -s and $OPTION cannot be used together!"
+		  exit 1;
+	    fi
+	    RUN_ONLY=1;RUN_IMPACT=1;RUN_ELCOR=1;RUN_SIMU=1;RUN_SIMU_BIN=0;;
+	
+	-i2r)
+	    if [ $STAGE_OPTION_SET -eq 1 ]; then
+		  echo "$SCRIPT_NAME: Error: -s and $OPTION cannot be used together!"
+		  exit 1;
+	    fi
+	    RUN_ONLY=1;RUN_IMPACT=1;RUN_ELCOR=1;RUN_SIMU=1;RUN_SIMU_BIN=1;;
+	
+	-e2e)
+	    if [ $STAGE_OPTION_SET -eq 1 ]; then
+		  echo "$SCRIPT_NAME: Error: -s and $OPTION cannot be used together!"
+		  exit 1;
+	    fi
+	    RUN_ONLY=1;RUN_IMPACT=0;RUN_ELCOR=1;RUN_SIMU=0;RUN_SIMU_BIN=0;;
+	
+	-e2s)
+	    if [ $STAGE_OPTION_SET -eq 1 ]; then
+		  echo "$SCRIPT_NAME: Error: -s and $OPTION cannot be used together!"
+		  exit 1;
+	    fi
+	    RUN_ONLY=1;RUN_IMPACT=0;RUN_ELCOR=1;RUN_SIMU=1;RUN_SIMU_BIN=0;;
+	
+	-e2r)
+	    if [ $STAGE_OPTION_SET -eq 1 ]; then
+		  echo "$SCRIPT_NAME: Error: -s and $OPTION cannot be used together!"
+		  exit 1;
+	    fi
+	    RUN_ONLY=1;RUN_IMPACT=0;RUN_ELCOR=1;RUN_SIMU=1;RUN_SIMU_BIN=1;;
+	
+	-m2s)
+	    if [ $STAGE_OPTION_SET -eq 1 ]; then
+		  echo "$SCRIPT_NAME: Error: -s and $OPTION cannot be used together!"
+		  exit 1;
+	    fi
+	    RUN_ONLY=1;RUN_IMPACT=0;RUN_ELCOR=0;RUN_SIMU=1;RUN_SIMU_BIN=0;;
+	
+	-m2r)
+	    if [ $STAGE_OPTION_SET -eq 1 ]; then
+		  echo "$SCRIPT_NAME: Error: -s and $OPTION cannot be used together!"
+		  exit 1;
+	    fi
+	    RUN_ONLY=1;RUN_IMPACT=0;RUN_ELCOR=0;RUN_SIMU=1;RUN_SIMU_BIN=1;;
+	
+	-m2m)
+	    if [ $STAGE_OPTION_SET -eq 1 ]; then
+		  echo "$SCRIPT_NAME: Error: -s and $OPTION cannot be used together!"
+		  exit 1;
+	    fi
+	    RUN_ONLY=1;RUN_IMPACT=0;RUN_ELCOR=0;RUN_SIMU=0;RUN_SIMU_BIN=1;;
+
+	-cache_cfg*)
+	    cache_option="$1"
+	    echo "cache_cfg invoked with $1";
+	    mkdir $1
+	    shift;;
+	
+	-E*)
+	    ARGS_TO_ELCOR=${OPTION##-E};;
+	
+	-S*)
+	    ARGS_TO_SIMU=${OPTION##-S};;
+	
+	-O*)
+	    OPTI=${OPTION##-O}
+	    case $OPTI in
+		  0 | 1 | 2 | 3 | 4) 
+			OPTIMIZATION_LEVEL=$OPTI;;
+		  *)                 
+			VALID_ARGS=0;;
+	    esac;;
+	
+	-M*)
+	    USE_STD_MDES=0
+	    MDES=${OPTION##-M};;
+	
+	-h|-help)
+	    echo "Usage: $SCRIPT_NAME -bench benchmark_name -root trimaran_root -clean [options]"
+	    echo "Where options is any of the following:" 	
+	    echo ""
+	    echo "	-host		:	host type, can be hp|x86lin|sunsol|sunos"
+	    echo "	-root		: 	specifies the trimaran base directory"
+	    echo "	-bench	: 	name of benchmark"
+	    echo "	-region	: 	region type. can be b|s|h|all"
+	    echo "	-project	:	project file used by impact"
+	    echo "	-Mfile	: 	specify MDES file used by elcor"
+	    echo "	-si|e|s|r	:	Specify stages in compilation"
+	    echo " 	-E    	:	Arguments passed directly to the elcor module"
+	    echo "				e.g. -E\"-fwhatever=yes -fwhateverelse=no\" "
+	    echo " 	-S   		:	Arguments passed directly to the simulator module"
+	    echo "	-clean	:	Delete intermediate direcories before running"
+	    echo "	-i2e|s|r	:	Compile from impact through elcor, simu or run simulated binary"
+	    echo "	-e2s|r	:	Compile from elcor through simu or run simulated binary"
+	    echo "	-gui		: 	Used only when called from the gui"
+	    echo ""
+	    exit 0;;
+	
+	*)
+	    echo "$SCRIPT_NAME: Error: Unknown option '${OPTION}'"
+	    echo "Type $SCRIPT_NAME -help for syntax";
+	    VALID_ARGS=0;
+	    exit 1;;
+  esac
+done
+
+if [ $VALID_ARGS -eq 1 ]; then
+   #host type
+    if [ $HOST_OPTION_SET -eq 0 ]; then
+	  echo "$SCRIPT_NAME: Detecting Host Type.";
+      #detect host type
+	  host_type=`exec uname`
+	  case $host_type in
+		Linux) 
+		    TRIMARAN_HOST_TYPE="x86lin";;
+		
+		HP-UX) 
+		    TRIMARAN_HOST_TYPE="hp";;
+		
+		SunOS) 
+		    os_version=`exec uname -r`        
+		    if [ $os_version -ge 4.0]; then            
+			  TRIMARAN_HOST_TYPE="sunsol"
+		    else   
+			  TRIMARAN_HOST_TYPE="sunos"
+		    fi;;
+		
+		*) 
+		    puts "$SCRIPT_NAME: Unknown host type, $host_type!"
+		    exit 1;;
+		
+	  esac
+	  export $TRIMARAN_HOST_TYPE
+	  echo "$SCRIPT_NAME: TRIMARAN_HOST_TYPE set to $TRIMARAN_HOST_TYPE"
+    fi
+    
+   #check for validity of trimaran home
+    if [ $IS_TRI_HOME_SET -eq 0  ]; then
+	  echo "$SCRIPT_NAME: Error: Trimaran root not specified!";
+	  exit 1;
+    fi
+    
+    if [ ! -d ${TRIMARAN_ROOT} ]; then
+	  echo "$SCRIPT_NAME: Error: Trimaran root, ${TRIMARAN_ROOT}, does not exist!";
+	  exit 1;
+    fi
+    
+   #check if project option set
+    if [ $IMPACT_PROJECT_SET -eq 0 ]; then
+	  export DEFAULT_PROJECT=$IMPACT_PROJECT
+    fi
+    
+   #trimaran root has a valid value. set all other env variables.
+    export CC=gcc
+    export CXX=gcc
+    
+    export TRIMARAN_HOST_PLATFORM=$TRIMARAN_HOST_TYPE
+    export TRIMARAN_HOST_COMPILER=gcc
+    
+    export IMPACT_HOST_PLATFORM=$TRIMARAN_HOST_TYPE
+    export IMPACT_HOST_COMPILER=gcc
+    
+   #if script is called from GUI, skip setting enviroment variables
+   #they have already been set
+    if [ $CALLED_FROM_GUI -eq 0 ];  then
+      # IMPACT variables
+	  export IMPACT_ROOT=${TRIMARAN_ROOT}/impact
+	  export IMPACT_REL_PATH=${TRIMARAN_ROOT}/impact
+	  export USER_PROJECT_PATH1="${IMPACT_REL_PATH}/projects"
+	  export IMPACT_BIN_PATH=${IMPACT_REL_PATH}/bin/"$TRIMARAN_HOST_TYPE"_c
+	  export IMPACT_LIB_PATH=${IMPACT_REL_PATH}/lib/"$TRIMARAN_HOST_TYPE"_c
+	  export STD_PARMS_FILE=${IMPACT_REL_PATH}/parms/STD_PARMS.TRIMARAN
+	  export IMPACT_BUILD_TYPE=${IMPACT_HOST_PLATFORM}
+	  
+      # ELCOR variables
+	  export ELCOR_HOME=${TRIMARAN_ROOT}/elcor
+	  export ELCOR_REL_PATH=${TRIMARAN_ROOT}/elcor
+	  export ELCOR_BIN_PATH=${ELCOR_REL_PATH}/bin
+	  export ELCOR_PARMS_FILE=${ELCOR_REL_PATH}/parms/ELCOR_PARMS
+	  export ELCOR_USER=ELCOR
+	  
+      # SIMU variables
+	  export SIMU_HOME=${TRIMARAN_ROOT}/simu
+	  export SIMU_REL_PATH=${TRIMARAN_ROOT}/simu
+	  export SIMU_BIN_PATH=${SIMU_REL_PATH}/bin
+	  export SIMU_PARMS_FILE=${SIMU_REL_PATH}/parms/SIMULATOR_DEFAULTS
+	  
+      # DINERO variables
+	  export DINERO_HOME=${TRIMARAN_ROOT}/dinero
+	  export DINERO_REL_PATH=${TRIMARAN_ROOT}/dinero
+	  
+	  OLD_PATH=${PATH};
+	  OLD_path=${path};
+	  export PATH=".:${TRIMARAN_ROOT}/bin:${IMPACT_BIN_PATH}:${IMPACT_REL_PATH}/scripts:${IMPACT_REL_PATH}/config:${ELCOR_REL_PATH}/bin:${SIMU_REL_PATH}/bin:$OLD_PATH"
+	  
+	  export path=". ${TRIMARAN_ROOT}/bin ${IMPACT_BIN_PATH} ${IMPACT_REL_PATH}/scripts ${IMPACT_REL_PATH}/config ${ELCOR_REL_PATH}/bin ${SIMU_REL_PATH}/bin $OLD_path"
+	  
+    fi #called_from_gui
+    export USER_BENCH_PATH1=${TRIMARAN_ROOT}/benchmarks
+    
+   #check if region type has been specified
+    if [ $REGION_TYPE_SPECIFIED -eq 0 ]; then
+	  echo "$SCRIPT_NAME: Warning: Defaulting to basic blocks.";
+    fi
+    
+   # RMR 05072000 - IMPACT compile_bench_script will handle this check
+   #check if benchmark directory exists only if benchmark option specified
+   #temp_bench="${USER_BENCH_PATH1}/$BENCHMARK";
+   #if [ $BENCHMARK_SET -eq 1 -a ! -d $temp_bench ]; then
+   #   echo "$SCRIPT_NAME: Error: Benchmark directory, $temp_bench, does not exist!"
+   #   exit 1;
+   #fi
+    
+   #repeat for each region type
+    LIST_OF_REGIONS=$REGION_TYPE_SUBSTR;
+    for REGION_TYPE_SUBSTR  in $LIST_OF_REGIONS 
+	do
+      #generate elcor extension
+      ELCOR_EXT=`echo $REGION_TYPE_SUBSTR | awk -F_ '{print $1}'`;
+      SIMU_EXT=$ELCOR_EXT;
+      ELCOR_EXT="$ELCOR_EXT"_el;
+      OUT_FILE_SUFFIX=`echo $ELCOR_EXT | awk -F_ '{print $1}'`;
+      OUT_FILE="$BENCHMARK"_"$OUT_FILE_SUFFIX";	
+	
+      #if not called from GUI, create a dir for each region type
+      if [ $CALLED_FROM_GUI -eq 0 -a $RUN_ONLY -eq 0 ]; then
+	    TEMP_NAME=`echo $REGION_TYPE_SUBSTR | awk -F_ '{print $1}'`
+	    DIR_NAME="$BENCHMARK"_"$TEMP_NAME"		
+	    if [ ! -d $DIR_NAME ]; then
+		  mkdir $DIR_NAME 2>/dev/null
+		  if [ "$?" -ne 0 ]; then
+			echo "$SCRIPT_NAME: Error: \"mkdir $DIR_NAME\" unsuccessful, bailing out!";
+			exit 1;
+		  fi
+	    fi
+	    cd $DIR_NAME
+      fi
+	
+      #create directories in workspace to store temporary files
+      echo "$SCRIPT_NAME: Creating directories in workspace to store temporary files.";
+      if [ $CLEAN_DIRS -eq 1 ]; then
+	    if [ -d impact_intermediate ]; then
+	    rm -rf impact_intermediate 2>/dev/null;
+	    fi
+	    if [ -d elcor_intermediate ]; then
+		  rm -rf elcor_intermediate 2>/dev/null;
+	    fi
+	    if [ -d simu_intermediate ]; then
+		  rm -rf simu_intermediate 2>/dev/null;
+	    fi
+      fi #clean_dirs
+	
+      #create directories only if they dont already exist.
+      #must check if dirs exist later !
+      if [ ! -d impact_intermediate ]; then
+	    mkdir impact_intermediate 2>/dev/null;
+	    if [ "$?" -ne 0 ]; then
+		  echo "$SCRIPT_NAME: Error: \"mkdir impact_intermediate\" unsuccessful, bailing out!";
+		  exit 1;
+	    fi
+      fi
+      if [ ! -d elcor_intermediate ]; then
+	    mkdir elcor_intermediate 2>/dev/null;
+	    if [ "$?" -ne 0 ]; then
+		  echo "$SCRIPT_NAME: Error: \"mkdir elcor_intermediate\" unsuccessful, bailing out!";
+		  exit 1;
+	    fi
+      fi
+      if [ ! -d simu_intermediate ]; then
+	    mkdir simu_intermediate 2>/dev/null;
+	    if [ "$?" -ne 0 ]; then
+		  echo "$SCRIPT_NAME: Error: \"mkdir simu_intermediate\" unsuccessful, bailing out!";
+		  exit 1;
+	    fi
+      fi 
+	
+      if [ $RUN_IMPACT -eq 1 ]; then
+	    echo ""
+	    echo "%%%%%%%%%%"
+	    cd impact_intermediate;
+	    
+	    IMPACT_PARMS_FILE=${STD_PARMS_FILE}
+	    if [ $IMPACT_PARMS_FILE != "" ]; then
+		  echo "$SCRIPT_NAME: Using $IMPACT_PARMS_FILE as STD_PARMS_FILE"
+		  ARGS_TO_COMPILEBENCH="-p $IMPACT_PARMS_FILE"
+	    fi
+	    
+	    echo "$SCRIPT_NAME: Calling compile_bench with options $BENCHMARK $BENCHMARK_PATH -c2"$REGION_TYPE_SUBSTR" $INLINING $ARGS_TO_COMPILEBENCH -noclean -project $IMPACT_PROJECT ."
+	    
+	    nice -n $NICE_VALUE compile_bench $BENCHMARK \
+		  $BENCHMARK_PATH \
+		  -c2"$REGION_TYPE_SUBSTR" \
+		  $INLINING \
+		  -noclean \
+		  $ARGS_TO_COMPILEBENCH \
+		  -project $IMPACT_PROJECT;
+	    
+	    if [ "$?" -ne 0 ]; then
+		  echo "$SCRIPT_NAME: Error: compile_bench $ARGS_TO_COMPILEBENCH unsuccessful, bailing out!";
+		  exit 1;
+	    fi
+	    
+	    echo "%%%%%%%%%%";
+	    echo "";
+	    cd ..	
+      fi #run_impact
+	
+      if [ $RUN_ELCOR -eq 1 ]; then
+	    echo ""
+	    echo "%%%%%%%%%%"
+	    
+	    case $REGION_TYPE_SUBSTR in
+		  O_tr) 
+			echo "$SCRIPT_NAME: Processing for basic blocks ($REGION_TYPE_SUBSTR)";;
+		  S_tr) 
+			echo "$SCRIPT_NAME: Processing for super blocks ($REGION_TYPE_SUBSTR)";;
+		  HS_tr) 
+			echo "$SCRIPT_NAME: Processing for hyper blocks ($REGION_TYPE_SUBSTR)";;
+	    esac
+	    
+	    if [ ! -d impact_intermediate ]; then
+		  echo "$SCRIPT_NAME: Error: Impact intermediate files must be in directory impact_intermediate!";
+		  exit 1;
+	    fi
+	    
+	    cd elcor_intermediate;
+	    
+	    FILENAME="$BENCHMARK"."$REGION_TYPE_SUBSTR".tgz
+	    ln -sf ../impact_intermediate/$FILENAME .;
+	    if [ "$?" -ne 0 ]; then
+		  echo "$SCRIPT_NAME: Error: \"ln -sf ../impact_intermediate/$FILENAME . \" unsuccessful, "
+		  ecbo "bailing out!";
+		  exit 1;
+	    fi
+	    
+	    gen_untar $BENCHMARK $REGION_TYPE_SUBSTR
+	    if [ "$?" -ne 0 ]; then
+		  echo "$SCRIPT_NAME: Error: \"gen_untar $BENCHMARK $REGION_TYPE_SUBSTR\" unsuccessful, ";
+		  echo "unable to untar files, bailing out!";
+		  exit 1;
+	    fi
+	    
+	    ls *."$REGION_TYPE_SUBSTR" > elcor_input_list
+	 
+         #check if MDES file specified
+	    if [ $USE_STD_MDES -eq 1 ]; then
+		  nice -n $NICE_VALUE gen_elcor . "$ELCOR_EXT" "$ARGS_TO_ELCOR" < elcor_input_list
+		  status=$?
+	    else
+		  nice -n $NICE_VALUE gen_elcor . "$ELCOR_EXT" \
+			"-Flmdes_file_name=$MDES $ARGS_TO_ELCOR" < elcor_input_list
+		  status=$?
+         fi
+	    
+	    if [ $status -ne 0 ]; then
+		  echo "$SCRIPT_NAME: Error: \"gen_elcor\" unsuccessful, bailing out!";
+		  exit 1;
+	    else
+		  echo "$SCRIPT_NAME: gen_elcor successful, elcor output files created.";
+	    fi
+	    
+	    gen_tar $BENCHMARK $ELCOR_EXT;
+         #leaving files in place for IR viewer
+	    if [ $CALLED_FROM_GUI -eq 0 ]; then
+	    rm -f *"$ELCOR_EXT";
+	    fi
+	    rm -f *"$REGION_TYPE_SUBSTR";
+	    
+	    echo "%%%%%%%%%%";
+	    echo "";
+	    cd ..
+      fi #run_elcor
+	
+      if [ $RUN_SIMU -eq 1 ]; then
+	    echo ""
+	    echo "%%%%%%%%%%"
+	    
+	    cd simu_intermediate;
+	    
+         ln -sf ../elcor_intermediate/"$BENCHMARK"."$ELCOR_EXT".tgz .;
+         if [ $? -ne 0 ]; then
+		 echo "$SCRIPT_NAME: \"ln -sf ../elcor_intermediate/$BENCHMARK.$ELCOR_EXT.tgz .\" failed!";
+		 exit 1;
+	   fi
+	   
+         gen_untar $BENCHMARK $ELCOR_EXT
+         if [ "$?" -ne 0 ]; then
+		 echo "$SCRIPT_NAME: Error: \"gen_untar $BENCHMARK $ELCOR_EXT\" unsuccessful, ";
+		 echo "unable to untar files, bailing out!";
+		 exit 1;
+	   fi
+
+         ls *."$ELCOR_EXT" > codegen_input_list;
+         echo "$SCRIPT_NAME: Running codegen(gen_EtoC)...";
+	   
+         if [ $USE_STD_MDES -eq 1 ]; then
+		 nice -n $NICE_VALUE gen_EtoC . "$ARGS_TO_SIMU" < codegen_input_list
+		 status=$?
+	   else
+		 nice -n $NICE_VALUE gen_EtoC . "-Flmdes_file_name=$MDES $ARGS_TO_SIMU" < codegen_input_list
+		 status=$?
+	   fi
+	   
+         if [ $status -ne 0 ]; then
+		 echo "$SCRIPT_NAME: Error: gen_EtoC unsuccessful, bailing out!";
+		 exit 1;
+	   else
+		 echo "$SCRIPT_NAME: gen_EtoC successful";
+         fi
+         echo ""
+	   echo "$SCRIPT_NAME: Compiling codegen generated files (gen_CtoO)..."
+	   nice -n $NICE_VALUE gen_CtoO . "-malign-double" < codegen_input_list
+         if [ "$?" -ne 0 ]; then
+		 echo "$SCRIPT_NAME: Error: gen_CtoO unsuccessful, bailing out!";
+		 exit 1;
+	   else
+            echo "$SCRIPT_NAME: gen_CtoO successful";
+         fi
+	   
+         rm -f *"$ELCOR_EXT";
+	   
+	 #setup linking options
+	   PRELINKING_OPTS=`read_compile_info $BENCHMARK $BENCHMARK_PATH -linking_preoptions`;
+	   POSLINKING_OPTS=`read_compile_info $BENCHMARK $BENCHMARK_PATH -linking_postoptions`;
+
+	   PRELINKING_OPTS="$PRELINKING_OPTS -L${SIMU_REL_PATH}/lib -L${DINERO_REL_PATH}/lib"
+	   POSLINKING_OPTS="$POSLINKING_OPTS -lequals -ldinero -lm"
+
+       #check if file exists
+	   if [ -f benchmark_data_init.simu.c ]; then
+		 nice -n $NICE_VALUE ${TRIMARAN_HOST_COMPILER} "-malign-double" \
+		     -c benchmark_data_init.simu.c
+		 
+		 echo "nice -n $NICE_VALUE ${TRIMARAN_HOST_COMPILER} -o \"$OUT_FILE\" *.$ELCOR_EXT.simu.o benchmark_data_init.simu.o $PRELINKING_OPTS $POSLINKING_OPTS"
+
+		 nice -n $NICE_VALUE ${TRIMARAN_HOST_COMPILER} -o "$OUT_FILE" \
+                 *.$ELCOR_EXT.simu.o benchmark_data_init.simu.o  \
+                 $PRELINKING_OPTS $POSLINKING_OPTS
+		 status=$?
+         else
+		 echo "nice -n $NICE_VALUE ${TRIMARAN_HOST_COMPILER} -o \"$OUT_FILE\" *.$ELCOR_EXT.simu.o benchmark_data_init.simu.o $PRELINKING_OPTS $POSLINKING_OPTS"
+		 
+		 nice -n $NICE_VALUE ${TRIMARAN_HOST_COMPILER} -o "$OUT_FILE" \
+		     *.$ELCOR_EXT.simu.o \
+		     $PRELINKING_OPTS $POSLINKING_OPTS
+		 status=$?
+	   fi
+	   
+	   if [ $status -ne 0 ]; then
+		 echo "$SCRIPT_NAME: Compilation unsucessful!"
+		 exit 1
+	   fi
+	   
+         echo "%%%%%%%%%%"
+         echo ""
+	 cd ..;
+	fi #run_simu
+	
+	if [ $RUN_SIMU_BIN -eq 1 ]; then
+	    echo ""
+	    echo "%%%%%%%%%%"
+	    
+	    cd simu_intermediate
+	    
+	    echo "$SCRIPT_NAME: Checking for any setup necessary to run $BENCHMARK"
+	
+	    echo "`read_exec_info $BENCHMARK $BENCHMARK_PATH -setup`"
+	    `read_exec_info $BENCHMARK $BENCHMARK_PATH -setup`
+	    if [ $? -ne 0 ]; then
+		  echo "$SCRIPT_NAME: Error!"
+	    fi
+	    
+	    echo "cd ../$cache_option"
+	    cd ../$cache_option
+	    echo "ln -s ../simu_intermediate/$OUT_FILE"
+	    ln -s ../simu_intermediate/$OUT_FILE
+
+	    echo "$SCRIPT_NAME: running $OUT_FILE"
+	    echo "./$OUT_FILE `read_exec_info $BENCHMARK $BENCHMARK_PATH -args` > result.out 2>&1"
+	    ./$OUT_FILE `read_exec_info $BENCHMARK $BENCHMARK_PATH -args` > result.out 2>&1
+	    echo "$SCRIPT_NAME: Printing results"	
+	    head -100 result.out
+	    
+	    echo ""
+	    echo "$SCRIPT_NAME: checking results"
+	    `read_exec_info $BENCHMARK $BENCHMARK_PATH -check result.out`
+	    if [ $? -ne 0 ]; then
+		  echo "$SCRIPT_NAME: Result Check Failed for for Benchmark $BENCHMARK, region type $SIMU_EXT!"
+	    else
+		  echo "$SCRIPT_NAME: Result Check Successful for Benchmark $BENCHMARK, region type $SIMU_EXT"
+	    fi
+	    mv PD_STATS PD_STATS."$OUT_FILE_SUFFIX" 2>/dev/null;
+	    
+	    echo "%%%%%%%%%%"
+	    echo ""
+	    cd ..
+	fi #run_simu_bin
+	
+	if [ $CALLED_FROM_GUI -eq 0  -a $RUN_ONLY -eq 0 ]; then
+	    cd ..
+	fi
+    done
+fi #for valid_args
+
+echo "$SCRIPT_NAME : Finished!"
