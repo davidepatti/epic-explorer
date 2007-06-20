@@ -4337,12 +4337,13 @@ void Explorer::init_approximation()
 	function_approx->Init(Options.approx_settings.threshold,Options.approx_settings.min, Options.approx_settings.max,n_objectives());
     } 
     else if (Options.approx_settings.enabled==2)
-    {
+    {/*
 
 	cout << "\nArtificial Neural Network Approximation Enabled\n";
 	if (function_approx != NULL) free(function_approx);
 	function_approx = new CAnnFunctionApproximation();
 	function_approx->Init(Options.approx_settings.threshold,Options.approx_settings.min, Options.approx_settings.max,n_objectives());
+    */
     } 
 
 }

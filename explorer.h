@@ -31,7 +31,7 @@
 #include "hash.h" // mau
 #include "moea/SPEA.h" // mau
 #include "FuzzyApprox.h" // ale
-#include "FannApprox.h" // ale
+//#include "FannApprox.h" // ale
 
 // ---------------------------------------------------------------------------
 #define EXPLORER_NOTHING_DONE 0
