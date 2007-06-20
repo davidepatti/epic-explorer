@@ -10,18 +10,29 @@ TRIMARAN_ROOT=$BASE_DIR/trimaran
 EPIC_SOURCE=$BASE_DIR/epic
 HMDES_FILE=hpl_pd_elcor_std.hmdes2
 
+echo "Checking for trimaran installation files"
+
+if [ -e $TRIMARAN_ROOT/bin ]; then
+   echo "     ok, found trimaran installation dir, copying new tcc script..."
+   cp $EPIC_SOURCE/MISC_FILES/tcc $TRIMARAN_ROOT/bin
+else
+   echo "     Missing $TRIMARAN_ROOT/bin directory !"
+   echo "     check your trimaran installation"
+fi
+
+
 echo "Checking for necessary files in $WORKSPACE..."
 if [ -e $WORKSPACE ]; then
     if [ -e $WORKSPACE/epic-explorer ]; then
-	echo "Ok, found $WORKSPACE/epic-explorer directory"
+	echo "     Ok, found $WORKSPACE/epic-explorer directory"
 	else
-	echo "Creating $WORKSPACE/epic-explorer directory"
+	echo "     Creating $WORKSPACE/epic-explorer directory"
 	mkdir $WORKSPACE/epic-explorer
     fi
 else # missing workspace
-    echo "Can't find a valid trimaran-workspace directory in $BASE_DIR"
-    echo "Please run ./gui/trimaran-gui from Trimaran source code at"
-    echo "least once."
+    echo "      Can't find a valid trimaran-workspace directory in $BASE_DIR"
+    echo "      Please run ./gui/trimaran-gui from Trimaran source code at"
+    echo "      least once."
     exit 0
 fi
 
@@ -29,14 +40,14 @@ if [ ! -e "$WORKSPACE/cache.cfg" ]; then
     echo "Copying cache.cfg "
     cp $EPIC_SOURCE/MISC_FILES/cache.cfg $WORKSPACE
     else
-    echo "Ok, found $WORKSPACE/cache.cfg"
+    echo "     Ok, found $WORKSPACE/cache.cfg"
 fi
 
 if [ ! -e "$WORKSPACE/epic-explorer/SUBSPACES" ]; then
     echo "Creating $WORKSPACE/epic-explorer/SUBSPACES directory"
     cp -R $EPIC_SOURCE/SUBSPACES $WORKSPACE/epic-explorer
     else
-    echo "Ok, found $WORKSPACE/epic-explorer/SUBSPACES"
+    echo "     Ok, found $WORKSPACE/epic-explorer/SUBSPACES"
 fi
 
 if [ -e $WORKSPACE/machines/$HMDES_FILE ]; then
