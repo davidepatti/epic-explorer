@@ -239,7 +239,7 @@ double average_L1D_hamming;
 double average_L2U_hamming;
 
 void __EE_load_cache_config(d4cache* UC,d4cache* IC,d4cache* DC);
-#define CACHE_FILE "/trimaran-workspace/cache.cfg"
+#define CACHE_FILE "./cache.cfg"
 #endif
 /*****************************************************************************/
 
@@ -481,9 +481,11 @@ void __PD_dinero_write_stats()
   FILE * fp;
   char filename[100];
   
-    strcpy(filename,getenv("HOME"));
-    strcat(filename,"/trimaran-workspace/epic-explorer/tmp_transition");
+    //strcpy(filename,getenv("HOME"));
+    //strcat(filename,"/trimaran-workspace/epic-explorer/tmp_transition");
     
+    strcpy(filename,"tmp_transition");
+
     if ((fp=fopen(filename,"w"))==NULL)
     {
 	printf("\n ERROR: can't' write tmp_transition file !");
@@ -1159,12 +1161,12 @@ void __EE_load_cache_config(d4cache* UC,d4cache* IC, d4cache* DC)
     char s[256];
     char filename[256];
 
-    strcpy(filename,getenv("HOME"));
+    //strcpy(filename,getenv("HOME"));
 
-    strcat(filename,CACHE_FILE);
+    //strcat(filename,CACHE_FILE);
 
     
-    if ((fp=fopen(filename,"r"))==NULL)
+    if ((fp=fopen(CACHE_FILE,"r"))==NULL)
     {
 	printf("\n FATAL ERROR: Can't open cache config file ");
 	exit(1);
