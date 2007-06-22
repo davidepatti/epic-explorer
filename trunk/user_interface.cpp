@@ -313,6 +313,7 @@ void User_interface::edit_user_settings()
 	cout << "\n  (8) - Benchmark                    --> " << trimaran_interface->get_benchmark_name();
 	cout << "\n  (9) - Automatic clock freq         --> " << status_string(user_settings.auto_clock);
 	cout << "\n (10) - Approximation                --> " << user_settings.approx_settings.enabled;
+	cout << "\n (11) - Multi directory support      --> " << status_string(user_settings.multidir);
 	if (user_settings.approx_settings.enabled>0)
 	{
 	    cout << " ( " << user_settings.approx_settings.threshold << " , " << user_settings.approx_settings.min << " - " << user_settings.approx_settings.max << " )";
@@ -360,6 +361,28 @@ void User_interface::edit_user_settings()
 		cin >> user_settings.approx_settings.max;   
 	    }
 
+	}
+	if (ch=="11")
+	{
+	    cout << "\n--------------------------------------------------------------------";
+	    cout << "\n NOTE: enabling multi-directory support will save the binary";
+	    cout << "\n and statistics of each simulation in a different folder, under";
+	    cout << "\n the trimaran-workspace/<benchmark name> directory.";
+	    cout << "\n This allows the avoidance of unnecessary compilations/simulation";
+	    cout << "\n potentially increasing the speed of the exploration.";
+	    cout << "\n Althought useful, this could be very disk-space consuming, so";
+	    cout << "\n be aware of this before performing your exploration";
+	    cout << "\n--------------------------------------------------------------------";
+
+	    int pippo;
+	    cout << "\n (0) Disable multi-dir support";
+	    cout << "\n (1) Enable multi-dir support";
+	    cout << "\n make your choice:";
+	    cin >> pippo;
+
+	    if (pippo) user_settings.multidir = true;
+	    else
+		user_settings.multidir = false;
 	}
 
 	if (ch=="s") save_settings_wrapper();
@@ -698,6 +721,7 @@ void User_interface::load_settings(string settings_file)
        user_settings.approx_settings.threshold = 0;
        user_settings.approx_settings.min = 0;
        user_settings.approx_settings.max = 0;
+       user_settings.multidir = false;
 
        fp= fopen(settings_file.c_str(),"w");
        fclose(fp);
@@ -778,6 +802,10 @@ void User_interface::load_settings(string settings_file)
 
 	go_until("fuzzy_max",input_file);
 	input_file >> user_settings.approx_settings.max;
+
+	go_until("multidir",input_file);
+	input_file >> word;
+	if (word=="ENABLED") user_settings.multidir = true;
 
 	my_explorer->set_options(user_settings);
    }
@@ -861,6 +889,7 @@ void User_interface::save_settings(string settings_file)
 	output_file << "\nfuzzy_threshold " << user_settings.approx_settings.threshold;
 	output_file << "\nfuzzy_min " << user_settings.approx_settings.min;
 	output_file << "\nfuzzy_max " << user_settings.approx_settings.max;
+	output_file << "\nmultidir " << status_string(user_settings.multidir);
 
 
 	cout << "\n Ok, saved current settings in " << settings_file;

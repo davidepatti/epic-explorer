@@ -2757,6 +2757,8 @@ int Explorer::DEP_phase2_time(float P,int * n_ott)
 /////////////////////////////////////////////////////////////////7
 void Explorer::check_directories_setup(const string& application, const Configuration& config)
 {
+    // TODO: remove ugly goto code!
+    //
     epic_dir = get_base_dir()+"/trimaran-workspace/epic-explorer/";
     application_dir = epic_dir + Options.benchmark;
     processor_dir = application_dir+"/"+config.get_processor_string();
@@ -2783,6 +2785,8 @@ void Explorer::check_directories_setup(const string& application, const Configur
     if (!file_exists(machine_dir)) goto create_hmdes_dir;
     if (!file_exists(mem_hierarchy_dir)) goto create_mem_hierarchy_dir;
 
+    goto all_done;
+
 create_all:
     cout << "\n No application_dir " << application_dir << " found, creating it...";
     cmd = "mkdir "+application_dir;
@@ -2803,6 +2807,9 @@ create_mem_hierarchy_dir:
     cmd = "mkdir "+mem_hierarchy_dir;
     system(cmd.c_str());
 
+    // note that ';' is needed
+all_done:;
+
 #ifdef TEST
     wait_key();
 #endif
@@ -2817,8 +2824,9 @@ int Explorer::get_explorer_status() const
     assert(file_exists(processor_dir));
     assert(file_exists(machine_dir));
     assert(file_exists(mem_hierarchy_dir));
-
     assert(!Options.hyperblock);
+
+    if (!Options.multidir) return EXPLORER_NOTHING_DONE;
 
     // all simulation steps already done
     if (file_exists(mem_hierarchy_dir+"/PD_STATS.O")) 
@@ -2848,36 +2856,6 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
     static int n_simulate_space_call = 0;
     static int n_exploration_executed = 0; 
 
-    if (Options.save_spaces)
-    {
-	n_simulate_space_call++;
-	if (get_sim_counter()==0)
-	{
-	    n_simulate_space_call=1;
-	    n_exploration_executed++;
-	}
-	// epic_space_EXP_2.12, 12th explorated space of 2nd exploration algorithm
-	char name[40];
-	sprintf(name,"_simulatedspace_%d",n_simulate_space_call);
-	string filename = Options.benchmark+"_"+current_algo+"_"+current_space+string(name);
-	save_configurations(space,filename);
-    } 
-    // -------------------------------------------------------------------
-    // This is an optimization to reduce exploration time .  If the
-    // space, the benchmark and compilation options that has to be
-    // explored is the same of the previous call of simulate space, we
-    // can avoid to repeat all the simulations.
-
-    if (!Options.approx_settings.enabled) {
-	vector<Configuration> previous_space = extract_space(previous_simulations);
-
-	if ((Options.benchmark==previous_benchmark) && 
-	    (Options.hyperblock==previous_hyperblock) &&
-	     equivalent_spaces(previous_space,space)) 
-		return previous_simulations;
-    }
-    // -------------------------------------------------------------------
-
     vector<Simulation> simulations;
     Simulation current_sim;
     Configuration last_config;
@@ -2887,6 +2865,7 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
     bool do_simulation;
 
     do_simulation = (force_simulation || (!(Options.approx_settings.enabled && function_approx->Reliable())));
+
     //  main exploration loop
     // *********************************************************
 
@@ -2900,51 +2879,61 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
 
 	if (do_simulation)
 	{
-	check_directories_setup(Options.benchmark,space[i]);
+	    check_directories_setup(Options.benchmark,space[i]);
 
-	bench_executable = Options.benchmark+"_O";
-	string transitions_file = mem_hierarchy_dir+"/tmp_transition";
-	string pd_stats_file;
-	if (Options.hyperblock) 
-	    pd_stats_file = mem_hierarchy_dir+"/PD_STATS.HS";
-	else
-	    pd_stats_file = mem_hierarchy_dir+"/PD_STATS.O";
+	    bench_executable = Options.benchmark+"_O";
+	    string transitions_file = mem_hierarchy_dir+"/tmp_transition";
+	    string pd_stats_file;
 
-	int explorer_status = get_explorer_status();
+	    if (Options.hyperblock) 
+		pd_stats_file = mem_hierarchy_dir+"/PD_STATS.HS";
+	    else
+		pd_stats_file = mem_hierarchy_dir+"/PD_STATS.O";
 
-	if (explorer_status != EXPLORER_ALL_DONE)
-	{
-	    if (explorer_status != EXPLORER_BINARY_DONE)
+	    int explorer_status = get_explorer_status();
+
+	    if (explorer_status != EXPLORER_ALL_DONE)
 	    {
-		trimaran_interface->save_processor_config(processor,hmdes_filename);
-		trimaran_interface->compile_hmdes_file(machine_dir);
-		trimaran_interface->compile_benchmark(processor_dir);
+		if (explorer_status != EXPLORER_BINARY_DONE)
+		{
+		    trimaran_interface->save_processor_config(processor,hmdes_filename);
+		    trimaran_interface->compile_hmdes_file(machine_dir);
+		    trimaran_interface->compile_benchmark(processor_dir);
+		}
+		trimaran_interface->save_mem_config(mem_hierarchy,mem_hierarchy_filename);
+		trimaran_interface->execute_benchmark(processor_dir,cache_dir_name);
 	    }
-	    trimaran_interface->save_mem_config(mem_hierarchy,mem_hierarchy_filename);
-	    trimaran_interface->execute_benchmark(processor_dir,cache_dir_name);
+
+	    dyn_stats = trimaran_interface->get_dynamic_stats(pd_stats_file);
+
+	    estimate = estimator.get_estimate(dyn_stats,mem_hierarchy,processor,transitions_file);
+	    current_sim.area = estimate.total_area;
+	    current_sim.exec_time = estimate.execution_time;
+	    current_sim.clock_freq = estimate.clock_freq;
+	    current_sim.simulated = true;//do_simulation;
+
+	    if (Options.objective_energy) current_sim.energy = estimate.total_system_energy;
+	    else if (Options.objective_power) current_sim.energy = estimate.total_average_power;
+	    
+	    if (Options.approx_settings.enabled>0) 
+		    function_approx->Learn(space[i],current_sim,processor,mem_hierarchy);
+
+	    // cleanup directories if multidir not enabled
+
+	    if (!Options.multidir)
+	    {
+		string cmd = "rm -rf ";
+		cmd += processor_dir;
+		system(cmd.c_str());
+	    }
 	}
-
-	dyn_stats = trimaran_interface->get_dynamic_stats(pd_stats_file);
-
-	estimate = estimator.get_estimate(dyn_stats,mem_hierarchy,processor,transitions_file);
-	current_sim.area = estimate.total_area;
-	current_sim.exec_time = estimate.execution_time;
-	current_sim.clock_freq = estimate.clock_freq;
-	current_sim.simulated = true;//do_simulation;
-
-	if (Options.objective_energy) current_sim.energy = estimate.total_system_energy;
-	else if (Options.objective_power) current_sim.energy = estimate.total_average_power;
-	
-	if (Options.approx_settings.enabled>0) 
-		function_approx->Learn(space[i],current_sim,processor,mem_hierarchy);
-	}
-	else  
+	else   // NOT do simultation...
 	{   // using fuzzy approximation instead of simulation
 	    assert(approx_settings.enabled);
 
-		current_sim = function_approx->Estimate1(space[i],processor,mem_hierarchy);
-		current_sim.simulated = false;
-		current_sim.area = estimator.get_processor_area(processor);
+	    current_sim = function_approx->Estimate1(space[i],processor,mem_hierarchy);
+	    current_sim.simulated = false;
+	    current_sim.area = estimator.get_processor_area(processor);
 	    
 	}
 	
@@ -2954,6 +2943,20 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
 	//  when doing simulation some interesting info can be optionally saved 
 	if (do_simulation)
 	{
+	    if (Options.save_spaces)
+	    {
+		n_simulate_space_call++;
+		if (get_sim_counter()==0)
+		{
+		    n_simulate_space_call=1;
+		    n_exploration_executed++;
+		}
+		// epic_space_EXP_2.12, 12th explorated space of 2nd exploration algorithm
+		char name[40];
+		sprintf(name,"_simulatedspace_%d",n_simulate_space_call);
+		string filename = Options.benchmark+"_"+current_algo+"_"+current_space+string(name);
+		save_configurations(space,filename);
+	    } 
 	    if (Options.save_PD_STATS)  // trimaran PD_STATS file report
 	    {
 		// TODO: fix this 

@@ -77,6 +77,7 @@ struct User_Settings
 	float threshold;
 	int min,max;
     } approx_settings;
+    bool multidir;
 };
 
 struct Space_mask

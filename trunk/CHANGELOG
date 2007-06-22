@@ -1,3 +1,9 @@
+current
+--------------------------------------
+- Support for multi-directory with recompilation/simulation avoiding.
+- Directory independent reorganization of the code
+- Misc fixes in fuzzy approx.
+
 20060321-r1
 --------------------------------------
 Just maintained version of previous release:
