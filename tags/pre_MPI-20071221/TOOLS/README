@@ -1,0 +1,2 @@
+printf_cache_ref is deprecated from epic explorer versions > 20050512
+since cache reference files aren't necessary anymore.
