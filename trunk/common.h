@@ -17,7 +17,8 @@
 // trimaran-workspace directories to the content of environment
 // variable $DIR
 // Default is $HOME directory
-#define BASE_DIR "HOME"
+#define BASE_DIR "PWD"
+//#define BASE_DIR "HOME"
 
 #define DEFAULT_BENCH "wave"
 #define MAIN_HMDES2 "hpl_pd_elcor_std.hmdes2"
@@ -35,7 +36,6 @@
 
 // ---------------------------------------------------------------------------
 
-#define REAL double
 #ifndef NULL
 #define NULL 0
 #endif
@@ -117,8 +117,8 @@ enum Mask_type { SET_ALL, UNSET_ALL, SET_L1D, SET_L1I, SET_L2U, SET_PROCESSOR_UN
 
 struct Rule {
 	int* antecedents;
-	REAL* consequents;
-	REAL* degrees;
+	double* consequents;
+	double* degrees;
 };
 
 struct Configuration

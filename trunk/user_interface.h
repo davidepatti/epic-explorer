@@ -30,6 +30,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <signal.h>
+#include <time.h>
 
 /**
   *@author Davide Patti
@@ -80,6 +81,9 @@ private:
 	inline string status_string(bool b);
 	string word;
 	string base_path;
+
+        int myrank;
+	int mysize;
 };
 
 #endif

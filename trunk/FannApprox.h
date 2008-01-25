@@ -15,8 +15,8 @@ public:
   CAnnFunctionApproximation();
   ~CAnnFunctionApproximation();
 
-  bool Init(REAL _threshold, int min, int max, int nouts);
-  bool StartUp(int MaxNumberOfEpochs, REAL threshold, int _min, int _max);
+  bool Init(double _threshold, int min, int max, int nouts);
+  bool StartUp(int MaxNumberOfEpochs, double threshold, int _min, int _max);
   bool Learn(Configuration conf,Simulation sim,Processor& p,Mem_hierarchy& mem);
   bool Learn(const Configuration& conf,const Dynamic_stats& dyn);
   Simulation Estimate1(Configuration conf,Processor& p,Mem_hierarchy& mem);

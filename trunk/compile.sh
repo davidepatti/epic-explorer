@@ -1,9 +1,4 @@
 #!/bin/bash
-BASE_DIR=$HOME
+export PATH="/opt/share/mvapich2/bin:$PATH"
 MAKE=/usr/bin/make
-cd MOGA/include/moea
-$MAKE -f makefile
-cd ../../../
-$MAKE
-
-
+$MAKE -C spea2/src && $MAKE

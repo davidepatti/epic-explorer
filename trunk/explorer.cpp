@@ -17,7 +17,7 @@
 
 
 #include "explorer.h"
-#include <moea/AlleleStr.h>
+//#include <moea/AlleleStr.h>
 
 #include "common.h"
 
@@ -1806,6 +1806,14 @@ vector<Simulation> Explorer::sort_by_energydelay_product(vector<Simulation> sims
 #define BIG_AREA        MAXDOUBLE
 
 //******************************************************************************************//
+#include <iomanip>
+#include "containers.h" // for the uid
+#include "variator.h"
+#include "selector.h"
+#define CHROMOSOME_DIM 18
+#define DEF_TOURNAMENT 2
+int individual::uid = 0;
+vector<alleleset> individual::als;
 
 void Explorer::start_GA(const GA_parameters& parameters)
 {
@@ -1819,9 +1827,9 @@ void Explorer::start_GA(const GA_parameters& parameters)
 	current_algo+="_ANN";
     } 
 
-    HashGA ht_ga(DEF_HASH_TABLE_SIZE); // maybe static?
-    HashGA ht_hy(DEF_HASH_TABLE_SIZE);
-    SPEA   ga;
+    static HashGA ht_ga(DEF_HASH_TABLE_SIZE); // maybe static?
+    static HashGA ht_hy(DEF_HASH_TABLE_SIZE);
+//G    SPEA   ga;
 
     static ExportUserData eud;
     eud.explorer = this;
@@ -1829,20 +1837,19 @@ void Explorer::start_GA(const GA_parameters& parameters)
     eud.ht_hy = &ht_hy;
     eud.history.clear();
 
-    static GA_parameters ga_parameters;
 
-    ga_parameters.population_size = parameters.population_size;
-    ga_parameters.pcrossover = parameters.pcrossover;
-    ga_parameters.pmutation = parameters.pmutation;
-    ga_parameters.max_generations = parameters.max_generations;
+//G    static GA_parameters ga_parameters;
+
+//G    ga_parameters.population_size = parameters.population_size;
+//G    ga_parameters.pcrossover = parameters.pcrossover;
+//G    ga_parameters.pmutation = parameters.pmutation;
+//G    ga_parameters.max_generations = parameters.max_generations;
 
     Exploration_stats stats;
     stats.space_size = get_space_size();
     stats.feasible_size = get_feasible_size();
     stats.start_time = time(NULL);
     reset_sim_counter();
-
-    init_GA(ga, &eud, &ga_parameters);
 
     string file_name = Options.benchmark+"_"+current_algo+"_"+current_space;
 
@@ -1851,24 +1858,76 @@ void Explorer::start_GA(const GA_parameters& parameters)
     vector<Simulation> pareto;
     eud.pareto = pareto;
 
-    while ( !ga.done() )
+	// GA init
+   	init_GA(); // call it before creating anything GA related
+
+	int pop_size = parameters.population_size;
+	common* comm = new common(pop_size, pop_size, pop_size, n_obj); // (alpha, mu, lambda, dim)
+	variator* var = new variator(parameters.pcrossover, parameters.pmutation, CHROMOSOME_DIM, comm); // (xover_p, mutation_p, chromo_dim)
+	selector* sel = new selector(DEF_TOURNAMENT, comm); // (tournament)
+	int generation = 0;
+	const int MAX_GENERATIONS = parameters.max_generations;
+
+	// GA start
+	GA_evaluate(var->get_offspring(), eud); // evaluate initial population
+
+	var->write_ini();		// write ini population
+	cout << "Initial population" << endl;
+	cout << var->get_ini() << endl;
+
+	sel->read_ini();		// read ini population
+	sel->select_initial();		// do selection
+	sel->write_arc();		// write arc population (all individuals that could ever be used again)
+	sel->write_sel();		// write sel population
+
+//G    while ( !ga.done() )
+    while ( generation++ < MAX_GENERATIONS )
     {
-	ga.step(); // evolve
+//G	ga.step(); // evolve
+	cout << "Iteration " << generation << endl;
+
+	var->read_arc();
+	cout << "Archive population" << endl;
+	cout << var->get_arc() << endl;
+
+	var->read_sel();
+	cout << "Selected population" << endl;
+	cout << var->get_sel() << endl;
+
+	var->variate();			 // create offspring
+
+	GA_evaluate(var->get_offspring(), eud); // evaluate offspring population
+
+	var->write_var();		// write var population
+	cout << "Variated population" << endl;
+	cout << var->get_var() << endl;
+
+	sel->read_var();		// read var population
+	sel->select_normal();		// do selection
+	sel->write_arc();		// write arc population (all individuals that could ever be used again)
+	sel->write_sel();		// write sel population
 
 	// save Pareto-set every report_pareto_step generations
-	if (ga.currentGeneration() % parameters.report_pareto_step == 0)
+	if ( generation % parameters.report_pareto_step == 0)
 	{
 	    //pareto = get_pareto(eud.history);
 	    pareto = eud.pareto;
 
 	    char temp[10];
-	    sprintf(temp, "_%d",ga.currentGeneration());
+	    sprintf(temp, "_%d", generation);
 	    save_simulations(pareto, file_name+string(temp)+".pareto.exp", SHOW_ALL);
 
 	    save_simulations(eud.history, file_name+".history.stat", SHOW_ALL);
-	    ga_show_info(ga, eud, file_name+".info.stat");
+//G	    ga_show_info(ga, eud, file_name+".info.stat");
+	    ga_show_info(eud, file_name+".info.stat");
 	}
     }
+    var->read_arc();
+    cout << "Final archive population" << endl;
+    cout <<
+// setiosflags(ios::fixed) << setprecision(14) << 
+	var->get_arc() << endl;
+    var->write_output();
 
     // save history
     //save_simulations(eud.history, file_name+".history.stat", SHOW_ALL);
@@ -1877,84 +1936,213 @@ void Explorer::start_GA(const GA_parameters& parameters)
     stats.end_time = time(NULL);
     stats.n_sim = get_sim_counter();
     save_stats(stats, file_name+".stat");
+
+    wait_key();
 }
 
 
 //********************************************************************
 
 
-void Explorer::init_GA(SPEA& ga, ExportUserData* eud,GA_parameters* ga_parameters)
+void Explorer::init_GA()
 {
 
-  ga.objectiveDimensions(n_obj); 
+//G  ga.objectiveDimensions(n_obj); 
 
-  ga.minimize(); /* minimization of the objectives */
-  vector<vector<AlleleString::Allele> > alleles;
+//G ga.minimize(); /* minimization of the objectives */
+//G vector<vector<AlleleString::Allele> > alleles;
+  vector<alleleset> alleles;
+
   // memory hierarchy parameters
-  alleles.push_back(values2alleles(mem_hierarchy.L1D.block_size.get_values()));
-  alleles.push_back(values2alleles(mem_hierarchy.L1D.size.get_values()));
-  alleles.push_back(values2alleles(mem_hierarchy.L1D.associativity.get_values()));
+  alleles.push_back((mem_hierarchy.L1D.block_size.get_values()));
+  alleles.push_back((mem_hierarchy.L1D.size.get_values()));
+  alleles.push_back((mem_hierarchy.L1D.associativity.get_values()));
 
-  alleles.push_back(values2alleles(mem_hierarchy.L1I.block_size.get_values()));
-  alleles.push_back(values2alleles(mem_hierarchy.L1I.size.get_values()));
-  alleles.push_back(values2alleles(mem_hierarchy.L1I.associativity.get_values()));
+  alleles.push_back((mem_hierarchy.L1I.block_size.get_values()));
+  alleles.push_back((mem_hierarchy.L1I.size.get_values()));
+  alleles.push_back((mem_hierarchy.L1I.associativity.get_values()));
   
-  alleles.push_back(values2alleles(mem_hierarchy.L2U.block_size.get_values()));
-  alleles.push_back(values2alleles(mem_hierarchy.L2U.size.get_values()));
-  alleles.push_back(values2alleles(mem_hierarchy.L2U.associativity.get_values()));
+  alleles.push_back((mem_hierarchy.L2U.block_size.get_values()));
+  alleles.push_back((mem_hierarchy.L2U.size.get_values()));
+  alleles.push_back((mem_hierarchy.L2U.associativity.get_values()));
 
   // processor parameters
-  alleles.push_back(values2alleles(processor.integer_units.get_values()));
-  alleles.push_back(values2alleles(processor.float_units.get_values()));
-  alleles.push_back(values2alleles(processor.memory_units.get_values()));
-  alleles.push_back(values2alleles(processor.branch_units.get_values()));
-  alleles.push_back(values2alleles(processor.gpr_static_size.get_values()));
-  alleles.push_back(values2alleles(processor.fpr_static_size.get_values()));
-  alleles.push_back(values2alleles(processor.cr_static_size.get_values()));
-  alleles.push_back(values2alleles(processor.pr_static_size.get_values()));
-  alleles.push_back(values2alleles(processor.btr_static_size.get_values()));
+  alleles.push_back((processor.integer_units.get_values()));
+  alleles.push_back((processor.float_units.get_values()));
+  alleles.push_back((processor.memory_units.get_values()));
+  alleles.push_back((processor.branch_units.get_values()));
+  alleles.push_back((processor.gpr_static_size.get_values()));
+  alleles.push_back((processor.fpr_static_size.get_values()));
+  alleles.push_back((processor.cr_static_size.get_values()));
+  alleles.push_back((processor.pr_static_size.get_values()));
+  alleles.push_back((processor.btr_static_size.get_values()));
 
-  IND individual(alleles, GA_Evaluator, eud);
-  individual.metric(DefaultObjectiveDistance);
+  individual::setAllelesets(alleles); // set static allele sets genome for individuals
 
-  ga.initialize(individual);
+//G IND individual(alleles, GA_Evaluator, eud);
+//G individual.metric(DefaultObjectiveDistance);
 
-  ga.maxGenerations(ga_parameters->max_generations);
-  ga.pCrossover(ga_parameters->pcrossover);
-  ga.pMutate(ga_parameters->pmutation);
-  ga.pop1Size(ga_parameters->population_size);
-  ga.pop2Size(ga_parameters->population_size);
+//G ga.initialize(individual);
+
+//G ga.maxGenerations(ga_parameters->max_generations);
+//G ga.pCrossover(ga_parameters->pcrossover);
+//G ga.pMutate(ga_parameters->pmutation);
+//G ga.pop1Size(ga_parameters->population_size);
+//G ga.pop2Size(ga_parameters->population_size);
 }
 
 
 /*************************************************************************/
 
-vector<AlleleString::Allele> Explorer::values2alleles(vector<int> values)
-{
-  vector<AlleleString::Allele> avec;
+//Gvector<AlleleString::Allele> Explorer::values2alleles(vector<int> values)
+//G{
+//G  vector<AlleleString::Allele> avec;
   
-  for (int i=0; i<values.size(); i++)
-    avec.push_back((AlleleString::Allele)values[i]);
+//G  for (int i=0; i<values.size(); i++)
+//G    avec.push_back((AlleleString::Allele)values[i]);
   
-  return avec;
-}
-
+//G  return avec;
+//G}
 
 /*************************************************************************/
 
-void Explorer::ga_show_info(SPEA& ga, ExportUserData& eud,
+//G void Explorer::ga_show_info(SPEA& ga, ExportUserData& eud,
+void Explorer::ga_show_info(ExportUserData& eud,
 			    string fname)
 {
   ofstream fmsg(fname.c_str(), ios::ate);
   assert(fmsg.good());
 
-  ga.parameters(fmsg);
+//  ga.parameters(fmsg);
   fmsg << endl << "simulations: " << eud.history.size() << endl;
 }
 
 
 /*************************************************************************/
 
+Configuration Explorer::ind2conf(const individual& ind){
+    Configuration conf;
+
+    conf.L1D_block = ind.phenotype(0);
+    conf.L1D_size  = ind.phenotype(1);
+    conf.L1D_assoc = ind.phenotype(2);
+
+    conf.L1I_block = ind.phenotype(3);
+    conf.L1I_size  = ind.phenotype(4);
+    conf.L1I_assoc = ind.phenotype(5);
+
+    conf.L2U_block = ind.phenotype(6);
+    conf.L2U_size  = ind.phenotype(7);
+    conf.L2U_assoc = ind.phenotype(8);
+
+    conf.integer_units = ind.phenotype(9);
+    conf.float_units   = ind.phenotype(10);
+    conf.memory_units  = ind.phenotype(11);
+    conf.branch_units  = ind.phenotype(12);
+
+    conf.gpr_static_size = ind.phenotype(13);
+    conf.fpr_static_size = ind.phenotype(14);
+    conf.cr_static_size  = ind.phenotype(15);
+    conf.pr_static_size  = ind.phenotype(16);
+    conf.btr_static_size = ind.phenotype(17);
+
+    return conf;
+}
+
+/*************************************************************************/
+
+void Explorer::GA_evaluate(population* pop, ExportUserData& eud){
+//cout << "allocating variables" << endl;
+    vector<Configuration> vconf;
+    vector<Simulation> vsim;
+    vector<int> indexes;
+    int index=0;
+
+    vsim.reserve(pop->size());
+    vconf.reserve(pop->size());
+
+    HashGA* ht_ga = eud.ht_ga;
+//cout << "starting population read loop" << endl;
+    for(population::iterator it=pop->begin(); it!=pop->end(); it++,index++){
+//cout << "converting individual " << index << " to configuration" << endl;
+	Configuration conf = ind2conf(*it);	
+//cout << "individual converted" << endl;
+	Simulation sim;
+	sim.config = conf;    
+//cout << "checking configuration feasibility" << endl;
+	if(!conf.is_feasible()){
+cout << "configuration " << index << " not feasible" << endl;
+		sim.exec_time = BIG_CYCLES;
+		sim.energy = BIG_ENERGY;
+		sim.area = BIG_AREA;
+//cout << "saving in vsim... ";
+		vsim[index] = sim;
+//cout << "saved" << endl;
+	} else {
+//cout << "searching configuration in ht_ga cache" << endl;
+		Simulation *psim = ht_ga->searchT(sim);
+		if(psim != NULL){ // present in cache
+			sim.energy = psim->energy;
+			sim.area = psim->area;
+			sim.exec_time = psim->exec_time;
+			sim.clock_freq = psim->clock_freq;
+			sim.simulated = psim->simulated;
+			vsim[index] = sim;
+		} else { // not present in cache
+			// check history
+//cout << "searching configuration in ht_hy history" << endl;
+			psim = eud.ht_hy->searchT(sim);
+			if (psim != NULL) 
+			    vsim[index] = (*psim); // already simulated
+			else {
+			    indexes.push_back(index); // save index for later use
+			    vconf.push_back(conf); // schedule configuration for simulation
+			}
+		}
+    	}
+    }
+
+cout << "Simulating " << vconf.size() << " configurations" << endl;
+    vector<Simulation> results = simulate_space(vconf);
+
+    for(int i=0; i<results.size(); i++){
+	Simulation sim = results[i];
+	eud.history.push_back(sim);
+	bool cacheable = sim.simulated;
+	if(cacheable){
+		ht_ga->addT(sim);
+		eud.pareto.push_back(sim);
+		eud.pareto = get_pareto(eud.pareto);
+	} else if (!isDominated(sim, eud.pareto)){ //if it could be a pareto solution, the configuration is simulated
+//FIXME
+//		explorer->set_force_simulation(true);
+//		sim = explorer->simulate_space(vconf)[0];
+//		explorer->set_force_simulation(false);
+		eud.history[eud.history.size() - 1] = sim;
+		ht_ga->addT(sim);
+		eud.pareto.push_back(sim);
+		eud.pareto = get_pareto(eud.pareto);
+	}
+
+	//G
+	vsim[indexes[i]] = sim; // update simulation vector with new results
+    }
+
+//    const int SCALE = 1; // seconds
+    const int SCALE = 1000; // milliseconds
+
+    assert(vsim.size() == pop->size());
+    for(int i=0; i<pop->size(); i++){
+	(*pop)[i].objectives[0] = vsim[i].exec_time * SCALE;
+		if( (*pop)[i].objectives_dim() > 1 )
+			(*pop)[i].objectives[1] = vsim[i].energy;
+		if( (*pop)[i].objectives_dim() > 2 )
+			(*pop)[i].objectives[2] = vsim[i].area;
+    }
+}
+
+/*************************************************************************/
+/*
 void GA_Evaluator(IND& ind, ObjectiveVector& scores, void *user_data)
 {
   double exec_time, energy, area;
@@ -1993,10 +2181,10 @@ void GA_Evaluator(IND& ind, ObjectiveVector& scores, void *user_data)
   }
 
 }
-
+*/
 
 /*************************************************************************/
-
+/*
 bool GA_Evaluation(IND& ind, void *user_data, double& exec_time, double& energy,double& area)
 {
     ExportUserData *eud      = (ExportUserData *)user_data;
@@ -2103,7 +2291,7 @@ bool GA_Evaluation(IND& ind, void *user_data, double& exec_time, double& energy,
 
     return true;
 }
-
+*/
 
 /*************************************************************************/
 
@@ -2851,159 +3039,6 @@ int Explorer::get_explorer_status() const
 }
 
 ////////////////////////////////////////////////////////////////////////////
-vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
-{
-    static int n_simulate_space_call = 0;
-    static int n_exploration_executed = 0; 
-
-    vector<Simulation> simulations;
-    Simulation current_sim;
-    Configuration last_config;
-
-    bool processor_changed;
-    bool compilation_changed;
-    bool do_simulation;
-
-    do_simulation = (force_simulation || (!(Options.approx_settings.enabled && function_approx->Reliable())));
-
-    //  main exploration loop
-    // *********************************************************
-
-    for (unsigned int i = 0;i< space.size();i++)
-    {
-	cout << "\n -------> E p i c  E x p l o r e r >>>> simulation n." << i+1 << " / " << space.size();
-
-	processor.set_config(space[i]);
-	mem_hierarchy.set_config(space[i]);
-	current_sim.config = space[i];
-
-	if (do_simulation)
-	{
-	    check_directories_setup(Options.benchmark,space[i]);
-
-	    bench_executable = Options.benchmark+"_O";
-	    string transitions_file = mem_hierarchy_dir+"/tmp_transition";
-	    string pd_stats_file;
-
-	    if (Options.hyperblock) 
-		pd_stats_file = mem_hierarchy_dir+"/PD_STATS.HS";
-	    else
-		pd_stats_file = mem_hierarchy_dir+"/PD_STATS.O";
-
-	    int explorer_status = get_explorer_status();
-
-	    if (explorer_status != EXPLORER_ALL_DONE)
-	    {
-		if (explorer_status != EXPLORER_BINARY_DONE)
-		{
-		    trimaran_interface->save_processor_config(processor,hmdes_filename);
-		    trimaran_interface->compile_hmdes_file(machine_dir);
-		    trimaran_interface->compile_benchmark(processor_dir);
-		}
-		trimaran_interface->save_mem_config(mem_hierarchy,mem_hierarchy_filename);
-		trimaran_interface->execute_benchmark(processor_dir,cache_dir_name);
-	    }
-
-	    dyn_stats = trimaran_interface->get_dynamic_stats(pd_stats_file);
-
-	    estimate = estimator.get_estimate(dyn_stats,mem_hierarchy,processor,transitions_file);
-	    current_sim.area = estimate.total_area;
-	    current_sim.exec_time = estimate.execution_time;
-	    current_sim.clock_freq = estimate.clock_freq;
-	    current_sim.simulated = true;//do_simulation;
-
-	    if (Options.objective_energy) current_sim.energy = estimate.total_system_energy;
-	    else if (Options.objective_power) current_sim.energy = estimate.total_average_power;
-	    
-	    if (Options.approx_settings.enabled>0) 
-		    function_approx->Learn(space[i],current_sim,processor,mem_hierarchy);
-
-	    // cleanup directories if multidir not enabled
-
-	    if (!Options.multidir)
-	    {
-		string cmd = "rm -rf ";
-		cmd += processor_dir;
-		system(cmd.c_str());
-	    }
-	}
-	else   // NOT do simultation...
-	{   // using fuzzy approximation instead of simulation
-	    assert(approx_settings.enabled);
-
-	    current_sim = function_approx->Estimate1(space[i],processor,mem_hierarchy);
-	    current_sim.simulated = false;
-	    current_sim.area = estimator.get_processor_area(processor);
-	    
-	}
-	
-	simulations.push_back(current_sim);
-
-	// -------------------------------------------------------------------
-	//  when doing simulation some interesting info can be optionally saved 
-	if (do_simulation)
-	{
-	    if (Options.save_spaces)
-	    {
-		n_simulate_space_call++;
-		if (get_sim_counter()==0)
-		{
-		    n_simulate_space_call=1;
-		    n_exploration_executed++;
-		}
-		// epic_space_EXP_2.12, 12th explorated space of 2nd exploration algorithm
-		char name[40];
-		sprintf(name,"_simulatedspace_%d",n_simulate_space_call);
-		string filename = Options.benchmark+"_"+current_algo+"_"+current_space+string(name);
-		save_configurations(space,filename);
-	    } 
-	    if (Options.save_PD_STATS)  // trimaran PD_STATS file report
-	    {
-		// TODO: fix this 
-		assert(false);
-		string command;
-		char temp[10];
-		sprintf(temp,"%d",i);
-
-		if (Options.hyperblock)
-		    command = "cp "+mem_hierarchy_dir+"/PD_STATS.HS "+mem_hierarchy_dir+"/PD_STATS.HS_"+string(temp);
-		else
-		    command = "cp "+mem_hierarchy_dir+"/PD_STATS.O "+mem_hierarchy_dir+"/PD_STATS.O_"+string(temp);
-		system(command.c_str());
-	    }
-
-	    if (Options.save_estimation) // detailed and verbose estimator report
-	    {
-		assert(false);
-		char temp[10];
-		sprintf(temp,"%d",i);
-		string filename= Options.benchmark+"_"+current_algo+"_"+current_space+"."+string(temp)+".est";
-		save_estimation_file(dyn_stats,estimate,processor, mem_hierarchy,filename);
-	    }
-
-	    if (Options.save_objectives_details) // 
-	    {
-		assert(false);
-		string filename= Options.benchmark+"_"+current_algo+"_"+current_space+".details";
-		save_objectives_details(dyn_stats,current_sim.config,filename);
-	    }
-	    // -------------------------------------------------------------------
-	}
-
-    } // end for loop
-
-    sim_counter+=simulations.size();
-
-    // update current simulated space and benchmark
-    previous_simulations.clear();
-    append_simulations(previous_simulations,simulations);
-    previous_benchmark = Options.benchmark;
-    previous_hyperblock = Options.hyperblock;
-
-    return simulations;
-}
-
-////////////////////////////////////////////////////////////////////////////
 void Explorer::save_estimation_file( const Dynamic_stats& dynamic_stats, 
 				         const Estimate& estimate, 
 					 Processor& processor, 
@@ -3702,7 +3737,7 @@ void Explorer::append_simulations(vector<Simulation>& dest,const vector<Simulati
 {
     for (unsigned int i=0;i<new_sims.size();i++) 
     {
-	if (simulation_present(new_sims[i],dest) > -1) dest.push_back(new_sims[i]);
+	if (simulation_present(new_sims[i],dest) < 0) dest.push_back(new_sims[i]);
     }
 }
 
@@ -4341,6 +4376,7 @@ void Explorer::init_approximation()
     } 
     else if (Options.approx_settings.enabled==2)
     {
+
 	cout << "\nArtificial Neural Network Approximation is not available in this release\n";
 	cout << "\nFuzzy Approximation will be enabled instead\n";
 	Options.approx_settings.enabled = 1;

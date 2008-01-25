@@ -29,9 +29,10 @@
 #include "estimator.h"
 #include "parameter.h"
 #include "hash.h" // mau
-#include "moea/SPEA.h" // mau
+//#include "moea/SPEA.h" // mau
 #include "FuzzyApprox.h" // ale
 //#include "FannApprox.h" // ale
+#include "containers.h" //G
 
 // ---------------------------------------------------------------------------
 #define EXPLORER_NOTHING_DONE 0
@@ -68,6 +69,7 @@ public:
 
   // Main function for simulating a parameter space 
   vector<Simulation> simulate_space(const vector<Configuration>& space);
+  int simulate_space();
 
   // Functions for building configuration spaces needed by
   // simultate_space(vector<Configuration>& space)
@@ -110,7 +112,7 @@ public:
   bool configuration_present(const Configuration& conf,const vector<Configuration>& space) const;
   int simulation_present(const Simulation& sim,const vector<Simulation>& simulations) const;
 
-  //*********************************************************
+  //*********************************************************//
   // function to manipulate Simulations
 
   vector<Simulation> get_pareto(const vector<Simulation>& simulations);
@@ -145,7 +147,7 @@ public:
   int get_obj_number() const;
 
 
-  //	double get_distance(vector<Simulation>& s1,vector<Simulation>& s2,double err);
+  //*double get_distance(vector<Simulation>& s1,vector<Simulation>& s2,double err);*/
 
   int get_sim_counter() const;
   void reset_sim_counter();
@@ -171,14 +173,17 @@ private:
 
 
   // private methods 
-  void init_GA(SPEA& ga, ExportUserData* eud,GA_parameters* ga_parameters); // mau
-  void init_GA_Fuzzy(SPEA& ga, ExportUserData* eud,GA_parameters* ga_parameters); // mau
-  vector<AlleleString::Allele> values2alleles(vector<int> values); // mau
-  void ga_show_info(SPEA& ga, ExportUserData& eud, string fname); // mau
+//  void init_GA(SPEA& ga, ExportUserData* eud,GA_parameters* ga_parameters); // mau
+  void init_GA(); //G
+//  void init_GA_Fuzzy(SPEA& ga, ExportUserData* eud,GA_parameters* ga_parameters); // mau
+//  vector<AlleleString::Allele> values2alleles(vector<int> values); // mau
+//  void ga_show_info(SPEA& ga, ExportUserData& eud, string fname); // mau
+  void ga_show_info(ExportUserData& eud, string fname); //G
   //---------FuzzyApprox
   void SimulateBestWorst(ExportUserData& eud);
   //--------------------
-
+  void GA_evaluate(population* pop, ExportUserData& eud); //G
+  Configuration ind2conf(const individual& ind); //G
   // private class variables
   Trimaran_interface  * trimaran_interface;
 
@@ -219,6 +224,6 @@ private:
 // Functions for GA-fuzzy
 bool isDominated(Simulation sim, const vector<Simulation>& simulations);
 // Evaluation functions for GA-based exploration
-void GA_Evaluator(IND& ind, ObjectiveVector& scores, void *user_data); 
-bool GA_Evaluation(IND& ind, void *user_data, double& exec_time, double& power, double& area); 
+// void GA_Evaluator(IND& ind, ObjectiveVector& scores, void *user_data); 
+// bool GA_Evaluation(IND& ind, void *user_data, double& exec_time, double& power, double& area); 
 #endif
