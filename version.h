@@ -1,1 +1,1 @@
-#define VERSION "2007 beta testing"
+#define VERSION "2008 frankenstein edition"
