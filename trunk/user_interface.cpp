@@ -48,7 +48,7 @@ void User_interface::interact(){
     
     if (myrank == 0) {
     	while (show_menu()!=113) ;
-//	show_menu();
+//G	show_menu();
 	chiudi = 0;
 	
 	cout<<"\nProcessor "<<myrank<<" is exiting"<<endl;
@@ -110,7 +110,8 @@ int User_interface::show_menu()
     cout << "\n [s] - SAP\t(mono-objective sensivity analysis)";
     cout << "\n [p] - PBSA\t(pareto-based sensitivity analysis)";
     cout << "\n [e] - Exhaustive exploration";
-    cout << "\n [r] - Random exploration ";
+    cout << "\n [r] - Random exploration";
+    cout << "\n [v] - Re-Evaluate previous Pareto";
     cout << "\n [t] - run Explorer::test() code";
 
     cout << "\n\n     Perform Manual Steps: ";
@@ -123,7 +124,8 @@ int User_interface::show_menu()
     cout << "\n -------------------------------------------------------------------";
     cout << "\n [q] - Quit ";
     cout << "\n\n Make your choice:";
-    
+ 
+//G ch = 'r';
     cin >> ch;
     }    
     string start;
@@ -155,7 +157,6 @@ int User_interface::show_menu()
 			ga_parameters.random_seed = rand()*rand(); // this is not random
 		else
 	                srand(ga_parameters.random_seed);
-//G	    	originalSeed = Seed = ga_parameters.random_seed;
 	    	cout << "\n\n Population size: ";
 	    	cin >> ga_parameters.population_size;
 	    	cout << " Crossover prob: ";
@@ -266,8 +267,10 @@ int User_interface::show_menu()
 	    int n;
 	    unsigned int seed;
 	    cout << "\n Number of  random simulations:";
+//G	    n = 10000;
 	    cin >> n;
 	    cout << "\n Enter random seed (0 = auto):";
+//G	    seed = 1962;
 	    cin >> seed;
 	    if (seed==0)
 		srand((unsigned int)time((time_t*)NULL));
@@ -275,6 +278,37 @@ int User_interface::show_menu()
 		srand(seed);
 	    my_explorer->start_RAND(n);
 	    wait_key();
+	    }
+	    break;
+
+	case 'v':
+            my_explorer->init_approximation();
+            if (myrank == 0) {
+	    string command = "ls ";
+	    string pareto_path = base_path + "/trimaran-workspace/epic-explorer/";
+	    command+= pareto_path;
+	    command+= " | grep -e pareto -e history";
+	    bool done = false;
+	    string fpath;
+	    while(!done){
+	        system(command.c_str());
+	        cout << "\n\n Choose a pareto: ";
+	        string b;
+	        cin >> b;
+	        fpath = pareto_path + b;
+	        ifstream infile(fpath.c_str());
+	        done = infile.good();
+	        if(!done)
+	            cout << "\n Could non open file " << fpath;
+		else
+		    cout << "\n Using file " << fpath;
+	    }
+            start_exploration_message();
+            cout << "\n\n Start exploration (y/n) ? ";
+	    cin >> ch;
+            if (ch=='y')
+	    my_explorer->start_REP(fpath);
+            wait_key();
 	    }
 	    break;
 

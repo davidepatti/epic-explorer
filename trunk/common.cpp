@@ -88,6 +88,42 @@ string Configuration::get_mem_hierarchy_string() const
     return string(s);
 }
 
+//G
+void Simulation::add_simulation(const Simulation& other)
+{
+  assert(configuration == other.configuration); // same configuration
+  if(energy_v.size() == 0 &&  area_v.size() == 0 && exec_time_v.size() == 0){ // single to multi-valued transform
+    energy_v.push_back(energy);
+    area_v.push_back(area);
+    exec_time_v.push_back(exec_time);
+  }
+  if(other.energy_v.size()>0 &&  other.area_v.size()>0 && exec_time_v.size()>0) { // multiple valued simulation
+    energy_v.insert(energy_v.end(), other.energy_v.begin(), other.energy_v.end());
+    area_v.insert(area_v.end(), other.area_v.begin(), other.area_v.end());
+    exec_time_v.insert(exec_time_v.end(), other.exec_time_v.begin(), other.exec_time_v.end());
+  } else { // single valued simulation
+    energy_v.push_back(other.energy);
+    area_v.push_back(other.area);
+    exec_time_v.push_back(other.exec_time);
+  }
+  // update mean values
+  vector<double>::iterator it;
+  double sum = 0;
+  for(it = energy_v.begin(); it != energy_v.end(); it++)
+	sum += *it;
+  //cout<<"\n ENERGY: "<< energy <<" sum/size: "<< sum << "/" << energy_v.size() << endl;
+  energy = sum / energy_v.size();
+  sum = 0;
+  for(it = area_v.begin(); it != area_v.end(); it++)
+	sum += *it;
+  area = sum / area_v.size();
+  sum = 0;
+  for(it = exec_time_v.begin(); it != exec_time_v.end(); it++)
+	sum += *it;
+  exec_time = sum / exec_time_v.size();
+}
+
+
 void go_until(const string& dest,ifstream& ifs)
 {
     string word;

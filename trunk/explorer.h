@@ -65,6 +65,7 @@ public:
   void start_RAND(int n);
   void start_GA(const GA_parameters& parameters); 
   void start_EXHA();
+  void start_REP(const string&); //G
   void test(); // for testing only
 
   // Main function for simulating a parameter space 
@@ -178,11 +179,11 @@ private:
 //  void init_GA_Fuzzy(SPEA& ga, ExportUserData* eud,GA_parameters* ga_parameters); // mau
 //  vector<AlleleString::Allele> values2alleles(vector<int> values); // mau
 //  void ga_show_info(SPEA& ga, ExportUserData& eud, string fname); // mau
-  void ga_show_info(ExportUserData& eud, string fname); //G
+  void ga_show_info(string fname); //G
   //---------FuzzyApprox
-  void SimulateBestWorst(ExportUserData& eud);
+  void SimulateBestWorst();
   //--------------------
-  void GA_evaluate(population* pop, ExportUserData& eud); //G
+  void GA_evaluate(population* pop); //G
   Configuration ind2conf(const individual& ind); //G
   // private class variables
   Trimaran_interface  * trimaran_interface;
@@ -208,6 +209,8 @@ private:
   string current_algo;
   string current_space;
   int n_obj;
+  vector<string> benchmarks; //G TODO spostarlo in Options
+  struct ExportUserData eud; //G
   struct User_Settings Options;
 
   int average_compilation_time, average_exec_time;

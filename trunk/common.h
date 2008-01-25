@@ -149,6 +149,10 @@ struct Simulation
   double clock_freq;
   Configuration config;
   bool simulated;
+  //G
+  void add_simulation(const Simulation&);
+  private:
+  vector<double> energy_v, area_v, exec_time_v;
 };
 
 struct Dynamic_stats
@@ -239,11 +243,11 @@ public:
 
 // ---------------------------------------------------------------------------
 // wrapper for the communication between Explorer and ga evaluation function
-struct ExportUserData // mau
+struct ExportUserData //G
 {
-  class Explorer     *explorer;
+//G  class Explorer     *explorer;
   HashGA             *ht_ga;
-  HashGA	     *ht_hy;
+//G  HashGA	     *ht_hy;
   vector<Simulation> history;
   vector<Simulation> pareto;
 };
