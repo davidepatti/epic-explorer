@@ -2,7 +2,7 @@
 //#include "common.h"
 
 using namespace std;
-bool CFuzzyFunctionApproximation::Init(REAL _threshold, int _min, int _max, int nouts)
+bool CFuzzyFunctionApproximation::Init(double _threshold, int _min, int _max, int nouts)
 {
 
   cout << "\n--------------------------------------------------------";
@@ -27,8 +27,8 @@ bool CFuzzyFunctionApproximation::FuzzySetsInit(const vector<pair<int,int> >& mi
   
   int nins = min_max.size();
 
-  REAL *InMin = new REAL[nins];
-  REAL *InMax = new REAL[nins];
+  double *InMin = new double[nins];
+  double *InMax = new double[nins];
   int *InSets = new int[nins];
 
   for (int i=0; i<nins; i++)
@@ -53,51 +53,51 @@ bool CFuzzyFunctionApproximation::Learn(const Configuration& conf,const Dynamic_
 }
 
 bool CFuzzyFunctionApproximation::Learn(Configuration conf,Simulation sim,Processor& p,Mem_hierarchy& mem) {
-	REAL appoggio[20];
-    	appoggio[0] = REAL(p.integer_units.get_pos(conf.integer_units));
-	appoggio[1] = REAL(p.float_units.get_pos(conf.float_units));
-	appoggio[2] = REAL(p.branch_units.get_pos(conf.branch_units));
-	appoggio[3] = REAL(p.memory_units.get_pos(conf.memory_units));
-	appoggio[4] = REAL(p.gpr_static_size.get_pos(conf.gpr_static_size));
-	appoggio[5] = REAL(p.fpr_static_size.get_pos(conf.fpr_static_size));
-	appoggio[6] = REAL(p.pr_static_size.get_pos(conf.pr_static_size));
-	appoggio[7] = REAL(p.cr_static_size.get_pos(conf.cr_static_size));
-	appoggio[8] = REAL(p.btr_static_size.get_pos(conf.btr_static_size));
-	appoggio[9] = REAL(mem.L1D.size.get_pos(conf. L1D_size  ));
-	appoggio[10] = REAL(mem.L1D.block_size.get_pos(conf.L1D_block));
-	appoggio[11] = REAL(mem.L1D.associativity.get_pos(conf.L1D_assoc));
-	appoggio[12] = REAL(mem.L1I.size.get_pos(conf.L1I_size  ));
-	appoggio[13] = REAL(mem.L1I.block_size.get_pos(conf.L1I_block));
-	appoggio[14] = REAL(mem.L1I.associativity.get_pos(conf.L1I_assoc));
-	appoggio[15] = REAL(mem.L2U.size.get_pos(conf.L2U_size  ));
-	appoggio[16] = REAL(mem.L2U.block_size.get_pos(conf.L2U_block));
-	appoggio[17] = REAL(mem.L2U.associativity.get_pos(conf.L2U_assoc));
-	appoggio[18] = REAL(sim.energy); 
-	appoggio[19] = REAL(sim.exec_time);
+	double appoggio[20];
+    	appoggio[0] = double(p.integer_units.get_pos(conf.integer_units));
+	appoggio[1] = double(p.float_units.get_pos(conf.float_units));
+	appoggio[2] = double(p.branch_units.get_pos(conf.branch_units));
+	appoggio[3] = double(p.memory_units.get_pos(conf.memory_units));
+	appoggio[4] = double(p.gpr_static_size.get_pos(conf.gpr_static_size));
+	appoggio[5] = double(p.fpr_static_size.get_pos(conf.fpr_static_size));
+	appoggio[6] = double(p.pr_static_size.get_pos(conf.pr_static_size));
+	appoggio[7] = double(p.cr_static_size.get_pos(conf.cr_static_size));
+	appoggio[8] = double(p.btr_static_size.get_pos(conf.btr_static_size));
+	appoggio[9] = double(mem.L1D.size.get_pos(conf. L1D_size  ));
+	appoggio[10] = double(mem.L1D.block_size.get_pos(conf.L1D_block));
+	appoggio[11] = double(mem.L1D.associativity.get_pos(conf.L1D_assoc));
+	appoggio[12] = double(mem.L1I.size.get_pos(conf.L1I_size  ));
+	appoggio[13] = double(mem.L1I.block_size.get_pos(conf.L1I_block));
+	appoggio[14] = double(mem.L1I.associativity.get_pos(conf.L1I_assoc));
+	appoggio[15] = double(mem.L2U.size.get_pos(conf.L2U_size  ));
+	appoggio[16] = double(mem.L2U.block_size.get_pos(conf.L2U_block));
+	appoggio[17] = double(mem.L2U.associativity.get_pos(conf.L2U_assoc));
+	appoggio[18] = double(sim.energy); 
+	appoggio[19] = double(sim.exec_time);
 	return (Learn(appoggio,&(appoggio[18])));
 }
 
 Simulation CFuzzyFunctionApproximation::Estimate1(Configuration conf,Processor& p,Mem_hierarchy& mem) {
 	Simulation sim;
-	REAL appoggio[20];
-    	appoggio[0] = REAL(p.integer_units.get_pos(conf.integer_units));
-	appoggio[1] = REAL(p.float_units.get_pos(conf.float_units));
-	appoggio[2] = REAL(p.branch_units.get_pos(conf.branch_units));
-	appoggio[3] = REAL(p.memory_units.get_pos(conf.memory_units));
-	appoggio[4] = REAL(p.gpr_static_size.get_pos(conf.gpr_static_size));
-	appoggio[5] = REAL(p.fpr_static_size.get_pos(conf.fpr_static_size));
-	appoggio[6] = REAL(p.pr_static_size.get_pos(conf.pr_static_size));
-	appoggio[7] = REAL(p.cr_static_size.get_pos(conf.cr_static_size));
-	appoggio[8] = REAL(p.btr_static_size.get_pos(conf.btr_static_size));
-	appoggio[9] = REAL(mem.L1D.size.get_pos(conf. L1D_size  ));
-	appoggio[10] = REAL(mem.L1D.block_size.get_pos(conf.L1D_block));
-	appoggio[11] = REAL(mem.L1D.associativity.get_pos(conf.L1D_assoc));
-	appoggio[12] = REAL(mem.L1I.size.get_pos(conf.L1I_size  ));
-	appoggio[13] = REAL(mem.L1I.block_size.get_pos(conf.L1I_block));
-	appoggio[14] = REAL(mem.L1I.associativity.get_pos(conf.L1I_assoc));
-	appoggio[15] = REAL(mem.L2U.size.get_pos(conf.L2U_size  ));
-	appoggio[16] = REAL(mem.L2U.block_size.get_pos(conf.L2U_block));
-	appoggio[17] = REAL(mem.L2U.associativity.get_pos(conf.L2U_assoc));
+	double appoggio[20];
+    	appoggio[0] = double(p.integer_units.get_pos(conf.integer_units));
+	appoggio[1] = double(p.float_units.get_pos(conf.float_units));
+	appoggio[2] = double(p.branch_units.get_pos(conf.branch_units));
+	appoggio[3] = double(p.memory_units.get_pos(conf.memory_units));
+	appoggio[4] = double(p.gpr_static_size.get_pos(conf.gpr_static_size));
+	appoggio[5] = double(p.fpr_static_size.get_pos(conf.fpr_static_size));
+	appoggio[6] = double(p.pr_static_size.get_pos(conf.pr_static_size));
+	appoggio[7] = double(p.cr_static_size.get_pos(conf.cr_static_size));
+	appoggio[8] = double(p.btr_static_size.get_pos(conf.btr_static_size));
+	appoggio[9] = double(mem.L1D.size.get_pos(conf. L1D_size  ));
+	appoggio[10] = double(mem.L1D.block_size.get_pos(conf.L1D_block));
+	appoggio[11] = double(mem.L1D.associativity.get_pos(conf.L1D_assoc));
+	appoggio[12] = double(mem.L1I.size.get_pos(conf.L1I_size  ));
+	appoggio[13] = double(mem.L1I.block_size.get_pos(conf.L1I_block));
+	appoggio[14] = double(mem.L1I.associativity.get_pos(conf.L1I_assoc));
+	appoggio[15] = double(mem.L2U.size.get_pos(conf.L2U_size  ));
+	appoggio[16] = double(mem.L2U.block_size.get_pos(conf.L2U_block));
+	appoggio[17] = double(mem.L2U.associativity.get_pos(conf.L2U_assoc));
 	appoggio[18] = 0.0f;
 	appoggio[19] = 0.0f;
 	EstimateG(appoggio,&(appoggio[18]));

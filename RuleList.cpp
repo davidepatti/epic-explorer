@@ -33,17 +33,17 @@ int CRuleList::insertRule(Rule newRule) {
 		pos = (counter++);
 		RuleList[pos].antecedents = new int[InDim];
 		if (RuleList[pos].antecedents == NULL) return (-1);
-		RuleList[pos].consequents = new REAL[OutDim];
+		RuleList[pos].consequents = new double[OutDim];
 		if (RuleList[pos].consequents == NULL) return (-1);
-		RuleList[pos].degrees = new REAL[OutDim];
+		RuleList[pos].degrees = new double[OutDim];
 		if (RuleList[pos].degrees == NULL) return (-1);
 	}
 	else
 		pos = deleteWorstRule();
 	
 	memcpy(RuleList[pos].antecedents,newRule.antecedents,sizeof(int)*InDim);
-	memcpy(RuleList[pos].consequents,newRule.consequents,sizeof(REAL)*OutDim);
-	memcpy(RuleList[pos].degrees,newRule.degrees,sizeof(REAL)*OutDim);
+	memcpy(RuleList[pos].consequents,newRule.consequents,sizeof(double)*OutDim);
+	memcpy(RuleList[pos].degrees,newRule.degrees,sizeof(double)*OutDim);
 		
 	return (pos);
 };
@@ -71,7 +71,7 @@ int CRuleList::getNextRuleID(){
 	return (pos+1);
 };
 int CRuleList::deleteWorstRule() {
-	REAL degree = 1.0f,min = 1.0f;
+	double degree = 1.0f,min = 1.0f;
 	for(int i=0;i<counter;++i) {
 		degree = 1.0f;
 		for (int j=0; j<OutDim; ++j) 

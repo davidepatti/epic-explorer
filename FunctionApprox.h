@@ -14,8 +14,8 @@ public:
   //CFunctionApproximation();
   ~CFunctionApproximation() {};
 
-  virtual bool Init(REAL _threshold, int min, int max, int nouts) = 0;
-  virtual bool StartUp(int MaxNumberOf_, REAL threshold, int _min, int _max) = 0;
+  virtual bool Init(double _threshold, int min, int max, int nouts) = 0;
+  virtual bool StartUp(int MaxNumberOf_, double threshold, int _min, int _max) = 0;
   virtual bool Learn(Configuration conf,Simulation sim,Processor& p,Mem_hierarchy& mem) = 0;
   virtual bool Learn(const Configuration& conf,const Dynamic_stats& dyn) = 0;
   virtual Simulation Estimate1(Configuration conf,Processor& p,Mem_hierarchy& mem) = 0;

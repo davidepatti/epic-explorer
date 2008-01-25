@@ -1,71 +1,92 @@
- #FLAGS = -DNDEBUG
-FLAGS = -DNDEBUG
-#FLAGS = -O2 -DNDEBUG
-#FLAGS = -g -DDEBUG
-GAINC_DIR = -I./MOGA/include
-GALIB_DIR = -L./MOGA/lib
+ifdef EPIC_MPI
+CFLAGS += -DEPIC_MPI -DMPICH_IGNORE_CXX_SEEK -DNDEBUG -Minform=severe
+else
+CFLAGS += -DNDEBUG 
+endif
+#CFLAGS += -O2 -DNDEBUG
+#CFLAGS += -g -DDEBUG
+GAINC_DIR = ./spea2/src
+GALIB_DIR = ./spea2/lib
+GASRC_DIR = ./spea2/src
+
+#CC = pgcc
+#CXX = pgCC
+ifdef EPIC_MPI
+#MPICC = mpiCC
+MPICC = mpicxx
+else
+CC = gcc
+CXX = g++
+MPICC = ${CXX}
+endif
 
 all: epic
 
-epic: explorer.o estimator.o area.o time.o processor.o mem_hierarchy.o \
+epic: ${GALIB_DIR}/libspea2.a explorer.o estimator.o area.o time.o processor.o mem_hierarchy.o \
 	main.o user_interface.o trimaran_interface.o \
-	parameter.o common.o \
+	parameter.o common.o simulate_space.o \
 	FuzzyApprox.o RuleList.o FuzzyWrapper.o
-	g++  area.o time.o estimator.o explorer.o parameter.o user_interface.o \
+	${MPICC} area.o time.o estimator.o explorer.o parameter.o user_interface.o \
 	trimaran_interface.o processor.o mem_hierarchy.o main.o common.o \
-	FuzzyApprox.o RuleList.o FuzzyWrapper.o \
-	$(GALIB_DIR) -lmoea -o epic
+	FuzzyApprox.o RuleList.o FuzzyWrapper.o simulate_space.o \
+	-L${GALIB_DIR} -lspea2 -o epic
 
 estimator.o: estimator.cpp estimator.h processor.h mem_hierarchy.h \
 	power_densities.h cacti_area_interface.h 
-	g++ ${FLAGS} -c estimator.cpp
+	${CXX} ${CFLAGS} -c estimator.cpp
 
 explorer.o: explorer.cpp explorer.h processor.h trimaran_interface.h \
 	mem_hierarchy.h estimator.h parameter.h common.h \
 	FunctionApprox.h FuzzyApprox.h FannApprox.h
-	g++ ${GAINC_DIR} ${FLAGS} -c explorer.cpp
+	${CXX} -I${GAINC_DIR} ${CFLAGS} -c explorer.cpp
+
+simulate_space.o: simulate_space.cpp explorer.h 
+	${MPICC} -I${GAINC_DIR} ${CFLAGS} -c simulate_space.cpp
 
 processor.o: processor.cpp processor.h parameter.h
-	g++ ${FLAGS} -c processor.cpp
+	${CXX} ${CFLAGS} -c processor.cpp
 
 mem_hierarchy.o: mem_hierarchy.cpp mem_hierarchy.h parameter.h
-	g++ ${FLAGS} -c mem_hierarchy.cpp
+	${CXX} ${CFLAGS} -c mem_hierarchy.cpp
 
 main.o: main.cpp user_interface.h
-	g++ ${GAINC_DIR} ${FLAGS} -c main.cpp
+	${MPICC} -I${GAINC_DIR} ${CFLAGS} -c main.cpp
 
 user_interface.o: user_interface.cpp user_interface.h \
 	explorer.h estimator.h trimaran_interface.h processor.h \
 	mem_hierarchy.h environment.h version.h
-	g++ ${GAINC_DIR} ${FLAGS} -c user_interface.cpp
+	${MPICC} -I${GAINC_DIR} ${CFLAGS} -c user_interface.cpp
 
 trimaran_interface.o: trimaran_interface.cpp trimaran_interface.h processor.h
-	g++ ${FLAGS} -c trimaran_interface.cpp
+	${MPICC} ${CFLAGS} -c trimaran_interface.cpp
 
 area.o: cacti.h area.c 
-	gcc ${FLAGS} -c area.c
+	${CC} ${CFLAGS} -c area.c
 
 time.o: cacti.h area.c 
-	gcc ${FLAGS} -c time.c
+	${CC} ${CFLAGS} -c time.c
 
 parameter.o: parameter.cpp parameter.h 
-	g++ ${FLAGS} -c parameter.cpp
+	${CXX} ${CFLAGS} -c parameter.cpp
 
 common.o: common.cpp common.h 
-	g++ ${FLAGS} -c common.cpp
+	${CXX} ${CFLAGS} -c common.cpp
 
 FuzzyApprox.o: FuzzyApprox.cpp FuzzyApprox.h common.h RuleList.h FunctionApprox.h
-	g++ ${FLAGS} -O3 -funroll-loops -ffast-math -c FuzzyApprox.cpp
+	${CXX} ${CFLAGS} -O3 -c FuzzyApprox.cpp
+#	${CXX} ${CFLAGS} -O3 -funroll-loops -ffast-math -c FuzzyApprox.cpp
 
 RuleList.o: RuleList.cpp RuleList.h common.h 
-	g++ ${FLAGS} -O3 -funroll-loops -ffast-math -c RuleList.cpp
+	${CXX} ${CFLAGS} -O3 -c RuleList.cpp
+#	${CXX} ${CFLAGS} -O3 -funroll-loops -ffast-math -c RuleList.cpp
 
 FuzzyWrapper.o: FuzzyWrapper.cpp FuzzyApprox.h
-	g++ ${FLAGS} -O3 -c FuzzyWrapper.cpp
+	${CXX} ${CFLAGS} -O3 -c FuzzyWrapper.cpp
 
 clean: 
-	rm -f MOGA/include/moea/*.o
-	rm -f MOGA/lib/libmoea.a
 	rm -f *.o epic *~ core
+
+cleanall: clean
+	make -C ${GASRC_DIR} clean
 
 # DO NOT DELETE

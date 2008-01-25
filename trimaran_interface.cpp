@@ -71,11 +71,11 @@ void Trimaran_interface::compile_benchmark(const string& path) {
 
     if (do_hyperblock)
     {
-    command = command + "tcc -host "+TRIMARAN_HOST_PLATFORM+" -bench "+current_benchmark+" -region h -i2s -E\"\" -M"+path+"/machines/hpl_pd_elcor_std.lmdes2 -S\"-Fcontrol_flow_trace=yes -Faddress_trace=yes\" -project \"full\" -clean -gui  | tee -a "+path+"/compilation.log";
+    command = command + "tcc -host "+TRIMARAN_HOST_PLATFORM+" -bench "+current_benchmark+" -region h -i2s -E\"\" -M"+path+"/machines/hpl_pd_elcor_std.lmdes2 -S\"-Fcontrol_flow_trace=yes -Faddress_trace=yes\" -project \"full\" -clean -gui  | tee -a /dev/null";//+path+"/compilation.log";
     }
     else
     {
-    command = command + "tcc -host "+TRIMARAN_HOST_PLATFORM+" -bench "+current_benchmark+" -region b -i2s -E\"\" -M"+path+"/machines/hpl_pd_elcor_std.lmdes2 -S\"-Fcontrol_flow_trace=yes -Faddress_trace=yes\" -project \"full\" -clean -gui | tee -a "+path+"/compilation.log";
+    command = command + "tcc -host "+TRIMARAN_HOST_PLATFORM+" -bench "+current_benchmark+" -region b -i2s -E\"\" -M"+path+"/machines/hpl_pd_elcor_std.lmdes2 -S\"-Fcontrol_flow_trace=yes -Faddress_trace=yes\" -project \"full\" -clean -gui | tee -a /dev/null";//+path+"/compilation.log";
     };
 
     system(command.c_str());
@@ -93,11 +93,11 @@ void Trimaran_interface::execute_benchmark(const string& path, const string& cac
 
     if (do_hyperblock)
     {
-    command = command + "tcc -host "+TRIMARAN_HOST_PLATFORM+" -bench "+current_benchmark+" -region h -m2m -E\"\" -M"+path+"/machines/hpl_pd_elcor_std.lmdes2 -S\"-Fcontrol_flow_trace=yes -Faddress_trace=yes\" -project \"full\" -gui -cache_cfg "+cache_dir+" | tee -a "+path+"/"+cache_dir+"/execution.log";
+    command = command + "tcc -host "+TRIMARAN_HOST_PLATFORM+" -bench "+current_benchmark+" -region h -m2m -E\"\" -M"+path+"/machines/hpl_pd_elcor_std.lmdes2 -S\"-Fcontrol_flow_trace=yes -Faddress_trace=yes\" -project \"full\" -gui -cache_cfg "+cache_dir+" | tee -a /dev/null";//+path+"/"+cache_dir+"/execution.log";
     }
     else
     {
-    command = command + "tcc -host "+TRIMARAN_HOST_PLATFORM+" -bench "+current_benchmark+" -region b -m2m -E\"\" -M"+path+"/machines/hpl_pd_elcor_std.lmdes2 -S\"-Fcontrol_flow_trace=yes -Faddress_trace=yes\" -project \"full\" -gui -cache_cfg "+cache_dir+" | tee -a "+path+"/"+cache_dir+"/execution.log";
+    command = command + "tcc -host "+TRIMARAN_HOST_PLATFORM+" -bench "+current_benchmark+" -region b -m2m -E\"\" -M"+path+"/machines/hpl_pd_elcor_std.lmdes2 -S\"-Fcontrol_flow_trace=yes -Faddress_trace=yes\" -project \"full\" -gui -cache_cfg "+cache_dir+" | tee -a /dev/null";//+path+"/"+cache_dir+"/execution.log";
     };
 
     system(command.c_str());

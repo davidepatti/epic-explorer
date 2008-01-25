@@ -17,6 +17,10 @@
 
 #include "user_interface.h"
 
+#ifdef EPIC_MPI
+#include "mpi.h"
+#endif
+
 // uncomment this line if you want interface to be verbose
 //#define VERBOSE_INTERFACE
 
@@ -36,8 +40,35 @@ User_interface::~User_interface(){
 }
 
 void User_interface::interact(){
+#ifdef EPIC_MPI
+    MPI_Comm_rank(MPI_COMM_WORLD,&myrank);
+    MPI_Comm_size(MPI_COMM_WORLD,&mysize);
+    MPI_Request req;
+    int chiudi = 1;
+    
+    if (myrank == 0) {
+    	while (show_menu()!=113) ;
+//	show_menu();
+	chiudi = 0;
+	
+	cout<<"\nProcessor "<<myrank<<" is exiting"<<endl;
+	for (int p=1; p<mysize; p++) {
+    		MPI_Isend(&chiudi,1,MPI_INT, p, 10, MPI_COMM_WORLD, &req); 
+		MPI_Send(&chiudi,1,MPI_INT, p, 98, MPI_COMM_WORLD); 
+	}		
+    }
+    else {
+    	MPI_Irecv(&chiudi, 1, MPI_INT, 0, 10, MPI_COMM_WORLD, &req);
+    	while (chiudi) my_explorer->simulate_space();
+	cout<<"\nProcessor "<<myrank<<" is exiting"<<endl;
+    }
 
-    while (show_menu()!=113);
+#else
+	myrank = 0;
+	mysize = 1;
+	while (show_menu()!=113);
+#endif
+		
 }
 
 void User_interface::start_exploration_message()
@@ -50,6 +81,15 @@ void User_interface::start_exploration_message()
 
 int User_interface::show_menu()
 {
+
+    char ch;
+    char c;
+    int space_size;
+    struct GA_parameters ga_parameters;
+
+//G    MPI_Comm_rank(MPI_COMM_WORLD,&myrank);
+
+    if (myrank == 0) {
     system("clear");
 
     cout << "\n       =======================================================";
@@ -63,8 +103,6 @@ int User_interface::show_menu()
     cout << "\n";
     cout << "\n     D e s i g n   S p a c e   E x p l o r a t i o n ";
     cout << "\n ------------------------------------------------------------------";
-    cout << "\n [x] - Schedule Multiple Explorations"; 
-    cout << "\n ";
     cout << "\n [g] - GA\t(genetic based)";
     cout << "\n [d] - DEP\t(dependency graph)";
     cout << "\n [z] - DEP2\t(alternative graph)";
@@ -85,115 +123,121 @@ int User_interface::show_menu()
     cout << "\n -------------------------------------------------------------------";
     cout << "\n [q] - Quit ";
     cout << "\n\n Make your choice:";
-    char ch;
-    char c;
-    int space_size;
-    struct GA_parameters ga_parameters;
-
+    
     cin >> ch;
-
+    }    
     string start;
 
     switch (ch)
     {
 	case 'b':
-	    edit_user_settings();
+	    if (myrank == 0) edit_user_settings();
 	    break;
 
 	case 'h':
-	    info();
-	    wait_key();
+	    if (myrank == 0) info();
+	    if (myrank == 0) wait_key();
 	    break;
 
 	case 'c':
-	    edit_exploration_space();
+	    if (myrank == 0) edit_exploration_space();
 	    break;
 
-	case 'x':
-	    schedule_explorations();
-	    cout << "\n\n End of scheduled explorations . ";
-	    wait_key();
-	    break;
-
-    case 'g': // mau
+	case 'g': // mau
 
 	    my_explorer->init_approximation();
-	    cout << "\n\n GA based approach ";
-	    cout << "\n-------------------------------";
-	    cout << "\n\n Enter random seed (0 = auto): ";
-	    cin >> ga_parameters.random_seed;
-	    if (ga_parameters.random_seed == 0) ga_parameters.random_seed = rand()*rand();
-	    originalSeed = Seed = ga_parameters.random_seed;
-	    cout << "\n\n Population size: ";
-	    cin >> ga_parameters.population_size;
-	    cout << " Crossover prob: ";
-	    cin >> ga_parameters.pcrossover;
-	    cout << " Mutation prob: ";
-	    cin >> ga_parameters.pmutation;
-	    cout << " Max Generations: ";
-	    cin >> ga_parameters.max_generations;
-	    cout << " Report pareto step: ";
-	    cin >> ga_parameters.report_pareto_step;
-
-	    start_exploration_message();
-	    cout << "\n\n Start exploration (y/n) ? ";
-	    cin >> ch;
-	    if (ch=='y')
-	    my_explorer->start_GA(ga_parameters);
+	    if (myrank == 0) {
+	    	cout << "\n\n GA based approach ";
+	    	cout << "\n-------------------------------";
+	    	cout << "\n\n Enter random seed (0 = auto): ";
+	    	cin >> ga_parameters.random_seed;
+		if (ga_parameters.random_seed == 0)
+			ga_parameters.random_seed = rand()*rand(); // this is not random
+		else
+	                srand(ga_parameters.random_seed);
+//G	    	originalSeed = Seed = ga_parameters.random_seed;
+	    	cout << "\n\n Population size: ";
+	    	cin >> ga_parameters.population_size;
+	    	cout << " Crossover prob: ";
+	    	cin >> ga_parameters.pcrossover;
+	    	cout << " Mutation prob: ";
+	    	cin >> ga_parameters.pmutation;
+	    	cout << " Max Generations: ";
+	    	cin >> ga_parameters.max_generations;
+	    	cout << " Report pareto step: ";
+	    	cin >> ga_parameters.report_pareto_step;
+	    
+	    	start_exploration_message();
+	    	cout << "\n\n Start exploration (y/n) ? ";
+	    	cin >> ch;
+	    	if (ch=='y')
+	    	my_explorer->start_GA(ga_parameters);
+	    }
 	    break;
 
 	case 'd':
 	    my_explorer->init_approximation();
-	    cout << "\n\n Start exploration (y/n) ? ";
-	    cin >> ch;
-	    if (ch=='y') my_explorer->start_DEP();
+	    if (myrank == 0) {
+	    	cout << "\n\n Start exploration (y/n) ? ";
+	    	cin >> ch;
+	    	if (ch=='y') my_explorer->start_DEP();
+	    }
 	    break;
 
 	case 'z':
 	    my_explorer->init_approximation();
-	    start_exploration_message();
-	    cout << "\n\n Start exploration (y/n) ? ";
-	    cin >> ch;
-	    if (ch=='y') my_explorer->start_DEP2();
+	    if (myrank == 0) {
+	    	start_exploration_message();
+	    	cout << "\n\n Start exploration (y/n) ? ";
+	    	cin >> ch;
+	    	if (ch=='y') my_explorer->start_DEP2();
+	    }
 	    break;
 
 	case 'm':
 	    my_explorer->init_approximation();
-	    start_exploration_message();
-	    cout << "\n\n Start exploration (y/n) ? ";
-	    cin >> ch;
-	    if (ch=='y')
-	    my_explorer->start_DEPMOD();
+	    if (myrank == 0) {
+	    	start_exploration_message();
+	    	cout << "\n\n Start exploration (y/n) ? ";
+	    	cin >> ch;
+	    	if (ch=='y')
+	    	my_explorer->start_DEPMOD();
+	    }
 	    break;
 
 	case 's':
 	    my_explorer->init_approximation();
-	    start_exploration_message();
-	    cout << "\n\n Start exploration (y/n) ? ";
-	    cin >> ch;
-	    if (ch=='y') my_explorer->start_SAP();
+	    if (myrank == 0) {
+	    	start_exploration_message();
+	    	cout << "\n\n Start exploration (y/n) ? ";
+	    	cin >> ch;
+	    	if (ch=='y') my_explorer->start_SAP();
+	    }
 	    break;
 
 	case 'w':
 	    my_explorer->init_approximation();
-	    start_exploration_message();
-	    cout << "\n\n Start exploration (y/n) ? ";
-	    cin >> ch;
-	    if (ch=='y') my_explorer->start_SAPMOD();
+	    if (myrank == 0) {
+	    	start_exploration_message();
+	    	cout << "\n\n Start exploration (y/n) ? ";
+	    	cin >> ch;
+	    	if (ch=='y') my_explorer->start_SAPMOD();
+	    }
 	    break;
-
 	case 'p':
 	    my_explorer->init_approximation();
+	    if (myrank == 0) {
 	    start_exploration_message();
 	    cout << "\n\n Start exploration (y/n) ? ";
 	    cin >> ch;
 	    if (ch=='y') my_explorer->start_PBSA();
+	    }
 	    break;
-
 
 	case 'e':
 
 	    my_explorer->init_approximation();
+	    if (myrank == 0) {
 	    start_exploration_message();
 
 	    cout << "\n\n WARNING: You are going to start an exhaustive exploration of all parameters .";
@@ -212,10 +256,12 @@ int User_interface::show_menu()
 		my_explorer->start_EXHA();
 	    }
 	    wait_key();
+	    }
 	    break;
 
 	case 'r':
 	    my_explorer->init_approximation();
+	    if (myrank == 0) {
 	    start_exploration_message();
 	    int n;
 	    unsigned int seed;
@@ -229,64 +275,65 @@ int User_interface::show_menu()
 		srand(seed);
 	    my_explorer->start_RAND(n);
 	    wait_key();
+	    }
 	    break;
 
 	case 't':
-	    my_explorer->test();
-	    wait_key();
+	    if (myrank == 0) my_explorer->test();
+	    if (myrank == 0) wait_key();
 	    break;
 
 	case '1':
-	    compile_hmdes_file();
-	    wait_key();
+	    if (myrank == 0) compile_hmdes_file();
+	    if (myrank == 0) wait_key();
 	    break;
 
 	case '2':
-	    compile_benchmark();
-	    wait_key();
+	    if (myrank == 0) compile_benchmark();
+	    if (myrank == 0) wait_key();
 	    break;
 
 	case '3':
-	    execute_benchmark();
-	    wait_key();
+	    if (myrank == 0) execute_benchmark();
+	    if (myrank == 0) wait_key();
 	    break;
 
 
 	case '4':
-	    view_statistics();
-	    wait_key();
+	    if (myrank == 0) view_statistics();
+	    if (myrank == 0) wait_key();
 	    break;
 
 	case '5':
-	    compute_cost();
-	    wait_key();
+	    if (myrank == 0) compute_cost();
+	    if (myrank == 0) wait_key();
 	    break;
 
 	case '6':
 
-	    view_processor_config();
-	    wait_key();
+	    if (myrank == 0) view_processor_config();
+	    if (myrank == 0) wait_key();
 	    break;
 
 	case '7':
-	    view_cache_config();
-	    wait_key();
+	    if (myrank == 0) view_cache_config();
+	    if (myrank == 0) wait_key();
 	    break;
 
 	case '8':
 
-	    reload_hmdes_file();
-	    wait_key();
+	    if (myrank == 0) reload_hmdes_file();
+	    if (myrank == 0) wait_key();
 	    break;
 	case '9':
 
-	    reload_memhierarchy_config();
-	    wait_key();
+	    if (myrank == 0) reload_memhierarchy_config();
+	    if (myrank == 0) wait_key();
 	    break;
 	case '0':
-	    save_processor_config();
-	    save_cache_config();
-	    wait_key();
+	    if (myrank == 0) save_processor_config();
+	    if (myrank == 0) save_cache_config();
+	    if (myrank == 0) wait_key();
 	    break;
 
     }
@@ -612,6 +659,7 @@ void User_interface::info()
     cout << "\n Written by Davide Patti <dpatti@diit.unict.it>";
     cout << "\n Additional coding by Maurizio Palesi <mpalesi@diit.unict.it>";
     cout << "\n Fuzzy code by Alessandro Di Nuovo <adinuovo@diit.unict.it>";
+    cout << "\n Grid/MPI GA code by Gianmarco De Francisci Morales <gmorales@diit.unict.it>";
     cout << "\n -------------------------------------------------------- ";
     cout << "\n";
     cout << "\n For usage instructions see README file.";
