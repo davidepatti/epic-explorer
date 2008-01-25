@@ -1,1 +1,1 @@
-#define VERSION "2008 frankenstein edition"
+#define VERSION "2008 mpi testing"

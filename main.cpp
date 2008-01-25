@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
 	//cerr << "DEBUG " << rank << " - base_path is: " << base_path << endl; 
 	if(rank == 0) {
 		base_path_cstr = getenv(BASE_DIR);
-		length = strlen(base_path_cstr);
+		length = strlen(base_path_cstr) + 1;
 		//cerr << "DEBUG strlen : " << length << endl;
 	}
 	MPI_Bcast(&length,1,MPI_INT,0,MPI_COMM_WORLD);
@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
 	//cerr << "DEBUG " << rank << " - length is: " << length << endl;
 
 	if(rank != 0){
-		base_path_cstr = new char[length+1];
+		base_path_cstr = new char[length];
 	}
 
 	MPI_Bcast(base_path_cstr, length, MPI_CHAR, 0, MPI_COMM_WORLD);

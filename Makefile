@@ -1,23 +1,23 @@
-ifdef EPIC_MPI
-CFLAGS += -DEPIC_MPI -DMPICH_IGNORE_CXX_SEEK -DNDEBUG -Minform=severe
-else
-CFLAGS += -DNDEBUG 
-endif
-#CFLAGS += -O2 -DNDEBUG
-#CFLAGS += -g -DDEBUG
+#Makefile for Epic
+
 GAINC_DIR = ./spea2/src
 GALIB_DIR = ./spea2/lib
 GASRC_DIR = ./spea2/src
 
-#CC = pgcc
-#CXX = pgCC
 ifdef EPIC_MPI
-#MPICC = mpiCC
+CC = pgcc
+CXX = pgCC
 MPICC = mpicxx
+#MPICC = mpiCC
+CFLAGS += -DEPIC_MPI -DMPICH_IGNORE_CXX_SEEK -DNDEBUG -Minform=severe
+#CFLAGS += -DEPIC_MPI -DMPICH_IGNORE_CXX_SEEK -DNDEBUG -Minform=warn
 else
 CC = gcc
 CXX = g++
 MPICC = ${CXX}
+CFLAGS += -DNDEBUG 
+#CFLAGS += -O2 -DNDEBUG
+#CFLAGS += -g -DDEBUG
 endif
 
 all: epic
@@ -83,10 +83,17 @@ RuleList.o: RuleList.cpp RuleList.h common.h
 FuzzyWrapper.o: FuzzyWrapper.cpp FuzzyApprox.h
 	${CXX} ${CFLAGS} -O3 -c FuzzyWrapper.cpp
 
+.PHONY: spea2 clean cleanall
+
+spea2: ${GALIB_DIR}/libspea2.a
+
+${GALIB_DIR}/libspea2.a: ${GASRC_DIR}/*.cpp ${GASRC_DIR}/*.h
+	${MAKE} -C ${GASRC_DIR}
+
 clean: 
 	rm -f *.o epic *~ core
 
 cleanall: clean
-	make -C ${GASRC_DIR} clean
+	${MAKE} -C ${GASRC_DIR} clean
 
 # DO NOT DELETE
