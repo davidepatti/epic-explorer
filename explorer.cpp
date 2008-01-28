@@ -1787,6 +1787,7 @@ vector<Simulation> Explorer::sort_by_energydelay_product(vector<Simulation> sims
 // ********************************************************************
 void Explorer::start_REP(const string& file){
     current_algo="REP";
+    REP_source_file = file.substr(file.find_last_of('/') + 1);
     vector<Configuration> vconf;
     ifstream in(file.c_str());
     while(in.good()){
@@ -1798,7 +1799,7 @@ void Explorer::start_REP(const string& file){
         if(s.size() > 0 && s[0] != comment){
             string::size_type start = s.find(comment);
             // Start after comment
-            string str = s.substr(++start, s.size() - start);
+            string str = s.substr(++start);
             // Skip delimiters at beginning
             string::size_type lastPos = str.find_first_not_of(delimiters, 0);
             // Find first "non-delimiter"
@@ -1910,13 +1911,14 @@ void Explorer::start_GA(const GA_parameters& parameters)
     reset_sim_counter();
 
     benchmarks.push_back(Options.benchmark);
-    // TODO receive benchs from user options
-    string ob = "fir";
-    benchmarks.push_back(ob); // comment for single benchmark
+    benchmarks.insert(benchmarks.end(), Options.bench_v.begin(), Options.bench_v.end());
     string file_name;
-    if(benchmarks.size() > 1)
-        file_name = Options.benchmark+"_"+ob+"_"+current_algo+"_"+current_space;
-    else
+    if(Options.multibench){
+        file_name = Options.benchmark;
+        for(vector<string>::iterator it=benchmarks.begin(); it!=benchmarks.end(); it++)
+            file_name += "_" + *it;
+        file_name += current_algo + "_" + current_space;
+    } else
         file_name = Options.benchmark+"_"+current_algo+"_"+current_space;
 
     SimulateBestWorst();
@@ -2215,7 +2217,7 @@ for(int bench=0; bench<benchmarks.size(); bench++ ){
 		eud.history[eud.history.size() - 1] = sim; // updates history with new simulated values
 		eud.ht_ga->addT(sim);
 		eud.pareto.push_back(sim);
-		eud.pareto = get_pareto(eud.pareto); // FIXME Non funziona con multibench
+		eud.pareto = get_pareto(eud.pareto); // funziona solo con multibench con la media
 	}
 
 	//G
@@ -2855,6 +2857,8 @@ void Explorer::save_simulations(const vector<Simulation>& simulations, const str
     time_t now = time(NULL);
     string uora = string(asctime(localtime(&now)));
     string pretitle = "\n%% Epic Explorer simulation file - created on " + uora;
+    if(current_algo=="REP")
+        pretitle += "\n%% REP source file: " + REP_source_file;
 
     string pretitle2 ="\n%% Enabled minimization objectives: ";
     string pretitle3 ="\n%% Benchmark: "+Options.benchmark;
