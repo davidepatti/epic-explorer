@@ -208,8 +208,10 @@ private:
 
   string current_algo;
   string current_space;
+
+  string REP_source_file;
   int n_obj;
-  vector<string> benchmarks; //G TODO spostarlo in Options
+  vector<string> benchmarks; //G
   struct ExportUserData eud; //G
   struct User_Settings Options;
 

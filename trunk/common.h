@@ -78,6 +78,9 @@ struct User_Settings
 	int min,max;
     } approx_settings;
     bool multidir;
+    //G
+    bool multibench;
+    vector<string> bench_v;
 };
 
 struct Space_mask

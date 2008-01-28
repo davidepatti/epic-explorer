@@ -123,7 +123,7 @@ int User_interface::show_menu()
     cout << "\n [5] - Estimate objectives        [0] - Save current machine config"; 
     cout << "\n -------------------------------------------------------------------";
     cout << "\n [q] - Quit ";
-    cout << "\n\n Make your choice:";
+    cout << "\n\n Make your choice: ";
  
 //G ch = 'r';
     cin >> ch;
@@ -292,7 +292,7 @@ int User_interface::show_menu()
 	    string fpath;
 	    while(!done){
 	        system(command.c_str());
-	        cout << "\n\n Choose a pareto: ";
+	        cout << "\n\n Choose a pareto or history file: ";
 	        string b;
 	        cin >> b;
 	        fpath = pareto_path + b;
@@ -302,6 +302,7 @@ int User_interface::show_menu()
 	            cout << "\n Could non open file " << fpath;
 		else
 		    cout << "\n Using file " << fpath;
+		infile.close();
 	    }
             start_exploration_message();
             cout << "\n\n Start exploration (y/n) ? ";
@@ -394,10 +395,20 @@ void User_interface::edit_user_settings()
 	cout << "\n  (8) - Benchmark                    --> " << trimaran_interface->get_benchmark_name();
 	cout << "\n  (9) - Automatic clock freq         --> " << status_string(user_settings.auto_clock);
 	cout << "\n (10) - Approximation                --> " << user_settings.approx_settings.enabled;
-	cout << "\n (11) - Multi directory support      --> " << status_string(user_settings.multidir);
 	if (user_settings.approx_settings.enabled>0)
 	{
-	    cout << " ( " << user_settings.approx_settings.threshold << " , " << user_settings.approx_settings.min << " - " << user_settings.approx_settings.max << " )";
+	    cout << " ( " << user_settings.approx_settings.threshold << 
+            " , " << user_settings.approx_settings.min << 
+            " - " << user_settings.approx_settings.max << " )";
+	}
+
+	cout << "\n (11) - Multi directory support      --> " << status_string(user_settings.multidir);
+	cout << "\n (12) - Multi benchmark simuluation  --> " << status_string(user_settings.multibench);
+	if(user_settings.multibench){
+	    cout << "\n Additional benchmarks:" << endl;
+	    for(vector<string>::iterator it = user_settings.bench_v.begin(); it != user_settings.bench_v.end(); it++)
+	        cout << " " << *it;
+	    cout << endl;
 	}
 
 	cout << "\n ----------------------------------------------------------";
@@ -458,12 +469,47 @@ void User_interface::edit_user_settings()
 	    int pippo;
 	    cout << "\n (0) Disable multi-dir support";
 	    cout << "\n (1) Enable multi-dir support";
-	    cout << "\n make your choice:";
+	    cout << "\n make your choice: ";
 	    cin >> pippo;
 
 	    if (pippo) user_settings.multidir = true;
 	    else
 		user_settings.multidir = false;
+	}
+
+	if (ch=="12")
+	{
+            cout << "\n IMPORTANT: multi-benchmark support is EXPERIMENTAL ";
+            cout << "\n this setting is not saved in the config file! \n\n";
+	    int mbenable;
+            cout << "\n (0) Disable multi-benchmark simuluation";
+            cout << "\n (1) Enable multi-benchmark simulation";
+	    cout << "\n make your choice: ";
+	    cin >> mbenable;
+	    user_settings.multibench = (mbenable > 0)? true : false;
+	    if(user_settings.multibench){
+	        cout << "\n How many additional benchmarks do you want to execute?\n ";
+	        int nbench;
+	        cin >> nbench;
+
+	        cout << "\n You must choose one of the benchmark available in the " << endl;
+	        cout << " '" << base_path << "/trimaran/benchmarks' directory " << endl << endl;
+	        cout << " \tCurrently available benchmarks:" << endl;
+	        cout << "-----------------------------------------------------------" << endl;
+	        string command = "ls ";
+	        command+= base_path + "/trimaran/benchmarks";
+	        system(command.c_str());
+
+	        user_settings.bench_v.clear();
+	        for(int i=0; i<nbench; i++){
+	            cout << "\n Select benchmark " << i+1 << " of " << nbench << ":\n ";
+	            string s;
+                    cin >> s;
+		    cout << " selected: " << s << endl;
+                    user_settings.bench_v.push_back(s);
+	        }
+	    }
+	    my_explorer->set_options(user_settings);
 	}
 
 	if (ch=="s") save_settings_wrapper();
@@ -693,7 +739,7 @@ void User_interface::info()
     cout << "\n Written by Davide Patti <dpatti@diit.unict.it>";
     cout << "\n Additional coding by Maurizio Palesi <mpalesi@diit.unict.it>";
     cout << "\n Fuzzy code by Alessandro Di Nuovo <adinuovo@diit.unict.it>";
-    cout << "\n Grid/MPI GA code by Gianmarco De Francisci Morales <gmorales@diit.unict.it>";
+    cout << "\n MPI GA Multi-Bench code by Gianmarco De Francisci Morales <gmorales@diit.unict.it>";
     cout << "\n -------------------------------------------------------- ";
     cout << "\n";
     cout << "\n For usage instructions see README file.";
