@@ -87,8 +87,6 @@ int User_interface::show_menu()
     int space_size;
     struct GA_parameters ga_parameters;
 
-//G    MPI_Comm_rank(MPI_COMM_WORLD,&myrank);
-
     if (myrank == 0) {
     system("clear");
 
@@ -125,7 +123,7 @@ int User_interface::show_menu()
     cout << "\n [q] - Quit ";
     cout << "\n\n Make your choice: ";
  
-//G ch = 'r';
+//G    ch = 'r';
     cin >> ch;
     }    
     string start;
@@ -154,7 +152,7 @@ int User_interface::show_menu()
 	    	cout << "\n\n Enter random seed (0 = auto): ";
 	    	cin >> ga_parameters.random_seed;
 		if (ga_parameters.random_seed == 0)
-			ga_parameters.random_seed = rand()*rand(); // this is not random
+			ga_parameters.random_seed = rand()*rand(); //G this is not random
 		else
 	                srand(ga_parameters.random_seed);
 	    	cout << "\n\n Population size: ";

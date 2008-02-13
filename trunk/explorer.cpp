@@ -1870,9 +1870,9 @@ void Explorer::start_REP(const string& file){
 
 //#define REPORT_PARETO_STEP      5
 
-#define IDX_ENERGY              0
-#define IDX_CYCLES              1
-#define IDX_AREA                2
+//#define IDX_ENERGY              0
+//#define IDX_CYCLES              1
+//#define IDX_AREA                2
 
 #define BIG_CYCLES      MAXDOUBLE
 #define BIG_ENERGY      MAXDOUBLE
@@ -1913,10 +1913,9 @@ void Explorer::start_GA(const GA_parameters& parameters)
     benchmarks.push_back(Options.benchmark);
     benchmarks.insert(benchmarks.end(), Options.bench_v.begin(), Options.bench_v.end());
     string file_name;
-    if(Options.multibench){
-        file_name = Options.benchmark;
+    if(Options.multibench) {
         for(vector<string>::iterator it=benchmarks.begin(); it!=benchmarks.end(); it++)
-            file_name += "_" + *it;
+            file_name += *it + "_";
         file_name += current_algo + "_" + current_space;
     } else
         file_name = Options.benchmark+"_"+current_algo+"_"+current_space;
@@ -1977,16 +1976,8 @@ void Explorer::start_GA(const GA_parameters& parameters)
 		    sprintf(temp, "_%d", generation);
 		    save_simulations(eud.pareto, file_name+string(temp)+".pareto.exp", SHOW_ALL);
 		    save_simulations(eud.history, file_name+".history.stat", SHOW_ALL);
-		    ga_show_info(file_name+".info.stat");
 		}
     }
-    var->read_arc();
-    cout << "Final archive population" << endl;
-    cout <<
-// setiosflags(ios::fixed) << setprecision(14) << 
-	var->get_arc() << endl;
-    var->write_output();
-
     var->read_arc();
     cout << "Final archive population" << endl;
     cout << var->get_arc() << endl;
@@ -2037,18 +2028,6 @@ void Explorer::init_GA()
 
   individual::setAllelesets(alleles); // set static allele sets genome for individuals
 }
-
-
-/*************************************************************************/
-
-void Explorer::ga_show_info(string fname)
-{
-  ofstream fmsg(fname.c_str(), ios::ate);
-  assert(fmsg.good());
-
-  fmsg << endl << "simulations: " << eud.history.size() << endl;
-}
-
 
 /*************************************************************************/
 
@@ -2151,7 +2130,7 @@ void Explorer::GA_evaluate(population* pop){
     vector<Configuration> vconf;
     vector<int> indexes;
     vector<Simulation> vsim(pop->size());
-    vsim.reserve(pop->size());
+    vconf.reserve(pop->size());
     indexes.reserve(pop->size());
 
     for(int index=0; index < pop->size(); index++){
@@ -2232,16 +2211,16 @@ for(int bench=0; bench<benchmarks.size(); bench++ ){
     assert(vsim.size() == pop->size());
 //    int disp = bench * n_obj;
     for(int i=0; i<pop->size(); i++){
-//	(*pop)[i].objectives[0+disp] = vsim[i].exec_time * SCALE;
 	(*pop)[i].objectives[0] = vsim[i].exec_time * SCALE;
-//	if( (*pop)[i].objectives_dim() > 1*n_bench )
-//		(*pop)[i].objectives[1+disp] = vsim[i].energy;
 	if( (*pop)[i].objectives_dim() > 1)
 		(*pop)[i].objectives[1] = vsim[i].energy;
-//	if( (*pop)[i].objectives_dim() > 2*n_bench )
-//		(*pop)[i].objectives[2+disp] = vsim[i].area;
 	if( (*pop)[i].objectives_dim() > 2)
 		(*pop)[i].objectives[2] = vsim[i].area;
+//	(*pop)[i].objectives[0+disp] = vsim[i].exec_time * SCALE;
+//	if( (*pop)[i].objectives_dim() > 1*n_bench )
+//		(*pop)[i].objectives[1+disp] = vsim[i].energy;
+//	if( (*pop)[i].objectives_dim() > 2*n_bench )
+//		(*pop)[i].objectives[2+disp] = vsim[i].area;
     }
 
 }
@@ -2861,10 +2840,13 @@ void Explorer::save_simulations(const vector<Simulation>& simulations, const str
         pretitle += "\n%% REP source file: " + REP_source_file;
 
     string pretitle2 ="\n%% Enabled minimization objectives: ";
-    string pretitle3 ="\n%% Benchmark: "+Options.benchmark;
-//G    string pretitle3 ="\n%% Benchmark: " + benchmarks.at(0);
-//G    for(int i=1; i<benchmarks.size(); i++)
-//G        pretitle3 += "," + benchmarks.at(i);
+    //G
+    string pretitle3 ="\n%% Benchmark: ";
+    if(Options.multibench)
+        for(int i=0; i<benchmarks.size(); i++)
+            pretitle3 += benchmarks.at(i) + " ";
+    else
+        pretitle3 += Options.benchmark;
 
     if (Options.objective_area) pretitle2+="Area, ";
     if (Options.objective_energy) pretitle2+="Energy, ";
@@ -3081,12 +3063,17 @@ int Explorer::get_explorer_status() const
     assert(file_exists(processor_dir));
     assert(file_exists(machine_dir));
     assert(file_exists(mem_hierarchy_dir));
-    assert(!Options.hyperblock);
+    //assert(!Options.hyperblock);
 
     if (!Options.multidir) return EXPLORER_NOTHING_DONE;
 
+    string pd_stats_file;
+    if (Options.hyperblock) 
+        pd_stats_file = mem_hierarchy_dir+"/PD_STATS.HS";
+    else
+        pd_stats_file = mem_hierarchy_dir+"/PD_STATS.O";
     // all simulation steps already done
-    if (file_exists(mem_hierarchy_dir+"/PD_STATS.O")) 
+    if (file_exists(mem_hierarchy_dir + pd_stats_file)) 
     {
 	cout << "\nAll simulation steps done for " << mem_hierarchy_dir << endl;
 	//wait_key();

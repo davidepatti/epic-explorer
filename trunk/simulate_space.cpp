@@ -95,8 +95,7 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
         MPI_Send(&bench_len, 1, MPI_INT, p, 95, MPI_COMM_WORLD);
         char* bench_cstr = new char[bench_len];
         strcpy(bench_cstr, Options.benchmark.c_str());
-        MPI_Send(bench_cstr, 1, MPI_INT, p, 96, MPI_COMM_WORLD);
-	cout << "Sending length: " << bench_len << " bench: " << bench_cstr << endl;
+        MPI_Send(bench_cstr, bench_len, MPI_CHAR, p, 96, MPI_COMM_WORLD);
 
 	for (int s = 0; s < counter; s++) {
 	  communicator[0] = space2[s].L1D_block;
@@ -332,7 +331,7 @@ int Explorer::simulate_space()
     string bench(bench_cstr);
     Options.benchmark = bench;
     trimaran_interface->set_benchmark(Options.benchmark);
-    
+
     for(int i = 0; i<counter; i++) {
     	MPI_Recv(communicator,18,MPI_INT,0,99,MPI_COMM_WORLD,&status);
         tmp.L1D_block = communicator[0];
