@@ -13,11 +13,11 @@ $def !pr_rotating_size 	64
 $def !cr_static_size 	64
 $def !cr_rotating_size 	64
 
-$def !btr_static_size 	16
+$def !btr_static_size 	64
 
-// Functional Units
+// Per-cluster Functional Units
 
-$def !integer_units 	4
-$def !float_units 	2
-$def !memory_units 	2
+$def !integer_units 	2
+$def !float_units 	1
+$def !memory_units 	1
 $def !branch_units 	1
