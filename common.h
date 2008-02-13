@@ -79,8 +79,8 @@ struct User_Settings
     } approx_settings;
     bool multidir;
     //G
-    bool multibench;
-    vector<string> bench_v;
+    bool multibench; //G enable multiple benchmarks
+    vector<string> bench_v; //G additional benchmarks
 };
 
 struct Space_mask

@@ -179,7 +179,6 @@ private:
 //  void init_GA_Fuzzy(SPEA& ga, ExportUserData* eud,GA_parameters* ga_parameters); // mau
 //  vector<AlleleString::Allele> values2alleles(vector<int> values); // mau
 //  void ga_show_info(SPEA& ga, ExportUserData& eud, string fname); // mau
-  void ga_show_info(string fname); //G
   //---------FuzzyApprox
   void SimulateBestWorst();
   //--------------------
