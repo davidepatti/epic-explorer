@@ -36,5 +36,7 @@ cr_static_size 64 0
  DEFAULT 64
 btr_static_size 16 0
  DEFAULT 16
+num_clusters 1
+ DEFAULT 1
 
  [END_SPACE]

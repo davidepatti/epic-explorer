@@ -27,9 +27,9 @@ memory_units 2 3 4 0
  DEFAULT 4
 branch_units 1 2 3 4 0
  DEFAULT 4
-gpr_static_size 16 32 48 64 128 0
+gpr_static_size 32 48 64 128 0
  DEFAULT 64
-fpr_static_size 16 32 48 64 0
+fpr_static_size 32 48 64 0
  DEFAULT 64
 pr_static_size 256 0
  DEFAULT 256 
@@ -37,5 +37,7 @@ cr_static_size 64 0
  DEFAULT 64
 btr_static_size 8 12 16 0
  DEFAULT 16
+num_clusters 1 2 3
+ DEFAULT 1
 
  [END_SPACE]
