@@ -1926,7 +1926,8 @@ void Explorer::start_GA(const GA_parameters& parameters)
    	init_GA(); // call it before creating anything GA related
 
 	int pop_size = parameters.population_size;
-	common* comm = new common(pop_size, pop_size, pop_size, n_obj); // (alpha, mu, lambda, dim)
+	//common* comm = new common(pop_size, pop_size, pop_size, n_obj); // (alpha, mu, lambda, dim)
+	common* comm = new common(pop_size, pop_size, pop_size, 3); //G FIXME
 	variator* var = new variator(parameters.pcrossover, parameters.pmutation, CHROMOSOME_DIM, comm); // (xover_p, mutation_p, chromo_dim)
 	selector* sel = new selector(DEF_TOURNAMENT, comm); // (tournament)
 	int generation = 0;
@@ -2179,6 +2180,14 @@ for(int bench=0; bench<benchmarks.size(); bench++ ){
 } // for bench
 
 
+//FIXME temporaneo ABILITARE AREA COME OBIETTIVO
+//for(vector<Simulation>::iterator it=results.begin(); it!=results.end(); it++)
+//{
+//  it->exec_time = it->exec_time_v.at(0);
+//  it->area = it->exec_time_v.at(1);
+//}
+//
+
 // cache results
     for(int i=0; i<results.size(); i++){
 	Simulation sim = results[i];
@@ -2187,7 +2196,7 @@ for(int bench=0; bench<benchmarks.size(); bench++ ){
 	if(cacheable){
 		eud.ht_ga->addT(sim);
 		eud.pareto.push_back(sim);
-		eud.pareto = get_pareto(eud.pareto); //FIXME TODO perche lo fa ogni volta invece di farlo solo alla fine?
+		eud.pareto = get_pareto(eud.pareto); // lo fa ogni volta per il fuzzy
 	} else if (!isDominated(sim, eud.pareto)){ //if it could be a pareto solution, the configuration is simulated
 //FIXME
 //		explorer->set_force_simulation(true);
@@ -2206,8 +2215,8 @@ for(int bench=0; bench<benchmarks.size(); bench++ ){
 
 // reinsert simulation values into GA
 
-//    const int SCALE = 1; // seconds
-    const int SCALE = 1000; // milliseconds
+    const int SCALE = 1; // seconds
+//    const int SCALE = 1000; // milliseconds
     assert(vsim.size() == pop->size());
 //    int disp = bench * n_obj;
     for(int i=0; i<pop->size(); i++){
@@ -2610,14 +2619,14 @@ vector<Simulation> Explorer::get_pareto3d(const vector<Simulation>& simulations)
 	      simulations[j].exec_time <= simulations[i].exec_time) 
 	    && 
 	     ( // ...but not from an identical sim
-	      simulations[j].energy !=simulations[i].energy ||
+	      simulations[j].energy != simulations[i].energy ||
 	      simulations[j].area != simulations[i].area ||
 	      simulations[j].exec_time != simulations[i].exec_time) 
 	   )
 	    dominated = true;
 
       // avoid repeated pareto configs
-      if ( (!dominated) && (simulation_present(simulations[i],pareto_set) > -1) )
+      if ( (!dominated) && (simulation_present(simulations[i],pareto_set) == -1) )
 	pareto_set.push_back(simulations[i]);
   }
 
