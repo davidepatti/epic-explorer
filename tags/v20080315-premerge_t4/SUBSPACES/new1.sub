@@ -1,0 +1,43 @@
+
+
+ [BEGIN_SPACE]
+L1D_size 8192 16384 32768 65536 131072 0
+ DEFAULT 8192
+L1D_block_size 32 64 128 0
+ DEFAULT 32
+L1D_associativity 1 2 4 0
+ DEFAULT 1
+L1I_size 8192 16384 32768 65536 131072 0
+ DEFAULT 8192
+L1I_block_size 32 64 128 0
+ DEFAULT 32
+L1I_associativity 1 2 4 0
+ DEFAULT 1
+L2U_size 131072 262144 524288 0
+ DEFAULT 524288
+L2U_block_size 64 128 256 0
+ DEFAULT 256
+L2U_associativity  2 4 8 16 0
+ DEFAULT 4
+integer_units 1 2 3 4 0
+ DEFAULT 4
+float_units 1 2 3 4 0
+ DEFAULT 4
+memory_units 2 3 4 0
+ DEFAULT 4
+branch_units 1 2 3 4 0
+ DEFAULT 4
+gpr_static_size 32 48 64 128 0
+ DEFAULT 64
+fpr_static_size 32 48 64 0
+ DEFAULT 64
+pr_static_size 256 0
+ DEFAULT 256 
+cr_static_size 64 0
+ DEFAULT 64
+btr_static_size 8 12 16 0
+ DEFAULT 16
+num_clusters 1 2 3 0
+ DEFAULT 1
+
+ [END_SPACE]

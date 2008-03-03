@@ -1,0 +1,257 @@
+
+**************************************************************
+	EPIC Explorer - Install instructions
+**************************************************************
+      				      Last update Apr 14, 2006
+		written by Davide Patti (dpatti@diit.unict.it)
+
+
+
+***************************************************************
+	SECTION I. KNOWN ISSUES
+***************************************************************
+- DOES NOT work with gcc 3.4.x or higher
+- Trimaran version 3.7 is required.
+
+
+***************************************************************
+	SECTION II. INSTALLING TRIMARAN 
+***************************************************************
+
+First of all, you have to install the Trimaran compiler framework.
+
+                     *** IMPORTANT! ****
+
+Before reporting a bug see section IV "COMMON PROBLEMS
+AND ERRORS" at the end of this document.
+
+1) Download latest Trimaran from www.trimaran.org. Epic explorer will
+not work with Trimaran versions < 3.7
+
+2) Unpack trimaran source in your home directory
+
+3) Unpack epic explorer source in your home directory
+
+4) Before compiling Trimaran, copy the file 'PD_dinero.c' from
+'epic/MISC_FILES' dir of Epic explorer to the directory
+$HOME/trimaran/simu/src/emulib/ of Trimaran source.
+
+You must overwrite pre-existing 'PD_dinero.c' file. The file
+provided with Epic explorer is modified in order to support a cache
+configuration file and to computer bus transition due cache accesses. 
+
+5) Finally, go to the $HOME/trimaran dir and type: 
+  ./install 
+
+This should take several minutes. If all it's ok you can proceed to
+the next Section.  
+Otherwise see Section IV: "COMMON PROBLEMS AND ERRORS"
+
+
+***************************************************************
+	SECTION III. INSTALLING EPIC EXPLORER 
+***************************************************************
+
+STEP 1) Create a trimaran-workspace directory
+----------------------------------------------------------
+If this is the first time you install EPIC explorer, you have to run
+trimaran-gui at least once to create  a working "trimaran-workspace"
+dir in your home path. This dir contains some file needed by Epic
+explorer. 
+In order to do this, go in the trimaran directory and type: 
+
+./gui/trimaran-gui 
+
+You won't need the gui anymore, so you can close it and check if
+'trimaran-workspace' dir has been created under your home directory.
+
+NOTE: 
+If upgrading from a previous Epic Explorer version, delete any
+$HOME/trimaran-workspace/epic-explorer/*.conf file, since they might
+be incompatible with the new version and cause segfaults.
+
+STEP 2) Compile 
+----------------------------------------------------------
+Now, just typing "./compile.sh" from Epic Explorer source dir should
+compile everything. If so, you can skip to STEP 3. 
+
+In alternative, you can manually perform these two steps:  
+ 
+- Enter in the directory $HOME/epic/MOGA/include/moea, and
+  type 'make depend'. Don't care about warnings. Then, from the same
+  dir, type "make"
+
+- Go to $HOME/epic dir and type 'make'. 
+
+Note: 
+If you are NOT using an x86 Linux based system you should edit
+environment.h to specify the compiler and the platform used.
+  
+
+STEP 3) Post installation
+----------------------------------------------------------
+Typing "./post_install.sh" from Epic Explorer source dir should
+check if everything is ok and create necessary files in
+trimaran-workspace directory. 
+
+Now you should be able to run Epic Explorer executable from
+its source dir simply by typing "./epic".
+If all seems ok, skip to next Section IV
+
+Alternative:
+In alternative to the automatic post_install.sh script, you can still
+performs step 3 manually:
+
+- From "epic/MISC_FILES" dir copy cache.cfg file in $HOME/trimaran-workspace/ 
+- Create a directory 'epic-explorer' inside trimaran-workspace
+  and copy the entire SUBSPACES dir from epic source
+- Copy all necessary hmdes files from MISC_FILES/hmdes to the
+  appropriare machine directory. See below.
+
+Example:
+
+mkdir ~/trimaran-workspace/epic-explorer
+cp -R SUBSPACES ~/trimaran-workspace/epic-explorer
+cp -f ~/epic/MISC_FILES/hmdes/hpl_pd_elcol_std.hmdes2 ~/trimaran-workspace/machines
+cp -f ~/epic/MISC_FILES/hmdes/.hpl_pd_pristine.hmdes2 ~/trimaran-workspace/machines
+cp -f ~/epic/MISC_FILES/hmdes/explorer.hmdes2 ~/trimaran-workspace/machines
+
+
+***************************************************************
+	SECTION IV. USING EPIC EXPLORER
+***************************************************************
+
+Example of usage:
+
+- start Epic explorer
+
+- choose preferred setting from 'user settings' menu. 
+
+- choose a space or edit a new one from 'edit space' menu.
+
+- choose an design space exploration algorithm. You can also choose
+  'x' to sequentially schedule different algorithm on the same space.
+
+- after each exploration has ended, resulting files are created into
+  $HOME/trimaran-workspace/epic-explorer directory.
+
+
+  Output file names 
+  ------------------------
+  - *.exp : exploration files. They contain the values of the estimated
+    objectives and the configurations explored. 
+    
+    The filename format is:
+
+    bench_ALGO_space.exp: set of estimated configurations using
+    design space exploration algorithm 'ALGO' on subspace 'space'
+    running benchmark 'bench'. 
+
+    bench_ALGO_space.pareto.exp: same as above, but this file
+    contains only configurations belonging to the pareto set (e.g.
+    non-dominated configuration representing all possible trade-offs).
+
+    NOTE: For some algorithms you will get multiple .pareto.exp files,
+    each numbered according to the phase when the pareto set was
+    computed (e.g. number of generations in GA).
+
+  - *.stat: statistical files, whose contents depend on the algorithm used.
+
+  - *.est: each of this files contains the estimation details of each
+    single configuration encountered during exploration. Since the
+    number of these files may be very large, this option is disabled
+    by default.
+
+  - PD_STATS.O_n or PD_STATS_HS.n : this is the raw n-th PD_STATS file
+    generated by Trimaran, without and with hyperblocks. Disabled by
+    default, only for epic debug purpose. To see estimation details
+    used by Epic Explorer better use *.est files.
+
+
+***************************************************************
+	SECTION V. COMMON PROBLEMS AND ERRORS
+***************************************************************
+Here's a list of common errors you can experience while trying to
+compile trimaran.
+If you don't find an answer here, give a look to the trimaran mailing
+list at https://lists.csail.mit.edu/pipermail/trimaran-users/
+
+Commonly reported errors:
+
+------------------------------------------------------------------
+  PROBLEM: Missing 'gnumake'. 
+
+  make a symbolic link from gnumake to your 'gmake' commad. 
+  for example : ln -s /usr/bin/gmake /usr/gnumake
+  
+------------------------------------------------------------------
+  PROBLEM: "Could not determine version!  Check gnumake for -v
+  option". 
+  
+  Edit trimaran/install.tcl and change the line 134 :
+
+  regexp {.*version ([0-9\.]+).*} $gnumakeVer trash ver
+
+  with the line :
+
+  regexp {.*Make ([0-9\.]+).*} $gnumakeVer trash ver
+
+
+------------------------------------------------------------------
+  PROBLEM: Missing xvcg. 
+  
+  If you're using a RPM based system, search 'vcg' on www.rpmfind.net 
+  (e.g. this is valid for RedHat, Fedora, Suse, Mandriva linux distros). 
+
+  Otherwise, xvcg is very problematic to compile, and it is not really
+  needed by EPIC Explorer, so you can simply avoid to compile it by
+  creating a fake vcg file and make it executable.
+
+  Example :
+  touch /usr/bin/xvcg
+  chmod +x /usr/bin/xvcg
+
+  If you want to compile it and you can't use RPMs, download source from :
+
+http://rw4.cs.uni-sb.de/~sander/html/gsvcg1.html#availability
+ 
+  unpack, and run "sh config" . Accept all default values except for
+  library path, where you must specify "-L/usr/X11/lib/" (use your
+  actual paths)
+
+------------------------------------------------------------------
+  PROBLEM: "strstream.h: No such file or directory" (this happens on gcc 3.3.x)
+  
+  A quick solution is to copy the strstream.h file from MISC_FILES dir
+  of Epic Explorer source to the appropriate directories of elcor. 
+  For example:
+
+  cp ~/epic/MISC_FILES/strstream.h ~/trimaran/elcor/src/Main/
+  cp ~/epic/MISC_FILES/strstream.h ~/trimaran/elcor/include/
+
+------------------------------------------------------------------
+  PROBLEM: "time: Command not found"
+  
+  Edit trimaran/elcor/src/GNUmakefile and delete the two occurrencies
+  of the word "time". NOT the whole line, only the word "time"!
+
+
+------------------------------------------------------------------
+  PROBLEM: "nice: Command not found"
+
+  Same as "time" command problem reported above.
+
+------------------------------------------------------------------
+  PROBLEM: "extra text after expected end of preprocessing directive"
+
+  see:
+
+https://lists.csail.mit.edu/pipermail/trimaran-users/2006-February/000135.html
+
+------------------------------------------------------------------
+ FOR ANY OTHER PROBLEM:
+
+  mail to dpatti@diit.unict.it reporting gcc version, GNU/Linux
+  distribution and any other useful info.
+
+
