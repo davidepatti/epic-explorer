@@ -27,9 +27,9 @@ memory_units 1 2 3 4 0
  DEFAULT 4
 branch_units 1 2 3 4 0
  DEFAULT 4
-gpr_static_size 16 32 64 128 0
+gpr_static_size 32 64 128 0
  DEFAULT 128
-fpr_static_size 16 32 64 128 0
+fpr_static_size 32 64 128 0
  DEFAULT 64
 pr_static_size 32 64 128 0
  DEFAULT 64
