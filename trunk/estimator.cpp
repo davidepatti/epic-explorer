@@ -23,9 +23,9 @@
 // uncomment the line below to get delailed energy stats
 //#define VERBOSE
 
-//switch between trimaran and epic explorer stall cycles due cache
-//misses
-#define EE_STYLE_STALLS
+// uncomment to switch to the old-style of computing memory stalls 
+// (used with trimaran 3)
+//#define OLD_STYLE_STALLS
 
 Estimator::Estimator(){
 
@@ -65,22 +65,22 @@ double Estimator::get_functional_unit_energy( uint64 total_cycles,
 
     // power densities have been computed at 2Ghz, so they must be
     // scaled 
-    active_power_cost = active_power_cost/POWER_DENSITY_SCALE;
-    inactive_power_cost = inactive_power_cost/POWER_DENSITY_SCALE;
+    active_power_cost = active_power_cost/current_power_density_scale;
+    inactive_power_cost = inactive_power_cost/current_power_density_scale;
 
     // overall energy consumption if all units of a considered type
     // were inactive in every cycle ( Joules)
-    double total_inactive_energy = unit_instancies * inactive_power_cost * total_cycles * CLOCK_T;
+    double total_inactive_energy = unit_instancies * inactive_power_cost * total_cycles * current_clock_T;
     
     // but sometimes they have been active, so we must subtract
     // an inactive energy contribution for each operation
     // executed by the unit(s)
 
-    total_inactive_energy = total_inactive_energy - inactive_power_cost * total_unit_operations * CLOCK_T;
+    total_inactive_energy = total_inactive_energy - inactive_power_cost * total_unit_operations * current_clock_T;
 
     // now , let's consider the active energy consumption
     //
-    double total_active_energy = total_unit_operations * active_power_cost * CLOCK_T;
+    double total_active_energy = total_unit_operations * active_power_cost * current_clock_T;
     double total_unit_energy = total_inactive_energy + total_active_energy;
     
     return total_unit_energy;
@@ -91,12 +91,12 @@ double Estimator::get_functional_unit_energy( uint64 total_cycles,
 
 double Estimator::get_registerfile_standbypower(int words,int word_size)
 {
-    return  ( (7.99611e-5*words*word_size + 1.82395e-4*words - 2.6431e-4*word_size)*exp((-2108.95522)/(TMPR-82.60784)) )/POWER_DENSITY_SCALE;
+    return  ( (7.99611e-5*words*word_size + 1.82395e-4*words - 2.6431e-4*word_size)*exp((-2108.95522)/(TMPR-82.60784)) )/current_power_density_scale;
 }
 
 double Estimator::get_registerfile_dynamic_power(int words,int word_size)
 {
-    return (4.78619e-7*words+2.5116626e-5*word_size)/POWER_DENSITY_SCALE;
+    return (4.78619e-7*words+2.5116626e-5*word_size)/current_power_density_scale;
 }
 // compute active power per cycle for a particular register size
 
@@ -111,21 +111,17 @@ double Estimator::get_registerfile_active_power(int words,int word_size)
 
 double Estimator::get_processor_energy(const Dynamic_stats& dyn_stats,
 	                               const Processor& processor, 
-				       const Mem_hierarchy& mem,
-				       const int& flag) // flag = IDEAL_MEM | REAL_MEM
+				       const Mem_hierarchy& mem)
 {
     double energy=0;
 
     uint64 total_cycles;
 
-    if (flag!=IDEAL_MEM)   // real memory, cyles must include stalls
-#ifdef EE_STYLE_STALLS
+#ifdef OLD_STYLE_STALLS
  	total_cycles = get_execution_cycles(dyn_stats,mem);
 #else
 	total_cycles = dyn_stats.total_cycles;
 #endif
-    else		   // ideal memory, only processor cycles
-	total_cycles = dyn_stats.compute_cycles;
 
     uint64 ialu_ops = dyn_stats.ialu;
     uint64 falu_ops =dyn_stats.falu;
@@ -133,8 +129,8 @@ double Estimator::get_processor_energy(const Dynamic_stats& dyn_stats,
     uint64 branch_ops = dyn_stats.branch;
     uint64 cmp_ops = dyn_stats.cmp;
     uint64 pbr_ops = dyn_stats.pbr;
-    uint64 iussued_ops = dyn_stats.total_dynamic_operations;
-    uint64 regfile_ops = iussued_ops * 2;
+    uint64 issued_ops = dyn_stats.total_dynamic_operations;
+    uint64 regfile_ops = issued_ops * 2;
 	              
     int n_units; // number of istancies of a functional unit
 
@@ -154,43 +150,45 @@ double Estimator::get_processor_energy(const Dynamic_stats& dyn_stats,
     Area area_falu;
     Area area_decode;
 
-    area_ialu.static_area = IALU_STATIC_AREA,
-    area_ialu.dynamic_area = IALU_DYNAMIC_AREA,
-    area_ialu.clock_area = IALU_CLOCK_AREA,
-    area_ialu.memory_area = IALU_MEMORY_AREA,
-    area_ialu.pla_area = IALU_PLA_AREA,
+    area_ialu.static_area = IALU_STATIC_AREA;
+    area_ialu.dynamic_area = IALU_DYNAMIC_AREA;
+    area_ialu.clock_area = IALU_CLOCK_AREA;
+    area_ialu.memory_area = IALU_MEMORY_AREA;
+    area_ialu.pla_area = IALU_PLA_AREA;
 
-    area_falu.static_area = FALU_STATIC_AREA,
-    area_falu.dynamic_area = FALU_DYNAMIC_AREA,
-    area_falu.clock_area = FALU_CLOCK_AREA,
-    area_falu.memory_area = FALU_MEMORY_AREA,
-    area_falu.pla_area = FALU_PLA_AREA,
+    area_falu.static_area = FALU_STATIC_AREA;
+    area_falu.dynamic_area = FALU_DYNAMIC_AREA;
+    area_falu.clock_area = FALU_CLOCK_AREA;
+    area_falu.memory_area = FALU_MEMORY_AREA;
+    area_falu.pla_area = FALU_PLA_AREA;
 
-    area_decode.static_area = DECODE_STATIC_AREA,
-    area_decode.dynamic_area = DECODE_DYNAMIC_AREA,
-    area_decode.clock_area = DECODE_CLOCK_AREA,
-    area_decode.memory_area = DECODE_MEMORY_AREA,
-    area_decode.pla_area = DECODE_PLA_AREA,
+    area_decode.static_area = DECODE_STATIC_AREA;
+    area_decode.dynamic_area = DECODE_DYNAMIC_AREA;
+    area_decode.clock_area = DECODE_CLOCK_AREA;
+    area_decode.memory_area = DECODE_MEMORY_AREA;
+    area_decode.pla_area = DECODE_PLA_AREA;
 
-    n_units = processor.integer_units.get_val(); 
+   int num_clusters = processor.num_clusters.get_val();
+
+    n_units = num_clusters * processor.integer_units.get_val(); 
     int_units_energy = get_functional_unit_energy( total_cycles, ialu_ops,area_ialu, n_units);
 
-    n_units = processor.float_units.get_val();
+    n_units = num_clusters * processor.float_units.get_val();
     float_units_energy = get_functional_unit_energy( total_cycles, falu_ops,area_falu, n_units);
 
     // Each cmp (compare to predicate ) op uses a branch unit to
     // evaluate branch condition.
 
-    n_units = processor.branch_units.get_val();
+    n_units = num_clusters * processor.branch_units.get_val();
     branch_units_energy = get_functional_unit_energy( total_cycles, cmp_ops, area_ialu, n_units);
 
     //each load/store op uses a memory unit
 
-    n_units = processor.memory_units.get_val();
+    n_units = num_clusters * processor.memory_units.get_val();
     mem_units_energy = get_functional_unit_energy ( total_cycles, mem_ops, area_ialu, n_units);
 
 
-    decode_unit_energy = get_functional_unit_energy( total_cycles, iussued_ops, area_decode, IUSSUE_WIDTH );
+    decode_unit_energy = get_functional_unit_energy( total_cycles, issued_ops, area_decode, ISSUE_WIDTH );
 
     // REGISTER FILES ENERGY ///////////////////////////////////////
     //
@@ -211,7 +209,7 @@ double Estimator::get_processor_energy(const Dynamic_stats& dyn_stats,
     double gpr_ps = get_registerfile_standbypower(words,32);
     double gpr_pd = get_registerfile_dynamic_power(words,32);
 
-    gpr_register_file_energy = gpr_ps*total_cycles*CLOCK_T + gpr_pd * regfile_ops*CLOCK_T;
+    gpr_register_file_energy = gpr_ps*total_cycles*current_clock_T + gpr_pd * regfile_ops*current_clock_T;
 
 
     //////////////////////////////////////////////////////////////////
@@ -223,7 +221,7 @@ double Estimator::get_processor_energy(const Dynamic_stats& dyn_stats,
 
     double fp_ps = get_registerfile_standbypower(words,64);
     double fp_pd = get_registerfile_dynamic_power(words,64);
-    fp_register_file_energy = (fp_ps*total_cycles + fp_pd * falu_ops)*CLOCK_T;
+    fp_register_file_energy = (fp_ps*total_cycles + fp_pd * falu_ops)*current_clock_T;
 
 
     //////////////////////////////////////////////////////////////////
@@ -241,7 +239,7 @@ double Estimator::get_processor_energy(const Dynamic_stats& dyn_stats,
     double bt_register_file_pd = get_registerfile_dynamic_power(words,64);
     double bt_register_file_power = bt_register_file_ps * total_cycles + bt_register_file_pd * (pbr_ops+branch_ops);
 
-    bt_register_file_energy = bt_register_file_power * CLOCK_T;
+    bt_register_file_energy = bt_register_file_power * current_clock_T;
 
     //////////////////////////////////////////////////////////////////
 
@@ -255,7 +253,7 @@ double Estimator::get_processor_energy(const Dynamic_stats& dyn_stats,
     double pr_ps = get_registerfile_standbypower(words,1);
     double pr_pd = get_registerfile_dynamic_power(words,1);
 
-    pr_register_file_energy = (pr_ps * total_cycles + pr_pd * cmp_ops) * CLOCK_T;
+    pr_register_file_energy = (pr_ps * total_cycles + pr_pd * cmp_ops) * current_clock_T;
 
 
     ///////////////////////////////////////////////////////////////////
@@ -267,7 +265,7 @@ double Estimator::get_processor_energy(const Dynamic_stats& dyn_stats,
     double cr_ps = get_registerfile_standbypower(words,32);
     double cr_pd = get_registerfile_dynamic_power(words,32);
 
-    cr_register_file_energy = (cr_ps * total_cycles + cr_pd* total_cycles)*CLOCK_T;
+    cr_register_file_energy = (cr_ps * total_cycles + cr_pd* total_cycles)*current_clock_T;
 
 
     ///////////////////////////////////////////////////////////////////
@@ -321,106 +319,6 @@ int Estimator::max_reg_size(const Processor& p) {
     return max_size;
 }
 
-int Estimator::get_miss_penality(const Mem_hierarchy::Cache& cache)
-{
-    int latency ; // of lower level 
-    int width;    // in bytes/cycle from lower level 
-
-    switch (cache.type)
-    {
-	case L1D_CACHE:
-	    latency = 10; 
-	    width = 8;    
-	    break;
-	case L1I_CACHE:
-	    latency = 10;
-	    width = 8;
-	    break;
-	case L2U_CACHE:
-	    latency = 30;
-	    width = 8;
-	    break;
-    };
-
-    return ( latency + cache.block_size.get_val()/width );
-}
-
-double Estimator::get_cycles_per_hit(const Mem_hierarchy::Cache& cache)
-{
-    char ch;
-
-    switch (cache.associativity.get_val())
-    {
-
-	case 1:
-	    return 1;
-	    break;
-
-	case 2:
-	    return 1.1;
-	    break;
-
-	case 4:
-	    return 1.12;
-	    break;
-
-	case 8:
-	    return 1.14;
-	    break;
-
-	case 16:
-	    return 1.16;
-	    break;
-	default:
-	    cout << "\n Error in Estimator::get_cycles_per_hit() : ";
-	    cout << "\n Wrong associativity value !";
-	    wait_key();
-    }
-    return -1;
-}
-uint64 Estimator::get_execution_cycles(const Dynamic_stats& dyn_stats,const Mem_hierarchy& m )
-{
-    uint64 processor_cycles = dyn_stats.compute_cycles;
-
-    uint64 L1D_miss_cycles = dyn_stats.L1D_miss*get_miss_penality(m.L1D);
-    uint64 L1I_miss_cycles = dyn_stats.L1I_miss*get_miss_penality(m.L1I);
-    uint64 L2U_miss_cycles = dyn_stats.L2U_miss*get_miss_penality(m.L2U);
-
-    uint64 memory_stall_cyles = L1D_miss_cycles + L1I_miss_cycles + L2U_miss_cycles;
-
-    double L1D_extra_hit_cycles=dyn_stats.L1D_hit*(get_cycles_per_hit(m.L1D) - 1);
-    double L1I_extra_hit_cycles= dyn_stats.L1I_hit*(get_cycles_per_hit(m.L1I)-1);
-    double L2U_extra_hit_cycles =dyn_stats.L2U_hit*(get_cycles_per_hit(m.L2U)-1);
-
-    uint64 total_extra_hit_cycles = (uint64)(L1D_extra_hit_cycles+L1I_extra_hit_cycles+L2U_extra_hit_cycles);
-
-#ifdef VERBOSE
-
-    cout << "\n -------------- Cache stats ------------------";
-    cout << "\n L1D_misses : " << dyn_stats.L1D_miss << " -> miss cyles :" << L1D_miss_cycles;
-    cout << "\n L1I_misses : " << dyn_stats.L1I_miss<< " -> miss cyles :" << L1I_miss_cycles;;
-    cout << "\n L2U_misses : " << dyn_stats.L2U_miss<< " -> miss cyles :" << L2U_miss_cycles;;
-    
-    
-    cout << "\n Memory stall cycles : " << memory_stall_cyles;
-
-    cout << "\n L1D_hit " << dyn_stats.L1D_hit;
-    cout << "\n L1I_hit " << dyn_stats.L1I_hit;
-    cout << "\n L2U_hit " << dyn_stats.L2U_hit;
-
-
-    cout << "\n -------------- Extra cache stats ------------";
-    cout << "\n L1I_extra_hit_cycles: " << L1I_extra_hit_cycles;
-    cout << "\n L1D_extra_hit_cycles: " << L1D_extra_hit_cycles;
-    cout << "\n L2U_extra_hit_cycles: " << L2U_extra_hit_cycles;
-    cout << "\n ---------------------------------------------";
- 
-#endif
-    
-    uint64 total_cycles = processor_cycles + total_extra_hit_cycles+ memory_stall_cyles;
-
-    return total_cycles;
-}
     
 double Estimator::get_processor_area(const Processor& processor) 
 {
@@ -434,8 +332,6 @@ double Estimator::get_processor_area(const Processor& processor)
     //  0.35um technology
     //  
     //  adapted from model presented in [1]
-
-
     // ***********************************************************
     // Processor kernel area 
     // ***********************************************************
@@ -445,7 +341,9 @@ double Estimator::get_processor_area(const Processor& processor)
     double ck0 = 1116272;
 
     // bits per instruction 
-    int binst = 32 * IUSSUE_WIDTH;
+    int binst = 32 * ISSUE_WIDTH;
+
+    int num_clusters = processor.num_clusters.get_val();
 
     // total instructions
     int I = 60;
@@ -466,11 +364,11 @@ double Estimator::get_processor_area(const Processor& processor)
     double addr_unit_increase = 19412;
     double branch_unit_increase = 12736;
 
-    double ck4 = (processor.integer_units.get_val() + 
-	         processor.float_units.get_val() ) * alu_increase;
+    double ck4 = (num_clusters*processor.integer_units.get_val() + 
+	          num_clusters*processor.float_units.get_val() ) * alu_increase;
 
-    ck4 += processor.memory_units.get_val() * addr_unit_increase;
-    ck4 += processor.branch_units.get_val() * branch_unit_increase;
+    ck4 += num_clusters*processor.memory_units.get_val() * addr_unit_increase;
+    ck4 += num_clusters*processor.branch_units.get_val() * branch_unit_increase;
 
     // total processor kernel area
     
@@ -510,10 +408,10 @@ double Estimator::get_processor_area(const Processor& processor)
     // factor 1.32353 is derived from area values of power_conf file in PowerImpact
     // source, as the result of (area_falu/area_ialu)
    
-    double int_units_area = processor.integer_units.get_val()*151194 ;
-    double float_units_area = processor.float_units.get_val()*151194*1.32353;
-    double addr_units_area = 30535 * processor.memory_units.get_val();
-    double branch_units_area = processor.branch_units.get_val()*151194;
+    double int_units_area = num_clusters*processor.integer_units.get_val()*151194 ;
+    double float_units_area = num_clusters*processor.float_units.get_val()*151194*1.32353;
+    double addr_units_area = num_clusters*30535 * processor.memory_units.get_val();
+    double branch_units_area = num_clusters*processor.branch_units.get_val()*151194;
 
     double units_area = int_units_area + float_units_area + addr_units_area + branch_units_area;
 
@@ -529,36 +427,12 @@ void Estimator::set_autoclock(bool enabled)
 {
     this->autoclock = enabled;
 
-}
-
-void Estimator::update_clock_frequency(const double & min_clock_period)
-{
-    double max_clock_freq= 1/(min_clock_period*1.1);
-    
-    // if auto clock enabled choose a proper clock rate based on max_clock_rate value
-
-    if (autoclock) CLOCK_FREQ = max_clock_freq;
-    else
-	CLOCK_FREQ = DEFAULT_CLOCK;
-
-    CLOCK_T = 1/(double)CLOCK_FREQ;
-
-    // power densities were originally computed for 2Ghz frequency
-    POWER_DENSITY_SCALE = 2e9/CLOCK_FREQ;
-
-#ifdef VERBOSE
-    cout << "\n updating clock frequency ";
-    cout << "\n CLOCK_FREQ " << CLOCK_FREQ;
-    cout << "\n CLOCK_T " << CLOCK_T;
-    cout << "\n min_clock_period " << min_clock_period;
-    cout << "\n POWER_DENSITY_SCALE";
-#endif
-
-}
-
-double Estimator::get_current_clock() const
-{
-    return CLOCK_FREQ;
+    if (!enabled)
+    {
+	current_clock_freq = DEFAULT_CLOCK;
+	current_clock_T = 1/current_clock_freq;
+	current_power_density_scale = 2e9/current_clock_freq;
+    }
 }
 
 double Estimator::get_access_time(const Mem_hierarchy::Cache& cache)
@@ -573,18 +447,7 @@ double Estimator::get_access_time(const Mem_hierarchy::Cache& cache)
 
     /* Cacti parameters
      * Assuming  : 
-
-     RWP = 1;
-     ERP = 0;
-     EWP = 0;
-     NSER = 0;
-     Ndbl = 1; 
-     Ndwl = 1;
-     Nspd = 1;
-     Ntbl = 1;
-     Ntwl = 1;
-     Ntspd = 1;
-
+     RWP = 1; ERP = 0; EWP = 0; NSER = 0; Ndbl = 1; Ndwl = 1; Nspd = 1; Ntbl = 1; Ntwl = 1; Ntspd = 1;
     NSubbanks = 1; 
       */
 
@@ -651,9 +514,9 @@ double Estimator::get_access_time(const Mem_hierarchy::Cache& cache)
     parameters.cache_size= C;
     parameters.block_size= B;
     parameters.associativity = A;
-    parameters.num_readwrite_ports = 1; //RWP
-    parameters.num_read_ports = 0;  // ERP
-    parameters.num_write_ports = 0; // EWR
+    parameters.num_readwrite_ports = 0; //RWP
+    parameters.num_read_ports = ISSUE_WIDTH*2  ;  // ERP
+    parameters.num_write_ports = ISSUE_WIDTH; // EWR
     parameters.num_single_ended_read_ports = 0; // NSER
     parameters.number_of_sets = C/(B*A);
     parameters.fudgefactor = 0.8/TECHNOLOGY;
@@ -662,10 +525,6 @@ double Estimator::get_access_time(const Mem_hierarchy::Cache& cache)
 
     calculate_time(&result,&arearesult,&arearesult_subbanked,&parameters,&NSubbanks);
 
-    //area_subbanked(baddr, b0,1,0,0,1,1,1,1,1,1,1,&parameters,&result_subbanked, &result);
-
-    // expressed in cm^2
-    
     double access_time = result.access_time;
     double cycle_time = result.cycle_time;
 
@@ -684,17 +543,7 @@ double Estimator::get_cache_area(const Mem_hierarchy::Cache& cache)
     /* Cacti parameters
      * Assuming  : 
 
-     RWP = 1;
-     ERP = 0;
-     EWP = 0;
-     NSER = 0;
-     Ndbl = 1; 
-     Ndwl = 1;
-     Nspd = 1;
-     Ntbl = 1;
-     Ntwl = 1;
-     Ntspd = 1;
-
+     RWP = 1; ERP = 0; EWP = 0; NSER = 0; Ndbl = 1; Ndwl = 1; Nspd = 1; Ntbl = 1; Ntwl = 1; Ntspd = 1;
     NSubbanks = 1; 
       */
 
@@ -718,11 +567,11 @@ double Estimator::get_cache_area(const Mem_hierarchy::Cache& cache)
     parameters.num_write_ports = 0; // EWR
     parameters.num_single_ended_read_ports = 0; // NSER
     parameters.number_of_sets = C/(B*A);
-    parameters.fudgefactor = 0.8/0.35;
-    parameters.tech_size = 0.35;
+    parameters.fudgefactor = 0.8/TECHNOLOGY;
+    parameters.tech_size = TECHNOLOGY;
     parameters.VddPow = VDD;
 
-    area_subbanked(baddr, b0,1,0,0,1,1,1,1,1,1,1,&parameters,&result_subbanked, &result);
+    area_subbanked(baddr, b0,0,ISSUE_WIDTH*2,ISSUE_WIDTH,1,1,1,1,1,1,1,&parameters,&result_subbanked, &result);
 
     // expressed in cm^2
     
@@ -749,13 +598,13 @@ double Estimator::get_total_area(Processor& processor, Mem_hierarchy& mem_hierar
 
 }
 
-double Estimator::get_cache_energy(uint64& r_hit,
-	                           uint64& r_miss,
-				   uint64& w_hit,
-				   uint64& w_miss,
-				   uint64& N_wb_req,
-				   double& addr_trans_prob,
-				   int& L_higher_block,
+double Estimator::get_cache_energy(const uint64& r_hit,
+	                           const uint64& r_miss,
+				   const uint64& w_hit,
+				   const uint64& w_miss,
+				   const uint64& N_wb_req,
+				   const double& addr_trans_prob,
+				   const int& L_higher_block,
 				   const Mem_hierarchy::Cache& cache)
 {
 
@@ -763,7 +612,7 @@ double Estimator::get_cache_energy(uint64& r_hit,
     int D = cache.size.get_val(); 
     int m = cache.associativity.get_val(); 
     int L = cache.block_size.get_val(); 
-    int sb = cache.subblock_size;
+    int sb = L;
 
     //int W_word = (int)(logtwo_area(sb)); // bits for subblock
     int S = D/(L*m); // number of sets
@@ -832,76 +681,57 @@ double Estimator::get_cache_energy(uint64& r_hit,
     return E_cache;
 }
 
-double Estimator::get_main_memory_energy(uint64& n_block_request,int& block_size)
+double Estimator::get_main_memory_energy(const uint64& n_request)
 {
-    double average_consumption = 4.95e-9;
-    int words_per_block = block_size/4;
-    return n_block_request*words_per_block*average_consumption;
+    // TODO: each request is bigger than a word
+    double average_access_consumption = 4.95e-9;
+    return n_request*average_access_consumption;
 }
 
 Estimate Estimator::get_estimate(const Dynamic_stats& dyn_stats, 
 	                         const Mem_hierarchy& mem, 
-				 const Processor& processor,
-				 const string& transitions_file)
+				 const Processor& processor)
 {
     string tmp;
-    
-    // data structure where estimates are stored
     Estimate estimate;
 
-    if (this->autoclock) // get cache access time only if necessary
+    estimate.L1D_access_time = get_access_time(mem.L1D);
+    estimate.L1I_access_time = get_access_time(mem.L1I);
+
+    // If auto clock option is enabled, CLOCK_FREQ and current_clock_T are recalibrated
+    // to allow L1 access time
+    if (this->autoclock) 
     {
-	estimate.L1D_access_time = get_access_time(mem.L1D);
-	estimate.L1I_access_time = get_access_time(mem.L1I);
-	estimate.max_access_time = max(estimate.L1D_access_time,estimate.L1I_access_time);
-    }
-
-    // If auto clock option is enabled, clock frequency is recalibrated
-    // NOTE: if the option is not enabled, access_time argument is
-    // ignored and update_clock_frequency(..) set frequency at the DEFAULT_CLOCK value
-
-    update_clock_frequency(estimate.max_access_time);
-
-    estimate.clock_freq = CLOCK_FREQ;
-    estimate.clock_T = CLOCK_T;
-    estimate.power_density_scale = POWER_DENSITY_SCALE;
-
-    ////////////////////////////////////////////////////////////
-
-    // Processor energy ////////////////////////////////
-
-    estimate.total_processor_energy= get_processor_energy(dyn_stats,processor,mem,REAL_MEM);
-
-    // when ideal memory hierarchy is assumed
-    estimate.NO_MEM_system_energy = get_processor_energy(dyn_stats,processor,mem,IDEAL_MEM);
-
-    // Address bus transitions ////////////////////////
-
-    // NOTE: if memref files are available this values will be overwritten
-    double L1D_tp = 0.25;
-    double L1I_tp = 0.25;  
-
-    int ch;
-
-    FILE * fp;
-
-    if ((fp=fopen(transitions_file.c_str(),"r"))==NULL)
-    {
-	cout << "\n WARNING: No transition prob file found, assuming 0.25 default!";
-	cout << "\n error opening file :" << transitions_file;
+	double max_access_time = max(estimate.L1D_access_time,estimate.L1I_access_time);
+	current_clock_T = max_access_time*1.1; 
+	current_clock_freq= 1/(double)current_clock_T;
+#ifdef VERBOSE
+	cout << "\n updating clock frequency ";
+	cout << "\n CLOCK_FREQ " << current_clock_freq;
+	cout << "\n current_clock_T " << current_clock_T;
+#endif
     }
     else
     {
-	fscanf(fp,"%lf %lf",&L1I_tp,&L1D_tp);
-	fclose(fp);
+	current_clock_freq = DEFAULT_CLOCK;
+	current_clock_T = 1/(double)current_clock_freq;
     }
 
-#ifdef VERBOSE
-    cout << "\n loaded tp values (L1I,L1D) : " << L1I_tp << " e " << L1D_tp << endl;
-#endif
+    // power densities were originally computed for 2Ghz frequency
+    current_power_density_scale = 2e9/current_clock_freq;
 
-    estimate.L1D_transition_p = L1D_tp;
-    estimate.L1I_transition_p = L1I_tp;
+    estimate.clock_freq = current_clock_freq;
+    estimate.clock_T = current_clock_T;
+    estimate.power_density_scale = current_power_density_scale;
+
+    // Processor energy ////////////////////////////////
+
+    estimate.total_processor_energy= get_processor_energy(dyn_stats,processor,mem);
+
+    // Address bus transitions ////////////////////////
+
+    estimate.L1D_transition_p = dyn_stats.L1D_transition_p;
+    estimate.L1I_transition_p = dyn_stats.L1I_transition_p;
 
     // L1 data cache energy ////////////////////////////
 
@@ -910,11 +740,11 @@ Estimate Estimator::get_estimate(const Dynamic_stats& dyn_stats,
     uint64 w_hit = dyn_stats.L1D_w_hit;
     uint64 w_miss = dyn_stats.L1D_w_miss;
 
-    uint64 N_wb_req = (dyn_stats.L1D_capacity_misses + dyn_stats.L1D_conflict_misses);
+    uint64 N_wb_req = dyn_stats.L1D_writebacks;
 
     int hb = 19; // average data width of data delivery to CPU
    
-    estimate.L1D_energy= get_cache_energy(r_hit,r_miss,w_hit,w_miss,N_wb_req,L1D_tp,hb,mem.L1D );
+    estimate.L1D_energy= get_cache_energy(r_hit,r_miss,w_hit,w_miss,N_wb_req,dyn_stats.L1D_transition_p,hb,mem.L1D);
 
     // L1 instruction energy //////////////////////////
 
@@ -922,47 +752,43 @@ Estimate Estimator::get_estimate(const Dynamic_stats& dyn_stats,
     r_miss = dyn_stats.L1I_miss;
     w_hit = 0;
     w_miss = 0;
-    N_wb_req = dyn_stats.L1I_capacity_misses + dyn_stats.L1I_conflict_misses;
+    N_wb_req = dyn_stats.L1I_writebacks;
 
-    estimate.L1I_energy= get_cache_energy(r_hit,r_miss,w_hit,w_miss,N_wb_req,L1I_tp,hb,mem.L1I );
+    estimate.L1I_energy= get_cache_energy(r_hit,r_miss,w_hit,w_miss,N_wb_req,dyn_stats.L1I_transition_p,hb,mem.L1I );
     
     // L2 unified cache energy ///////////////////////
 
-    r_hit = dyn_stats.L2U_r_hit;
-    r_miss = dyn_stats.L2U_r_miss;
-    w_hit = dyn_stats.L2U_w_hit;
-    w_miss = dyn_stats.L2U_w_miss;
+    // TODO: find how m5 distinguish between r/w
+    r_hit = dyn_stats.L2U_hit/2;
+    r_miss = dyn_stats.L2U_miss/2;
+    w_hit = r_hit;
+    w_miss = r_miss;
 
-    N_wb_req = dyn_stats.L2U_capacity_misses + dyn_stats.L2U_conflict_misses;
-
-    // unlike L1 caches, L2 is considered to have little address referece locality 
-    double L2U_tp = 0.5; 
+    N_wb_req = dyn_stats.L2U_writebacks;
 
     // average higher level data delivery width 
 
     hb = (8*(mem.L1D.block_size.get_val()+mem.L1I.block_size.get_val()))/2;
 
-    estimate.L2U_energy= get_cache_energy(r_hit,r_miss,w_hit,w_miss,N_wb_req,L2U_tp,hb,mem.L2U );
+    estimate.L2U_energy= get_cache_energy(r_hit,r_miss,w_hit,w_miss,N_wb_req,dyn_stats.L2U_transition_p,hb,mem.L2U);
 
-    uint64 n_block_request = dyn_stats.L2U_r_miss+dyn_stats.L2U_w_miss;
-    int L2_block_size = mem.L2U.block_size.get_val();
-
-    estimate.main_memory_energy = get_main_memory_energy(n_block_request,L2_block_size);
+    estimate.main_memory_energy = get_main_memory_energy(dyn_stats.SDRAM_accesses);
 
     /////////////////////////////////////////////////
 
     estimate.total_cache_energy = estimate.L1D_energy + estimate.L1I_energy + estimate.L2U_energy;
     estimate.total_system_energy = estimate.total_cache_energy + estimate.total_processor_energy + estimate.main_memory_energy;
 
-#ifdef EE_STYLE_STALLS
+#ifdef OLD_STYLE_STALLS
     estimate.execution_cycles = get_execution_cycles(dyn_stats,mem);
+    estimate.stall_cycles = estimate.execution_cycles - dyn_stats.compute_cycles;
 #else
     estimate.execution_cycles = dyn_stats.total_cycles;
+    estimate.stall_cycles = dyn_stats.stall_cycles;
 #endif
 
     estimate.compute_cycles = dyn_stats.compute_cycles;
-    estimate.stall_cycles = estimate.execution_cycles - estimate.compute_cycles;
-    estimate.execution_time = estimate.execution_cycles * CLOCK_T;
+    estimate.execution_time = estimate.execution_cycles * current_clock_T;
     estimate.IPC = (double)dyn_stats.total_dynamic_operations/estimate.execution_cycles;
     estimate.total_average_power = estimate.total_system_energy/estimate.execution_time;
 
@@ -975,5 +801,107 @@ Estimate Estimator::get_estimate(const Dynamic_stats& dyn_stats,
     estimate.total_area = estimate.L1D_area + estimate.L1I_area + estimate.L2U_area + estimate.processor_area;
     return estimate;
 }
+
+#ifdef OLD_STYLE_STALLS
+int Estimator::get_miss_penality(const Mem_hierarchy::Cache& cache)
+{
+    int latency ; // of lower level 
+    int width;    // in bytes/cycle from lower level 
+
+    switch (cache.type)
+    {
+	case L1D_CACHE:
+	    latency = 10; 
+	    width = 8;    
+	    break;
+	case L1I_CACHE:
+	    latency = 10;
+	    width = 8;
+	    break;
+	case L2U_CACHE:
+	    latency = 30;
+	    width = 8;
+	    break;
+    };
+
+    return ( latency + cache.block_size.get_val()/width );
+}
+
+
+double Estimator::get_cycles_per_hit(const Mem_hierarchy::Cache& cache)
+{
+    char ch;
+
+    switch (cache.associativity.get_val())
+    {
+
+	case 1:
+	    return 1;
+	    break;
+
+	case 2:
+	    return 1.1;
+	    break;
+
+	case 4:
+	    return 1.12;
+	    break;
+
+	case 8:
+	    return 1.14;
+	    break;
+
+	case 16:
+	    return 1.16;
+	    break;
+	default:
+	    cout << "\n Error in Estimator::get_cycles_per_hit() : ";
+	    cout << "\n Wrong associativity value: " << cache.associativity.get_val();
+	    exit(-1);
+    }
+    return -1;
+}
+uint64 Estimator::get_execution_cycles(const Dynamic_stats& dyn_stats,const Mem_hierarchy& m )
+{
+    uint64 processor_cycles = dyn_stats.compute_cycles;
+
+    uint64 L1D_miss_cycles = dyn_stats.L1D_miss*get_miss_penality(m.L1D);
+    uint64 L1I_miss_cycles = dyn_stats.L1I_miss*get_miss_penality(m.L1I);
+    uint64 L2U_miss_cycles = dyn_stats.L2U_miss*get_miss_penality(m.L2U);
+
+    uint64 memory_stall_cyles = L1D_miss_cycles + L1I_miss_cycles + L2U_miss_cycles;
+
+    double L1D_extra_hit_cycles=dyn_stats.L1D_hit*(get_cycles_per_hit(m.L1D) - 1);
+    double L1I_extra_hit_cycles= dyn_stats.L1I_hit*(get_cycles_per_hit(m.L1I)-1);
+    double L2U_extra_hit_cycles =dyn_stats.L2U_hit*(get_cycles_per_hit(m.L2U)-1);
+
+    uint64 total_extra_hit_cycles = (uint64)(L1D_extra_hit_cycles+L1I_extra_hit_cycles+L2U_extra_hit_cycles);
+
+#ifdef VERBOSE
+    cout << "\n -------------- Cache stats ------------------";
+    cout << "\n L1D_misses : " << dyn_stats.L1D_miss << " -> miss cyles :" << L1D_miss_cycles;
+    cout << "\n L1I_misses : " << dyn_stats.L1I_miss<< " -> miss cyles :" << L1I_miss_cycles;;
+    cout << "\n L2U_misses : " << dyn_stats.L2U_miss<< " -> miss cyles :" << L2U_miss_cycles;;
+    
+    
+    cout << "\n Memory stall cycles : " << memory_stall_cyles;
+
+    cout << "\n L1D_hit " << dyn_stats.L1D_hit;
+    cout << "\n L1I_hit " << dyn_stats.L1I_hit;
+    cout << "\n L2U_hit " << dyn_stats.L2U_hit;
+
+
+    cout << "\n -------------- Extra cache stats ------------";
+    cout << "\n L1I_extra_hit_cycles: " << L1I_extra_hit_cycles;
+    cout << "\n L1D_extra_hit_cycles: " << L1D_extra_hit_cycles;
+    cout << "\n L2U_extra_hit_cycles: " << L2U_extra_hit_cycles;
+    cout << "\n ---------------------------------------------";
+#endif
+    
+    uint64 total_cycles = processor_cycles + total_extra_hit_cycles+ memory_stall_cyles;
+
+    return total_cycles;
+}
+#endif
 
 

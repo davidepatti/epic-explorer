@@ -60,6 +60,7 @@ int main(int argc, char *argv[])
 	//MPI::Finalize();
 #else
     string base_path = string(getenv(BASE_DIR));
+    //cout <<  "DEBUG BASEDIR " << BASE_DIR;
 #endif
 
     User_interface *ui = new User_interface(base_path);

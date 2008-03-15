@@ -16,16 +16,19 @@
  ***************************************************************************/
 
 #include "parameter.h"
+#include "common.h"
 
 using namespace std;
 
 Parameter::Parameter(){
-    
+    set_label("NO_LABEL");
+    current = NOT_VALID;
 }
 
 
-Parameter::Parameter(vector<int> possible_values,int default_val)
+Parameter::Parameter(const string& l,vector<int> possible_values,int default_val)
 {
+    set_label(l);
     set_values(possible_values,default_val);
 }
 
@@ -34,15 +37,18 @@ Parameter::Parameter(vector<int> possible_values,int default_val)
 Parameter::Parameter(int * possible_values,int default_val) {
 
     int index=0;
-    while (possible_values[index]!=-1) 
+    while (possible_values[index]!=NOT_VALID) 
     {
 	values.push_back(possible_values[index]);
 	index++;
     }
-
     default_value = default_val;
-
     set_val(default_value);
+}
+
+void Parameter::set_label(const string& l)
+{
+    label = l;
 }
 
 
@@ -58,7 +64,10 @@ void Parameter::set_to_default()
 
 int Parameter::get_val() const 
 {
-    return values[current];
+    if (current!=NOT_VALID)
+	return values[current];
+    else
+	return NOT_VALID;
 }
 
 int Parameter::get_default() const
@@ -73,20 +82,18 @@ int Parameter::get_size() const
 
 void Parameter::set_val(int new_value)
 {
-    current = -1;
+    current = NOT_VALID; 
 
     for (int i =0;i<values.size();i++)
-    {
 	if (values[i]==new_value) current = i;
-    }
 
-    if (current==-1)
+    if (current==NOT_VALID)
     {
-	cout << "\n FATAL ERROR: Invalid parameter value set !!( new_value = " << new_value << ")";
-	cout << "\n List of available values : " << endl;
+	cout << "\n ERROR: not a valid value set for parameter '"<<label<<"' (new_value = " << new_value << ")";
+	cout << "\n List of available values: " << endl;
 	for (int i =0;i<values.size();i++) cout << values[i] << ",";
 	cout << "\n Please check your subspace file in trimaran-workspace/epic-explorer/SUBSPACES";
-	exit(-1);
+	wait_key();
     }
 }
 
@@ -161,5 +168,5 @@ int Parameter::get_pos(int value)
 	for(int i=0; i<values.size(); ++i)
 		if (values[i] == value) return (i+1);
 
-	return (-1);
+	return NOT_VALID;
 }

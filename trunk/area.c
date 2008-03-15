@@ -43,8 +43,7 @@
 #include <math.h>
 #include "cacti.h"
 #include "stdio.h"
-
-int ciao=1;
+#include <stdlib.h>
 
 double logtwo_area(double x)
 {

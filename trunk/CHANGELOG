@@ -1,8 +1,17 @@
 current
 --------------------------------------
-- Support for multi-directory with recompilation/simulation avoiding.
+- support for multi-cluster register files
+- new m5 memory simulator support
+- rewritten multi-objective genetic algorithm
+- support for execution in parallel environment (e.g. mpi)
+- Support for saving/restore benchmark binary and PD_STATS
 - Directory independent reorganization of the code
 - Misc fixes in fuzzy approx.
+- really working post_install.sh script
+- more accurate cache access time and area estimate
+- restored working manual steps in epic menu
+- splitted algorithm source files
+
 
 20060321-r1
 --------------------------------------

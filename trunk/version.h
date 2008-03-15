@@ -1,1 +1,1 @@
-#define VERSION "2008 mpi testing"
+#define VERSION "2008.3 beta"

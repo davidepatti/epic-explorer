@@ -95,6 +95,7 @@
   in_appoggio[15] = unsigned(mem.L2U.size.get_pos(conf.L2U_size  ));
   in_appoggio[16] = unsigned(mem.L2U.block_size.get_pos(conf.L2U_block));
   in_appoggio[17] = unsigned(mem.L2U.associativity.get_pos(conf.L2U_assoc));
+  in_appoggio[18] = unsigned(p.num_clusters.get_pos(conf.num_clusters));
   
   fann_type out_appoggio[2];
   out_appoggio[0] = fann_type(sim.energy); 
@@ -168,6 +169,7 @@
   	in_appoggio[15] = fann_type(mem.L2U.size.get_pos(conf.L2U_size  ));
   	in_appoggio[16] = fann_type(mem.L2U.block_size.get_pos(conf.L2U_block));
   	in_appoggio[17] = fann_type(mem.L2U.associativity.get_pos(conf.L2U_assoc));
+	in_appoggio[18] = fann_type(p.num_clusters.get_pos(conf.num_clusters));
 
 	fann_type *out_appoggio;
 

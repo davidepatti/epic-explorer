@@ -39,6 +39,7 @@ public:
 
 	void set_benchmark(string new_benchmark);
 	void set_hyperblock(bool hyperblock);
+	void set_save_tcclog(bool do_save_log);
 
 	void set_environment(const string& path);
 
@@ -51,7 +52,7 @@ public:
 	void save_processor_config(const Processor&,const string& path) const;
 	void load_processor_config(Processor*,const string& filename) const;
 
-	void save_mem_config(const Mem_hierarchy&,const string& path) const;
+	void save_mem_config(const Mem_hierarchy&,const string& filename) const;
 	void load_mem_config(Mem_hierarchy*,const string& filename) const;
 
 	Dynamic_stats get_dynamic_stats(const string& filename);
@@ -60,6 +61,7 @@ private:
 	string current_benchmark; 
 	string base_path;
 	bool do_hyperblock;
+	bool do_save_log;
 };
 
 #endif

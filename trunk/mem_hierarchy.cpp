@@ -29,6 +29,19 @@ Mem_hierarchy::Mem_hierarchy(){
     // L2 Unified Cache 
     L2U.label = "L2_unified";
     L2U.type = L2U_CACHE;
+
+    // set labels
+    L1D.size.set_label("L1D_size");
+    L1D.block_size.set_label("L1D_block") ;
+    L1D.associativity.set_label("L1D_assoc");
+
+    L1I.size.set_label("L1I_size");
+    L1I.block_size.set_label("L1I_block") ;
+    L1I.associativity.set_label("L1I_assoc");
+
+    L2U.size.set_label("L2U_size");
+    L2U.block_size.set_label("L2U_block") ;
+    L2U.associativity.set_label("L2U_assoc");
 }
 
 void Mem_hierarchy::set_to_default()
@@ -47,38 +60,8 @@ void Mem_hierarchy::set_to_default()
     L2U.block_size.set_to_default();
     L2U.associativity.set_to_default();
 
-    // NOTE :
-    // we are not interested in investigating subblock size, so we
-    // alway consider its size equal to blocksize
-
-    L1D.subblock_size = L1D.block_size.get_val();
-    L1I.subblock_size = L1I.block_size.get_val();
-    L2U.subblock_size = L2U.block_size.get_val();
 }
 
-void Mem_hierarchy::print_cache_config(const Cache& cache) const 
-{
-
-    //cout <<"\n---------------------------------\n";
-    cout << cache.label;
-    cout <<"\n---------------------------------\n";
-
-    cout << "\n block Size : " << cache.block_size.get_val();
-    cout << "\n size : " << cache.size.get_val();
-    cout << "\n associativity: " << cache.associativity.get_val();
-    
-#ifdef VERBOSE
-    cout << "\n subblock Size : " << cache.subblock_size;
-    int sets = cache.size.get_val()/(cache.block_size.get_val()*cache.associativity.get_val());
-
-    int tag = (int)(32 - logtwo_area(cache.block_size.get_val()) - logtwo_area(sets));
-
-    cout << "\n( tag size : " << tag << " )";
-    cout << "\n( sets : " << sets << " )";
-#endif
-    cout <<"\n---------------------------------\n";
-
-}
 
 // test configuration of whole mem hiearchy system
 bool Mem_hierarchy::test_valid_config() const 
@@ -91,11 +74,16 @@ bool Mem_hierarchy::test_valid_config() const
 	return false;
 
     // then check if relative configurations of caches are acceptable.
+
     // here are discarded configurations in which L2 size is smaller
     // than total L1 cache sizes 
 
     if ( L2U.size.get_val() < L1D.size.get_val() + L1I.size.get_val() )
 	return false;
+
+    // this also make sense, and is needed by m5 cache simulator
+    if (L2U.block_size.get_val() < L1I.block_size.get_val()) return false;
+    if (L2U.block_size.get_val() < L1D.block_size.get_val()) return false;
 
     return true;
 }

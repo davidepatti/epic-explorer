@@ -1,5 +1,4 @@
 #include "explorer.h"
-
 #include "common.h"
 
 #ifdef EPIC_MPI
@@ -60,7 +59,7 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
     // ********************************************************
 	
 	
-    int communicator[18];
+    int communicator[19];
     int counter = 0;
     int counter2 = 0;
     
@@ -116,7 +115,8 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
           communicator[15] = space2[s].cr_static_size;
           communicator[16] = space2[s].pr_static_size;
           communicator[17] = space2[s].btr_static_size;
-	  MPI_Send(communicator, 18, MPI_INT, p, 99, MPI_COMM_WORLD);
+          communicator[18] = space2[s].num_clusters;
+	  MPI_Send(communicator, 19, MPI_INT, p, 99, MPI_COMM_WORLD);
         }
 	space2.clear();
     counter2 += counter;
@@ -136,20 +136,11 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
 	mem_hierarchy.set_config(space2[i]);
 	current_sim.config = space2[i];
 
+	prepare_explorer(Options.benchmark,space2[i]); //DDD
+
 	if (do_simulation)
 	{
-	    check_directories_setup(Options.benchmark,space2[i]);
-
-	    bench_executable = Options.benchmark+"_O";
-	    string transitions_file = mem_hierarchy_dir+"/tmp_transition";
-	    string pd_stats_file;
-
-	    if (Options.hyperblock) 
-		pd_stats_file = mem_hierarchy_dir+"/PD_STATS.HS";
-	    else
-		pd_stats_file = mem_hierarchy_dir+"/PD_STATS.O";
-
-	    int explorer_status = get_explorer_status();
+	    int explorer_status = get_explorer_status(); //DDD
 
 	    if (explorer_status != EXPLORER_ALL_DONE)
 	    {
@@ -163,9 +154,9 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
 		trimaran_interface->execute_benchmark(processor_dir,cache_dir_name);
 	    }
 
-	    dyn_stats = trimaran_interface->get_dynamic_stats(pd_stats_file);
+	    dyn_stats = trimaran_interface->get_dynamic_stats(mem_hierarchy_dir);
 
-	    estimate = estimator.get_estimate(dyn_stats,mem_hierarchy,processor,transitions_file);
+	    estimate = estimator.get_estimate(dyn_stats,mem_hierarchy,processor);
 	    current_sim.area = estimate.total_area;
 	    current_sim.exec_time = estimate.execution_time;
 	    current_sim.clock_freq = estimate.clock_freq;
@@ -177,7 +168,16 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
 	    if (Options.approx_settings.enabled>0) 
 		    function_approx->Learn(space2[i],current_sim,processor,mem_hierarchy);
 
+	    if (!Options.multidir)
+	    {
+		string cmd = "rm -rf ";
+		cmd += processor_dir;
+		cout << EE_TAG << "Cleaning " << processor_dir;
+		system(cmd.c_str());
+	    }
+
 	}
+
 	else   // NOT do simulation...
 	{   // using pproximation instead of simulation
 	    assert(approx_settings.enabled);
@@ -216,10 +216,8 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
 		char temp[10];
 		sprintf(temp,"%d",i);
 
-		if (Options.hyperblock)
-		    command = "cp "+mem_hierarchy_dir+"/PD_STATS.HS "+mem_hierarchy_dir+"/PD_STATS.HS_"+string(temp);
-		else
-		    command = "cp "+mem_hierarchy_dir+"/PD_STATS.O "+mem_hierarchy_dir+"/PD_STATS.O_"+string(temp);
+		command = "cp "+mem_hierarchy_dir+"/PD_STATS "+mem_hierarchy_dir+"/PD_STATS_"+string(temp);
+
 		system(command.c_str());
 	    }
 
@@ -296,7 +294,6 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
 #ifdef EPIC_MPI
 int Explorer::simulate_space()
 {
-
     // questo medoto viene lanciato sugli altri processori e si interfaccia con la simulate space classica 
 
     static int n_simulate_space_call = 0;
@@ -312,7 +309,7 @@ int Explorer::simulate_space()
     bool do_simulation = true;
 
 
-    int communicator[18];
+    int communicator[19];
     Configuration tmp;
     MPI_Status status;
     int counter = 0;
@@ -333,7 +330,7 @@ int Explorer::simulate_space()
     trimaran_interface->set_benchmark(Options.benchmark);
 
     for(int i = 0; i<counter; i++) {
-    	MPI_Recv(communicator,18,MPI_INT,0,99,MPI_COMM_WORLD,&status);
+    	MPI_Recv(communicator,19,MPI_INT,0,99,MPI_COMM_WORLD,&status);
         tmp.L1D_block = communicator[0];
 	tmp.L1D_size = communicator[1];
 	tmp.L1D_assoc = communicator[2];
@@ -352,6 +349,7 @@ int Explorer::simulate_space()
         tmp.cr_static_size = communicator[15];
         tmp.pr_static_size = communicator[16];
         tmp.btr_static_size = communicator[17];
+        tmp.num_clusters = communicator[18];
  	space.push_back(tmp);
     }
 
@@ -360,27 +358,20 @@ int Explorer::simulate_space()
 
     for (unsigned int i = 0;i< space.size();i++)
     {
-	cout << "\n -------> E p i c  E x p l o r e r >>>> simulation n." << i+1 << " / " << space.size();
+	cout << endl;
+	cout << "\n -------> E p i c  E x p l o r e r   [ simulation n." << i+1 << " / " << space.size() << " ]";
+	cout << endl;
 
 	processor.set_config(space[i]);
 	mem_hierarchy.set_config(space[i]);
 	current_sim.config = space[i];
 
+	prepare_explorer(Options.benchmark,space[i]); //DDD
+
 	if (do_simulation)
 	{
-	    check_directories_setup(Options.benchmark,space[i]);
-
-	    bench_executable = Options.benchmark+"_O";
-	    string transitions_file = mem_hierarchy_dir+"/tmp_transition";
-	    string pd_stats_file;
-
-	    if (Options.hyperblock) 
-		pd_stats_file = mem_hierarchy_dir+"/PD_STATS.HS";
-	    else
-		pd_stats_file = mem_hierarchy_dir+"/PD_STATS.O";
-
-	    int explorer_status = get_explorer_status();
-
+	    int explorer_status = get_explorer_status(); //DDD
+	    
 	    if (explorer_status != EXPLORER_ALL_DONE)
 	    {
 		if (explorer_status != EXPLORER_BINARY_DONE)
@@ -393,7 +384,7 @@ int Explorer::simulate_space()
 		trimaran_interface->execute_benchmark(processor_dir,cache_dir_name);
 	    }
 
-	    dyn_stats = trimaran_interface->get_dynamic_stats(pd_stats_file);
+	    dyn_stats = trimaran_interface->get_dynamic_stats(mem_hierarchy_dir);
 
 	    estimate = estimator.get_estimate(dyn_stats,mem_hierarchy,processor,transitions_file);
 	    current_sim.area = estimate.total_area;
@@ -404,6 +395,13 @@ int Explorer::simulate_space()
 	    if (Options.objective_energy) current_sim.energy = estimate.total_system_energy;
 	    else if (Options.objective_power) current_sim.energy = estimate.total_average_power;
 	    
+	    if (!Options.multidir)
+	    {
+		string cmd = "rm -rf ";
+		cmd += processor_dir;
+		cout << EE_TAG << "Cleaning " << processor_dir;
+		system(cmd.c_str());
+	    }
 	}
 	
 	simulations.push_back(current_sim);
@@ -434,10 +432,7 @@ int Explorer::simulate_space()
 		char temp[10];
 		sprintf(temp,"%d",i);
 
-		if (Options.hyperblock)
-		    command = "cp "+mem_hierarchy_dir+"/PD_STATS.HS "+mem_hierarchy_dir+"/PD_STATS.HS_"+string(temp);
-		else
-		    command = "cp "+mem_hierarchy_dir+"/PD_STATS.O "+mem_hierarchy_dir+"/PD_STATS.O_"+string(temp);
+		command = "cp "+mem_hierarchy_dir+"/PD_STATS "+mem_hierarchy_dir+"/PD_STATS_"+string(temp);
 		system(command.c_str());
 	    }
 

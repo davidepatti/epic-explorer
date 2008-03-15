@@ -16,19 +16,22 @@ CC = gcc
 CXX = g++
 MPICC = ${CXX}
 CFLAGS += -DNDEBUG 
+#CFLAGS += -DTEST -DNDEBUG 
 #CFLAGS += -O2 -DNDEBUG
 #CFLAGS += -g -DDEBUG
 endif
 
 all: epic
 
-epic: ${GALIB_DIR}/libspea2.a explorer.o estimator.o area.o time.o processor.o mem_hierarchy.o \
+epic: ${GALIB_DIR}/libspea2.a explorer.o alg_dep.o alg_random.o alg_sensivity.o alg_genetic.o \
+	estimator.o area.o time.o processor.o mem_hierarchy.o \
 	main.o user_interface.o trimaran_interface.o \
 	parameter.o common.o simulate_space.o \
-	FuzzyApprox.o RuleList.o FuzzyWrapper.o
-	${MPICC} area.o time.o estimator.o explorer.o parameter.o user_interface.o \
-	trimaran_interface.o processor.o mem_hierarchy.o main.o common.o \
-	FuzzyApprox.o RuleList.o FuzzyWrapper.o simulate_space.o \
+	FuzzyApprox.o RuleList.o FuzzyWrapper.o 
+	${MPICC} explorer.o simulate_space.o alg_dep.o alg_random.o alg_sensivity.o alg_genetic.o \
+	user_interface.o trimaran_interface.o estimator.o area.o time.o \
+	processor.o mem_hierarchy.o main.o parameter.o common.o \
+	FuzzyApprox.o RuleList.o FuzzyWrapper.o \
 	-L${GALIB_DIR} -lspea2 -o epic
 
 estimator.o: estimator.cpp estimator.h processor.h mem_hierarchy.h \
@@ -42,6 +45,18 @@ explorer.o: explorer.cpp explorer.h processor.h trimaran_interface.h \
 
 simulate_space.o: simulate_space.cpp explorer.h 
 	${MPICC} -I${GAINC_DIR} ${CFLAGS} -c simulate_space.cpp
+
+alg_dep.o: alg_dep.cpp explorer.h common.h
+	${MPICC} -I${GAINC_DIR} ${CFLAGS} -c alg_dep.cpp
+
+alg_sensivity.o: alg_sensivity.cpp explorer.h common.h
+	${MPICC} -I${GAINC_DIR} ${CFLAGS} -c alg_sensivity.cpp
+
+alg_random.o: alg_random.cpp explorer.h common.h
+	${MPICC} -I${GAINC_DIR} ${CFLAGS} -c alg_random.cpp
+
+alg_genetic.o: alg_genetic.cpp explorer.h common.h
+	${MPICC} -I${GAINC_DIR} ${CFLAGS} -c alg_genetic.cpp
 
 processor.o: processor.cpp processor.h parameter.h
 	${CXX} ${CFLAGS} -c processor.cpp

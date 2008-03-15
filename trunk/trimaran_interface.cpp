@@ -21,9 +21,10 @@
 
 Trimaran_interface::Trimaran_interface(const string& base_dir)
 {
-    set_benchmark(string("DEFAULT_BENCH"));
+    set_benchmark(string("BENCH_NOT_SET"));
     set_environment(base_dir);
     set_hyperblock(false);
+    set_save_tcclog(false);
 }
 
 Trimaran_interface::~Trimaran_interface()
@@ -41,12 +42,18 @@ void Trimaran_interface::set_benchmark(string new_benchmark)
    current_benchmark = new_benchmark;
 }
 
+void Trimaran_interface::set_save_tcclog(bool save_log)
+{
+    do_save_log = save_log;
+}
+
 string Trimaran_interface::get_benchmark_name() const
 {
     return current_benchmark;
 }
 
 
+// TODO: pass hmdes file path, not machine dir
 void Trimaran_interface::compile_hmdes_file(const string& machine_dir) const
 {
     char old_path[50];
@@ -55,10 +62,23 @@ void Trimaran_interface::compile_hmdes_file(const string& machine_dir) const
 
     string main_hmdes2 = MAIN_HMDES2;
 
-    string command ="$IMPACT_REL_PATH/scripts/hc "+main_hmdes2;
-    system(command.c_str());
+    if (file_exists(main_hmdes2))
+    {
+	string command ="$IMPACT_REL_PATH/scripts/hc "+main_hmdes2;
+	system(command.c_str());
+    }
+    else
+    {
+	cout << EE_TAG << " cannot find " << main_hmdes2 <<  " in " << machine_dir;
+	wait_key();
+    }
+
     chdir(old_path);
 }
+
+// Paramters of interested when invoking tcc
+// IMPACT: -p to pass parameters file
+//
 
 
 void Trimaran_interface::compile_benchmark(const string& path) {
@@ -67,17 +87,21 @@ void Trimaran_interface::compile_benchmark(const string& path) {
     getcwd(old_path,50);
     chdir(path.c_str());
 
-    string command="";
+    string command;
+    string redirection;
 
-    if (do_hyperblock)
-    {
-    command = command + "tcc -host "+TRIMARAN_HOST_PLATFORM+" -bench "+current_benchmark+" -region h -i2s -E\"\" -M"+path+"/machines/hpl_pd_elcor_std.lmdes2 -S\"-Fcontrol_flow_trace=yes -Faddress_trace=yes\" -project \"full\" -clean -gui  | tee -a /dev/null";//+path+"/compilation.log";
-    }
-    else
-    {
-    command = command + "tcc -host "+TRIMARAN_HOST_PLATFORM+" -bench "+current_benchmark+" -region b -i2s -E\"\" -M"+path+"/machines/hpl_pd_elcor_std.lmdes2 -S\"-Fcontrol_flow_trace=yes -Faddress_trace=yes\" -project \"full\" -clean -gui | tee -a /dev/null";//+path+"/compilation.log";
-    };
+    string tcc_args = " -bench "+current_benchmark;
 
+    if (do_hyperblock) tcc_args += " -region h";
+    else tcc_args += " -region b";
+
+    if (do_save_log) redirection += " | tee -a "+path+"/compilation.log";
+    else redirection += " | tee -a /dev/null";
+
+    command = "tcc "+tcc_args+" -i2s -M"+path+"/machines/hpl_pd_elcor_std.lmdes2 -S\"-Fcontrol_flow_trace=yes -Faddress_trace=yes\" -project \"full\" -clean -gui "+redirection;
+
+    cout << EE_TAG << "executing: " << command;
+    //int c; cin>> c;
     system(command.c_str());
 
     chdir(old_path);
@@ -90,194 +114,167 @@ void Trimaran_interface::execute_benchmark(const string& path, const string& cac
     chdir(path.c_str());
     // TODO: check proper tcc command options
     string command;
+    string tcc_args = " -bench "+current_benchmark;
+    string redirection;
 
-    if (do_hyperblock)
-    {
-    command = command + "tcc -host "+TRIMARAN_HOST_PLATFORM+" -bench "+current_benchmark+" -region h -m2m -E\"\" -M"+path+"/machines/hpl_pd_elcor_std.lmdes2 -S\"-Fcontrol_flow_trace=yes -Faddress_trace=yes\" -project \"full\" -gui -cache_cfg "+cache_dir+" | tee -a /dev/null";//+path+"/"+cache_dir+"/execution.log";
-    }
-    else
-    {
-    command = command + "tcc -host "+TRIMARAN_HOST_PLATFORM+" -bench "+current_benchmark+" -region b -m2m -E\"\" -M"+path+"/machines/hpl_pd_elcor_std.lmdes2 -S\"-Fcontrol_flow_trace=yes -Faddress_trace=yes\" -project \"full\" -gui -cache_cfg "+cache_dir+" | tee -a /dev/null";//+path+"/"+cache_dir+"/execution.log";
-    };
+    if (do_save_log) redirection += " | tee -a "+path+"/"+cache_dir+"/execution.log";
+    else redirection += " | tee -a /dev/null";
 
+    if (do_hyperblock) tcc_args += " -region h";
+    else tcc_args += " -region b";
+
+    command = "tcc "+tcc_args+" -m2m -M"+path+"/machines/hpl_pd_elcor_std.lmdes2 -S\"-Fcontrol_flow_trace=yes -Faddress_trace=yes\" -project \"full\" -gui -cache_dir "+cache_dir+redirection;
+
+    cout << EE_TAG << "executing: " << command;
+    //int c; cin>> c;
     system(command.c_str());
     chdir(old_path);
 }
 
-
-// extract dynamic statistics from Trimaran PD_STATS file
-
-Dynamic_stats Trimaran_interface::get_dynamic_stats(const string& filename)
+// read statistics from PD_STATS and m5stats.txt files
+Dynamic_stats Trimaran_interface::get_dynamic_stats(const string& path)
 {
-    std::ifstream input_file(filename.c_str());
+    string pd_filename = path + "PD_STATS";
+    string m5_filename = path + "m5stats.txt";
+
+    std::ifstream pd_file(pd_filename.c_str());
+    std::ifstream m5_file(m5_filename.c_str());
 
     string pippo;
     Dynamic_stats dynamic_stats;
 
-    if (!input_file) 
+    if (!pd_file) 
     {
-	cout << "\nError opening file:" << filename;
+	cout << "\nEPIC EXPLORER error opening file:" << pd_filename;
+	wait_key();
+    }
+    else if (!m5_file)
+    {
+	cout << "\nEPIC EXPLORER error opening file:" << m5_filename;
 	wait_key();
     }
     else
     {
-	std::ifstream input_file(filename.c_str());
-	go_until("Totals",input_file);
-	pippo = skip_to(input_file,2);
+	go_until("Totals",pd_file);
+	pippo = skip_to(pd_file,2);
 	dynamic_stats.total_cycles = atoll(pippo.erase(0,63));
 
-	input_file >> pippo;
+	pd_file >> pippo;
 	dynamic_stats.compute_cycles = atoll(pippo.erase(0,63));
 
-	pippo = skip_to(input_file,"stall_cycles");
+	pippo = skip_to(pd_file,"stall_cycles");
 	dynamic_stats.stall_cycles = atoll(pippo.erase(0,63));
 
-	pippo = skip_to(input_file,"total_dynamic_operations");
+	pippo = skip_to(pd_file,"total_dynamic_operations");
 	dynamic_stats.total_dynamic_operations = atoll(pippo.erase(0,63));
 
-	pippo = skip_to(input_file,"average_issued_ops/total_cycles");
+	pippo = skip_to(pd_file,"average_issued_ops/total_cycles");
 	dynamic_stats.average_issued_ops_total_cycles = atof(pippo.erase(0,63));
 
-	pippo = skip_to(input_file,"average_issued_ops/compute_cycles");
+	pippo = skip_to(pd_file,"average_issued_ops/compute_cycles");
 	dynamic_stats.average_issued_ops_compute_cycles = atof(pippo.erase(0,63));
 
-	go_until("branch",input_file);
-	input_file >> dynamic_stats.branch;
+	go_until("ialu",pd_file);
+	pd_file >> dynamic_stats.ialu;
+	go_until("falu",pd_file);
+	pd_file >> dynamic_stats.falu;
+	go_until("load",pd_file);
+	pd_file >> dynamic_stats.load;
+	go_until("store",pd_file);
+	pd_file >> dynamic_stats.store;
+	go_until("cmp",pd_file);
+	pd_file >> dynamic_stats.cmp;
+	go_until("pbr",pd_file);
+	pd_file >> dynamic_stats.pbr;
+	go_until("branch",pd_file);
+	pd_file >> dynamic_stats.branch;
+	go_until("icm",pd_file);
+	pd_file >> dynamic_stats.icm;
 
-	go_until("load",input_file);
-	input_file >> dynamic_stats.load;
+	go_until("spills_restores",pd_file);
+	pd_file >> dynamic_stats.spills_restores;
 
-	go_until("store",input_file);
-	input_file >> dynamic_stats.store;
-
-	go_until("ialu",input_file);
-	input_file >> dynamic_stats.ialu;
-
-	go_until("falu",input_file);
-	input_file >> dynamic_stats.falu;
-
-	go_until("cmp",input_file);
-	input_file >> dynamic_stats.cmp;
-
-	go_until("pbr",input_file);
-	input_file >> dynamic_stats.pbr;
-
-	go_until("spills_restores",input_file);
-	input_file >> dynamic_stats.spills_restores;
-
-	string word;
+	pd_file.close();
 
 	// TODO: considerare prefetch misses ?
+	// TODO: demand vs overall ?
+	// account mshr ?
+	// L2U ///////////////////////////////////////////
 
-	go_until("l1-icache",input_file);
-	go_until("Demand",input_file);
+	go_until("L2.demand_accesses",m5_file);
+	m5_file>>dynamic_stats.L2U_demand;
 
-	input_file>>word;
-	input_file>>dynamic_stats.L1I_fetches;
+	go_until("L2.demand_misses",m5_file);
+	m5_file>>dynamic_stats.L2U_miss;
 
-	go_until("Demand",input_file);
+	go_until("L2.writebacks",m5_file);
+	m5_file>>dynamic_stats.L2U_writebacks;
 
-	input_file>>word;
-	input_file>>dynamic_stats.L1I_miss;
+	go_until("SDRAM.accesses",m5_file);
+	m5_file >> dynamic_stats.SDRAM_accesses;
 
-	go_until("Capacity",input_file);
-	input_file >> word;
-	input_file >> dynamic_stats.L1I_capacity_misses;
+	dynamic_stats.L2U_hit = dynamic_stats.L2U_demand-dynamic_stats.L2U_miss;
 
-	go_until("Conflict",input_file);
-	input_file >> word;
-	input_file >> dynamic_stats.L1I_conflict_misses;
+	// L1D ///////////////////////////////////////////
+	go_until("cluster0.dcache.read_accesses",m5_file);
+	m5_file>>dynamic_stats.L1D_r_fetches;
+	go_until("cluster0.dcache.read_misses",m5_file);
+	m5_file>>dynamic_stats.L1D_r_miss;
 
-	dynamic_stats.L1I_hit = dynamic_stats.L1I_fetches-dynamic_stats.L1I_miss;
+	go_until("cluster0.dcache.write_accesses",m5_file);
+	m5_file>>dynamic_stats.L1D_w_fetches;
+	go_until("cluster0.dcache.write_misses",m5_file);
+	m5_file>>dynamic_stats.L1D_w_miss;
 
-	go_until("l1-dcache",input_file);
+	go_until("cluster0.dcache.writebacks",m5_file);
+	m5_file>>dynamic_stats.L1D_writebacks;
 
-	go_until("Fetches",input_file);
-
-	input_file>>word;
-	input_file>>word;
-	input_file>>word;
-
-	input_file>>dynamic_stats.L1D_r_fetches;
-	input_file>>dynamic_stats.L1D_w_fetches;
-
-	go_until("Misses",input_file);
-
-	input_file>>word;
-	input_file>>word;
-	input_file>>word;
-
-	input_file>>dynamic_stats.L1D_r_miss;
-	input_file>>dynamic_stats.L1D_w_miss;
-
-	go_until("Capacity",input_file);
-	input_file >> word;
-	input_file >> dynamic_stats.L1D_capacity_misses;
-
-	go_until("Conflict",input_file);
-	input_file >> word;
-	input_file >> dynamic_stats.L1D_conflict_misses;
-
-	dynamic_stats.L1D_miss = dynamic_stats.L1D_r_miss+dynamic_stats.L1D_w_miss;
 	dynamic_stats.L1D_r_hit = dynamic_stats.L1D_r_fetches-dynamic_stats.L1D_r_miss;
 	dynamic_stats.L1D_w_hit = dynamic_stats.L1D_w_fetches-dynamic_stats.L1D_w_miss;
 	dynamic_stats.L1D_hit = dynamic_stats.L1D_r_hit+dynamic_stats.L1D_w_hit;
+	dynamic_stats.L1D_miss = dynamic_stats.L1D_r_miss+dynamic_stats.L1D_w_miss;
 
-	go_until("l2-ucache",input_file);
-	go_until("Fetches",input_file);
+	// L1I ///////////////////////////////////////////
+	go_until("cluster0.icache.demand_accesses",m5_file);
+	m5_file>>dynamic_stats.L1I_fetches;
+	go_until("cluster0.icache.demand_misses",m5_file);
+	m5_file>>dynamic_stats.L1I_miss;
+	go_until("cluster0.icache.writebacks",m5_file);
+	m5_file>>dynamic_stats.L1I_writebacks;
 
-	input_file>>dynamic_stats.L2U_demand;
-	input_file>>dynamic_stats.L2U_i_demand;
-	input_file>>dynamic_stats.L2U_d_demand;
-	input_file>>dynamic_stats.L2U_dr_demand;
-	input_file>>dynamic_stats.L2U_dw_demand;
-
-	go_until("Misses",input_file);
-
-	input_file>>dynamic_stats.L2U_miss;
-	input_file>>dynamic_stats.L2U_i_miss;
-	input_file>>dynamic_stats.L2U_d_miss;
-	input_file>>dynamic_stats.L2U_dr_miss;
-	input_file>>dynamic_stats.L2U_dw_miss;
-
-	go_until("Capacity",input_file);
-	input_file >> word;
-	input_file >> dynamic_stats.L2U_capacity_misses;
-
-	go_until("Conflict",input_file);
-	input_file >> word;
-	input_file >> dynamic_stats.L2U_conflict_misses;
-
-	dynamic_stats.L2U_r_miss = dynamic_stats.L2U_i_miss+dynamic_stats.L2U_dr_miss;
-	dynamic_stats.L2U_i_hit = dynamic_stats.L2U_i_demand-dynamic_stats.L2U_i_miss;
-	dynamic_stats.L2U_dr_hit = dynamic_stats.L2U_dr_demand-dynamic_stats.L2U_dr_miss;
-	dynamic_stats.L2U_dw_hit = dynamic_stats.L2U_dw_demand-dynamic_stats.L2U_dw_miss;
-	dynamic_stats.L2U_r_hit = dynamic_stats.L2U_i_hit+dynamic_stats.L2U_dr_hit;
-	dynamic_stats.L2U_w_hit = dynamic_stats.L2U_dw_hit;
-	dynamic_stats.L2U_w_miss = dynamic_stats.L2U_dw_miss;
-	dynamic_stats.L2U_hit = dynamic_stats.L2U_w_hit+dynamic_stats.L2U_r_hit;
+	dynamic_stats.L1I_hit = dynamic_stats.L1I_fetches - dynamic_stats.L1I_miss;
+	m5_file.close();
     }
+
+    // TODO: read the file e compute transitions, it's worth?
+    string trace_filename = path + "PD_TRACE";
+    std::ifstream trace_file(trace_filename.c_str());
+
+    dynamic_stats.L1D_transition_p = 0.20;
+    dynamic_stats.L1I_transition_p = 0.20;
+    // unlike L1 caches, L2 is considered to have little locality 
+    dynamic_stats.L2U_transition_p = 0.5;
 
     return dynamic_stats;
 }
+// extract dynamic statistics from Trimaran PD_STATS file
 
 void Trimaran_interface::set_environment(const string& base_dir) {
 
-    setenv("TRIMARAN_ROOT",(base_dir+"/trimaran/").c_str(),1);
+    this->base_path = base_dir;
 
+    setenv("TRIMARAN_ROOT",(base_dir+"/trimaran/").c_str(),1);
+    setenv("TRIMARAN_HOST_TYPE",TRIMARAN_HOST_TYPE,1);
+    setenv("TRIMARAN_HOST_COMPILER",TRIMARAN_HOST_COMPILER,1);
+    setenv("IMPACT_REL_PATH",(base_dir+IMPACT_REL_PATH).c_str(),1);
+    setenv("IMPACT_ROOT",(base_dir+IMPACT_ROOT).c_str(),1);
+    setenv("IMPACT_HOST_PLATFORM",IMPACT_HOST_PLATFORM,1);
+    setenv("IMPACT_HOST_COMPILER",IMPACT_HOST_COMPILER,1);
+    setenv("IMPACT_BUILD_TYPE",IMPACT_BUILD_TYPE,1);
+    setenv("STD_PARMS_FILE",(base_dir+STD_PARMS_FILE).c_str(),1);
+    setenv("DEFAULT_PROJECT",DEFAULT_PROJECT ,1);
     setenv("CC",CC,1);
     setenv("CXX",CXX,1);
-    setenv("TRIMARAN_HOST_PLATFORM",TRIMARAN_HOST_PLATFORM,1);
-    setenv("TRIMARAN_HOST_COMPILER",TRIMARAN_HOST_COMPILER,1);
-    setenv("USER_BENCH_PATH1",(base_dir+USER_BENCH_PATH1).c_str(),1);
-
-
-    setenv("IMPACT_ROOT",(base_dir+IMPACT_ROOT).c_str(),1);
-    setenv("IMPACT_REL_PATH",(base_dir+IMPACT_REL_PATH).c_str(),1);
-    setenv("IMPACT_BIN_PATH",(base_dir+IMPACT_BIN_PATH).c_str(),1);
-    setenv("IMPACT_LIB_PATH",(base_dir+IMPACT_LIB_PATH).c_str(),1);
-    setenv("STD_PARMS_FILE",(base_dir+STD_PARMS_FILE).c_str(),1);
-    setenv("IMPACT_BUILD_TYPE",IMPACT_BUILD_TYPE,1);
 
     setenv("ELCOR_HOME",(base_dir+ELCOR_HOME).c_str(),1);
     setenv("ELCOR_REL_PATH",(base_dir+ELCOR_REL_PATH).c_str(),1);
@@ -291,21 +288,57 @@ void Trimaran_interface::set_environment(const string& base_dir) {
     setenv("SIMU_PARMS_FILE",(base_dir+SIMU_PARMS_FILE).c_str(),1);
 
     setenv("DINERO_HOME",(base_dir+DINERO_HOME).c_str(),1);
-    setenv("DINERO_REL_PATH",(base_dir+DINERO_REL_PATH).c_str(),1);
 
 
-    string pp;
-    pp = "/usr/local/bin:/bin:/usr/bin:/usr/X11R6/bin:"+base_dir+"/bin:"+base_dir+"/trimaran/./bin:"+base_dir+"/trimaran/./impact/bin/x86lin_c:"+base_dir+"/trimaran/./impact/scripts:"+base_dir+"/trimaran/./impact/config:"+base_dir+"/trimaran/./elcor/bin:"+base_dir+"/trimaran/./simu/bin:"+base_dir+"/trimaran/./gui";
-    setenv("PATH",pp.c_str(),1);
-    setenv("DEFAULT_PROJECT",DEFAULT_PROJECT ,1);
+    setenv("USER_BENCH_PATH1",(base_dir+USER_BENCH_PATH1).c_str(),1);
 
-    string path = base_dir + "/trimaran-workspace/epic-explorer";
+    setenv("DAVINCIHOME",DAVINCIHOME,1);
+    setenv("DAVINCIEXE",DAVINCIEXE,1);
+    setenv("M5_ROOT",(base_dir+M5_ROOT).c_str(),1);
+    setenv("M5_OUTPUT_DIR",M5_OUTPUT_DIR,1);
+    setenv("M5_CONFIG_FILE",(base_dir+M5_CONFIG_FILE).c_str(),1);
+    setenv("GUI_BIN",(base_dir+GUI_BIN).c_str(),1);
+    setenv("PGPPATH",PGPPATH,1);
+    setenv("SUIFHOME",(base_dir+SUIFHOME).c_str(),1);
+    //setenv("",().c_str(),1);
+    setenv("MACHINE",MACHINE,1);
+    setenv("COMPILER_NAME",COMPILER_NAME,1);
 
-    if (chdir(path.c_str())==-1)
+    string cmd = "$SUIFHOME/setup_suif -sh 2> /dev/null";
+    system(cmd.c_str());
+    //setenv("",().c_str(),1);
+    setenv("SUIFPATH","$SUIFPATH:/usr/bin",1);
+
+    string path = getenv("PATH");
+    path = path + base_dir + ":"
+	+base_dir+IMPACT_REL_PATH+"/bin:"
+	+base_dir+IMPACT_REL_PATH+"/scripts:"
+	+base_dir+IMPACT_REL_PATH+"/driver:"
+	+base_dir+ELCOR_BIN_PATH+":"
+	+base_dir+SIMU_BIN_PATH+":"
+	+base_dir+"/trimaran/scripts:"
+        +base_dir+GUI_BIN+":"
+        +base_dir+TAS_BIN;
+    setenv("PATH",path.c_str(),1);
+
+    // setting library path for m5
+    string ld_library_path; 
+    if (getenv("LD_LIBRARY_PATH")!=NULL)
+	ld_library_path += getenv("LD_LIBRARY_PATH");
+
+    ld_library_path += +":"+base_dir+M5_ROOT+"/m5/build/ALPHA";
+    setenv("LD_LIBRARY_PATH",ld_library_path.c_str(),1);
+    //cout << "\n setting LD_LIBRARY_PATH to " << ld_library_path;
+
+    //system("/usr/bin/env > STICAZZI.txt");
+
+    string epic_dir = base_dir + "/trimaran-workspace/epic-explorer";
+
+    if (chdir(epic_dir.c_str())==-1)
     {
-	string command = "mkdir "+path;
-	system(command.c_str());
-        assert(chdir(path.c_str())!=-1);
+	cout << "Cannot find " << epic_dir << endl;
+	cout << "Please run ./post_install.sh script from epic explorer dir";
+	exit(-1);
     }
 }
 
@@ -327,14 +360,12 @@ void Trimaran_interface::save_processor_config(const Processor& p, const string&
 	// - All the other parameters are fixed to their default values as specified
 	// in the standard trimaran hmdes2 files. 
 
-	output_file << "\n//////////////////////////////////////////////////";
-	output_file << "\n// Epic Explorer processor configuration";
-	output_file << "\n//////////////////////////////////////////////////";
 	output_file << "\n// DO NOT EDIT: this file is generated by epic explorer ";
 	output_file << "\n// and should be included into the main hmdes2 machine ";
 	output_file << "\n// description file using the $include directive";
 
 	output_file << "\n\n";
+	output_file << "\n$def !num_clusters\t" << p.num_clusters.get_val();
 	output_file << "\n// Register file sizes ";
 	output_file << "\n\n";
 	output_file << "\n$def !gpr_static_size\t" << p.gpr_static_size.get_val();
@@ -347,7 +378,7 @@ void Trimaran_interface::save_processor_config(const Processor& p, const string&
 	output_file << "\n$def !cr_rotating_size\t" <<  p.cr_static_size.get_val();
 	output_file << "\n$def !btr_static_size\t" <<   p.btr_static_size.get_val();
 
-	output_file << "\n\n// Functional Units \n";
+	output_file << "\n\n// Per-cluster functional units \n";
 
 	output_file << "\n$def !integer_units\t" << p.integer_units.get_val();
 	output_file << "\n$def !float_units\t" <<   p.float_units.get_val();
@@ -356,6 +387,8 @@ void Trimaran_interface::save_processor_config(const Processor& p, const string&
     }
 }
 
+//NOTE : This function only read from hmdes configuration file
+//the parameter values that are subject of exploration.
 void Trimaran_interface::load_processor_config(Processor* p,const string& filename) const
 {
     std::ifstream input_file(filename.c_str());
@@ -367,10 +400,10 @@ void Trimaran_interface::load_processor_config(Processor* p,const string& filena
     else
     {
 	int val;
+	go_until("!num_clusters",input_file);
+	input_file>>val;
+	p->num_clusters.set_val(val);
 
-	//NOTE : This function only read from hmdes configuration file
-	//the parameter values that are subject of exploration.
-	//
 	//Rotating size entries are currently ignored, assuming
 	//that rotating portion has always the same size of static
 	//portion for all register files.
@@ -411,54 +444,78 @@ void Trimaran_interface::load_processor_config(Processor* p,const string& filena
 	input_file>>val;
 	p->memory_units.set_val(val);
 
-	if (val==1) 
-	{
-	    cout << "\n Fatal error: due a Trimaran bug EPIC-Exlorer currently does not";
-	    cout << "\n support spaces with memory_units = 1. ";
-	    cout << "\n Please modify your *.sub file in trimaran-workspace/SUBSPACES dir.";
-	    cout << "\n For more details : https://lists.csail.mit.edu/pipermail/trimaran-users/2005-September/000083.html";
-	    exit(1);
-	}
-
 	go_until("!branch_units",input_file);
 	input_file>>val;
 	p->branch_units.set_val(val);
     }
 }
 
-void Trimaran_interface::save_mem_config(const Mem_hierarchy& mem, const string& path) const
+void Trimaran_interface::save_mem_config(const Mem_hierarchy& mem, const string& filename) const
 {
-    string cache_config_file = path;
-    std::ofstream output_file(cache_config_file.c_str());
+    std::ofstream output_file(filename.c_str());
 
     if (!output_file) 
     {
-	cout << "\nerror opening hmdes file :" << cache_config_file;
-	wait_key();
+	cout << "\nFatal: cannot write " << filename;
+	exit(-1);
     }
     else
     {
-	output_file <<"\n# EPIC explorer cache configuration ";
-	output_file <<"\n";
-	output_file <<"\n# level 2 unified cache";
-	output_file <<"\nL2U_blocksize " << mem.L2U.block_size.get_val();
-	output_file <<"\nL2U_subblocksize " << mem.L2U.block_size.get_val();
-	output_file <<"\nL2U_size " << mem.L2U.size.get_val() ;
-	output_file <<"\nL2U_associativity " << mem.L2U.associativity.get_val();
-	output_file <<"\n";
-	output_file <<"\n# level 1 instruction cache ";
-	output_file <<"\n";
-	output_file <<"\nL1I_blocksize " << mem.L1I.block_size.get_val();
-	output_file <<"\nL1I_subblocksize " << mem.L1I.block_size.get_val();
-	output_file <<"\nL1I_size " << mem.L1I.size.get_val();
-	output_file <<"\nL1I_associativity " << mem.L1I.associativity.get_val();
-	output_file <<"\n";
-	output_file <<"\n# level 1 data cache";
-	output_file <<"\n";
-	output_file <<"\nL1D_blocksize " << mem.L1D.block_size.get_val();
-	output_file <<"\nL1D_subblocksize " << mem.L1D.block_size.get_val();
-	output_file <<"\nL1D_size " << mem.L1D.size.get_val();
-	output_file <<"\nL1D_associativity " << mem.L1D.associativity.get_val();
+	setenv("M5_CONFIG_FILE",filename.c_str(),1);
+
+	output_file << "\nfrom M5E_Cluster import *";
+	output_file << "\n";
+	output_file << "\n";
+	output_file << "\nclass IL1Cache(BaseCache):";
+	output_file << "\n	size = '"+to_string(mem.L1I.size.get_val())+"B'";
+	output_file << "\n	assoc = "+to_string(mem.L1I.associativity.get_val());
+	output_file << "\n	block_size = "+to_string(mem.L1I.block_size.get_val());
+	output_file << "\n	mshrs = 32";
+	output_file << "\n	tgts_per_mshr = 16";
+	output_file << "\n	latency = 1 * Parent.clock.period";
+	output_file << "\n	protocol = Parent.busProtocol";
+	output_file << "\n";
+	output_file << "\nclass DL1Cache(BaseCache):";
+	output_file << "\n	size = '"+to_string(mem.L1D.size.get_val())+"B'";
+	output_file << "\n	assoc = "+to_string(mem.L1D.associativity.get_val());
+	output_file << "\n	block_size = "+to_string(mem.L1D.block_size.get_val());
+	output_file << "\n	mshrs = 32";
+	output_file << "\n	tgts_per_mshr = 16";
+	output_file << "\n	latency = 1 * Parent.clock.period";
+	output_file << "\n	protocol = Parent.busProtocol";
+	output_file << "\n";
+	output_file << "\nclass L2Cache(BaseCache):";
+	output_file << "\n	size = '"+to_string(mem.L2U.size.get_val())+"B'";
+	output_file << "\n	assoc = "+to_string(mem.L2U.associativity.get_val());
+	output_file << "\n	block_size = "+to_string(mem.L2U.block_size.get_val());
+	output_file << "\n	mshrs = 32";
+	output_file << "\n	tgts_per_mshr = 16";
+	output_file << "\n	latency = 10 * Parent.clock.period";
+	output_file << "\n";
+	output_file << "\nclass MyBaseMemory(BaseMemory):";
+	output_file << "\n	latency = 100 * Parent.clock.period";
+	output_file << "\n	snarf_updates = False";
+	output_file << "\n	do_writes = True";
+	output_file << "\n";
+	output_file << "\nclass MyCluster(M5E_Cluster):";
+	output_file << "\n	icache = IL1Cache(out_bus=Parent.toL2Bus)";
+	output_file << "\n	dcache = DL1Cache(out_bus=Parent.toL2Bus)";
+	output_file << "\n	main_mem = Parent.mainMem";
+	output_file << "\n	max_loads = 5000000";
+	output_file << "\n";
+	output_file << "\nclass MyRoot(Root):";
+	output_file << "\n    hier = HierParams(do_data=True, do_events=True)";
+	output_file << "\n    toMemBus = Bus(width=128, clock=1 * Parent.clock.period)";
+	output_file << "\n    toL2Bus = Bus(width=64, clock=1 * Parent.clock.period)";
+	output_file << "\n    L2 = L2Cache(in_bus=Parent.toL2Bus, out_bus=Parent.toMemBus)";
+	output_file << "\n    SDRAM = MyBaseMemory(in_bus=Parent.toMemBus)";
+	output_file << "\n    mainMem = MainMemory()";
+	output_file << "\n    cluster = MyCluster()";
+	output_file << "\n    busProtocol = CoherenceProtocol(protocol='moesi')";
+	output_file << "\n";
+	output_file << "\nroot = MyRoot()";
+	output_file << "\n#root.trace.flags = \"Bus Cache Event\"";
+	output_file << "\nroot.cluster = [ MyCluster(cluster_id=i) for i in xrange(4) ] ";
     }
 }
 
@@ -467,6 +524,8 @@ void Trimaran_interface::load_mem_config(Mem_hierarchy* mem,const string& filena
     std::ifstream input_file(filename.c_str());
 
     int value ;
+    string word;
+    int pos;
 
     if (!input_file) 
     {
@@ -474,51 +533,93 @@ void Trimaran_interface::load_mem_config(Mem_hierarchy* mem,const string& filena
 	wait_key();
     }
     else
-    {
-	// Note that subblock size value in config file is ignored 
-	// subblock size is assumed to be equal to block size
+    {   // TODO: handling even the 'kB' notation would be nicer
+	
+	// L1I
 
-	go_until("L2U_blocksize",input_file);
-	input_file >> value;
-	mem->L2U.block_size.set_val(value);
-	mem->L2U.subblock_size = mem->L2U.block_size.get_val();
+	setenv("M5_CONFIG_FILE",filename.c_str(),1);
 
-	go_until("L2U_size",input_file);
-	input_file >> value;
-	mem->L2U.size.set_val(value);
+	go_until("IL1Cache",input_file);
+	go_until("size",input_file);
+	input_file >> word;
+	input_file >> word;
 
-	go_until("L2U_associativity",input_file);
-	input_file >> value;
-	mem->L2U.associativity.set_val(value);
-
-
-	go_until("L1I_blocksize",input_file);
-	input_file >> value;
-	mem->L1I.block_size.set_val(value);
-	mem->L1I.subblock_size = mem->L1I.block_size.get_val();
-
-	go_until("L1I_size",input_file);
-	input_file >> value;
+	pos = word.find("B'")-1;
+	if (word.find("kB'")!=-1) 
+	{
+	    cout << "\n Error: the 'kB' postfix in " << filename;
+	    cout << "\n is currently not supported by epic explorer";
+	    cout << "\n You must express cache size in bytes using 'B' postfix";
+	    wait_key();
+	}
+	value = atoi(word.substr(1,pos));
 	mem->L1I.size.set_val(value);
 
-	go_until("L1I_associativity",input_file);
+	go_until("assoc",input_file);
+	input_file >> word;
 	input_file >> value;
 	mem->L1I.associativity.set_val(value);
 
-
-	go_until("L1D_blocksize",input_file);
+	go_until("block_size",input_file);
+	input_file >> word;
 	input_file >> value;
-	mem->L1D.block_size.set_val(value) ;
-	mem->L1D.subblock_size = mem->L1D.block_size.get_val();
+	mem->L1I.block_size.set_val(value);
 
-	go_until("L1D_size",input_file);
-	input_file >> value;
+	// L1D
+
+	go_until("DL1Cache",input_file);
+	go_until("size",input_file);
+	input_file >> word;
+	input_file >> word;
+
+	pos = word.find("B'")-1;
+	if (word.find("kB'")!=-1) 
+	{
+	    cout << "\n Error: the 'kB' postfix in " << filename;
+	    cout << "\n is currently not supported by epic explorer";
+	    cout << "\n You must express cache size in bytes using 'B' postfix";
+	    wait_key();
+	}
+	value = atoi(word.substr(1,pos));
 	mem->L1D.size.set_val(value);
 
-	go_until("L1D_associativity",input_file);
+	go_until("assoc",input_file);
+	input_file >> word;
 	input_file >> value;
 	mem->L1D.associativity.set_val(value);
 
+	go_until("block_size",input_file);
+	input_file >> word;
+	input_file >> value;
+	mem->L1D.block_size.set_val(value);
+
+	// L2U
+
+	go_until("L2Cache",input_file);
+	go_until("size",input_file);
+	input_file >> word;
+	input_file >> word;
+
+	pos = word.find("B'")-1;
+	if (word.find("kB'")!=-1) 
+	{
+	    cout << "\n Error: the 'kB' postfix in " << filename;
+	    cout << "\n is currently not supported by epic explorer";
+	    cout << "\n You must express cache size in bytes using 'B' postfix";
+	    wait_key();
+	}
+	value = atoi(word.substr(1,pos));
+	mem->L2U.size.set_val(value);
+
+	go_until("assoc",input_file);
+	input_file >> word;
+	input_file >> value;
+	mem->L2U.associativity.set_val(value);
+
+	go_until("block_size",input_file);
+	input_file >> word;
+	input_file >> value;
+	mem->L2U.block_size.set_val(value);
     }
 }
 

@@ -30,7 +30,7 @@
 // //////////////////////////////////////////////////////////////////
 
 #define VDD 1.3
-#define IUSSUE_WIDTH 6
+#define ISSUE_WIDTH 6
 #define TECHNOLOGY 0.13
 
 #define DEFAULT_CLOCK 200e6

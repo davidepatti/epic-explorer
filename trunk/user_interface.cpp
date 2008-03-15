@@ -90,38 +90,39 @@ int User_interface::show_menu()
     if (myrank == 0) {
     system("clear");
 
-    cout << "\n       =======================================================";
-    cout << "\n            E p i c   E x p l o r e r   (v. "<< VERSION << ")";
-    cout << "\n       =======================================================";
-    cout << "\n\n     G e n e r a l  ";
-    cout << "\n ------------------------------------------------------------------";
+    //cout << "\n _______________________________________________________" << endl;
+    cout << "\n =====================================================";
+    cout << "\n   e p i c   e x p l o r e r   [release "<< VERSION<<"]";
+    cout << "\n _____________________________________________________";
+    cout << "\n ______m a i n________________________________________" << endl;
+
     cout << "\n [b] - General Settings ";
-    cout << "\n [c] - Load/Edit Design Space ";
+    cout << "\n [c] - Design Space ";
     cout << "\n [h] - About ";
-    cout << "\n";
-    cout << "\n     D e s i g n   S p a c e   E x p l o r a t i o n ";
-    cout << "\n ------------------------------------------------------------------";
-    cout << "\n [g] - GA\t(genetic based)";
-    cout << "\n [d] - DEP\t(dependency graph)";
-    cout << "\n [z] - DEP2\t(alternative graph)";
-    cout << "\n [m] - DEPMOD\t(simplified graph)";
-    cout << "\n [s] - SAP\t(mono-objective sensivity analysis)";
-    cout << "\n [p] - PBSA\t(pareto-based sensitivity analysis)";
-    cout << "\n [e] - Exhaustive exploration";
-    cout << "\n [r] - Random exploration";
-    cout << "\n [v] - Re-Evaluate previous Pareto";
+    cout << "\n [q] - Quit ";
+    cout << "\n _____________________________________________________";
+    cout << "\n ______s p a c e___e x p l o r a t i o n______________" << endl;
+                
+    cout << "\n [g] - Genetic based (GA)";
+    cout << "\n [d] - Dependency-graph based (DEP)";
+    cout << "\n [s] - Sensivity analysis (SAP)";
+    cout << "\n [p] - Pareto-based sensitivity (PBSA)";
+    cout << "\n [e] - Exhaustive (EXHA)";
+    cout << "\n [r] - Random (RANDOM)";
+    cout << "\n [x] - Schedule multiple explorations";
+    cout << "\n [v] - Re-evaluate pareto";
     cout << "\n [t] - run Explorer::test() code";
 
-    cout << "\n\n     Perform Manual Steps: ";
-    cout << "\n -------------------------------------------------------------------";
-    cout << "\n [1] - Compile hmdes file         [6] - View processor config";
-    cout << "\n [2] - Compile benchmark          [7] - View mem config";
-    cout << "\n [3] - Execute benchmark          [8] - Reload processor config";
-    cout << "\n [4] - View execution statistics  [9] - Reload mem config";
-    cout << "\n [5] - Estimate objectives        [0] - Save current machine config"; 
-    cout << "\n -------------------------------------------------------------------";
-    cout << "\n [q] - Quit ";
-    cout << "\n\n Make your choice: ";
+    cout << "\n _____________________________________________________";
+    cout << "\n _______m a n u a l___t e s t ________________________" << endl;
+    cout << "\n [1] - Compile hmdes file";
+    cout << "\n [2] - Compile benchmark";
+    cout << "\n [3] - Execute benchmark";
+    cout << "\n [4] - View execution statistics";
+    cout << "\n [5] - Estimate objectives";
+    cout << "\n [6] - Show system config";
+    cout << "\n [7] - Reload system config" << endl;
+    cout << "\n Make your choice >";
  
 //G    ch = 'r';
     cin >> ch;
@@ -177,30 +178,24 @@ int User_interface::show_menu()
 	case 'd':
 	    my_explorer->init_approximation();
 	    if (myrank == 0) {
-	    	cout << "\n\n Start exploration (y/n) ? ";
-	    	cin >> ch;
-	    	if (ch=='y') my_explorer->start_DEP();
-	    }
-	    break;
+		int graph;
+		cout << "\n Dependency-Graph based approach ";
+		cout << "\n ---------------------------------------------";
+		cout << "\n (1) DEP\t(full graph) ";
+		cout << "\n (2) DEP2\t(alternative graph)";
+		cout << "\n (3) DEPMOD\t(simplified graph)";
+		cout << "\n ---------------------------------------------";
+		cout << "\n choose a graph: ";
+		cin >> graph;
 
-	case 'z':
-	    my_explorer->init_approximation();
-	    if (myrank == 0) {
-	    	start_exploration_message();
-	    	cout << "\n\n Start exploration (y/n) ? ";
-	    	cin >> ch;
-	    	if (ch=='y') my_explorer->start_DEP2();
-	    }
-	    break;
-
-	case 'm':
-	    my_explorer->init_approximation();
-	    if (myrank == 0) {
-	    	start_exploration_message();
-	    	cout << "\n\n Start exploration (y/n) ? ";
-	    	cin >> ch;
-	    	if (ch=='y')
-	    	my_explorer->start_DEPMOD();
+		if (graph==1) 
+		     my_explorer->start_DEP();
+		else if (graph==2) 
+		     my_explorer->start_DEP2();
+		else if (graph==3)
+		     my_explorer->start_DEPMOD();
+		else
+		    cout << "\n Choice '"<< graph << "' not valid!";
 	    }
 	    break;
 
@@ -232,6 +227,11 @@ int User_interface::show_menu()
 	    if (ch=='y') my_explorer->start_PBSA();
 	    }
 	    break;
+	case 'x':
+	    if (myrank == 0) {
+	        schedule_explorations();
+	    }
+	    break;
 
 	case 'e':
 
@@ -244,16 +244,12 @@ int User_interface::show_menu()
 	    cout << "\n too much time to be completed. ";
 	    space_size = (int)my_explorer->get_space_size();
 	    cout << "\n Number of simulations to be performed: " << space_size;
-	    cout << "\n Estimated time: " << (space_size*10)/60 << " minutes ";
 
 	    cout << "\n\n Proceed ? (y/n) ";
 
 	    cin >> c;
 
-	    if (c=='y')
-	    {
-		my_explorer->start_EXHA();
-	    }
+	    if (c=='y') my_explorer->start_EXHA();
 	    wait_key();
 	    }
 	    break;
@@ -344,28 +340,12 @@ int User_interface::show_menu()
 
 	case '6':
 
-	    if (myrank == 0) view_processor_config();
+	    if (myrank == 0) show_system_config();
 	    if (myrank == 0) wait_key();
 	    break;
 
 	case '7':
-	    if (myrank == 0) view_cache_config();
-	    if (myrank == 0) wait_key();
-	    break;
-
-	case '8':
-
-	    if (myrank == 0) reload_hmdes_file();
-	    if (myrank == 0) wait_key();
-	    break;
-	case '9':
-
-	    if (myrank == 0) reload_memhierarchy_config();
-	    if (myrank == 0) wait_key();
-	    break;
-	case '0':
-	    if (myrank == 0) save_processor_config();
-	    if (myrank == 0) save_cache_config();
+	    if (myrank == 0) reload_system_config();
 	    if (myrank == 0) wait_key();
 	    break;
 
@@ -379,14 +359,13 @@ void User_interface::edit_user_settings()
     string ch;
     do {
 	system("clear");
-	cout << "\n  OPTION                                 CURRENT VALUE ";
+	cout << "\n  O p t i o n  ";
 	cout << "\n ----------------------------------------------------------";
 	cout << "\n  (0) - Hyperblock formation         --> " << status_string(user_settings.hyperblock);
 	cout << "\n  (1) - Objective Area               --> " << status_string(user_settings.objective_area);
 	cout << "\n  (2) - Objective Execution Time     --> " << status_string(user_settings.objective_exec_time);
 	cout << "\n  (3) - Objective Energy             --> " << status_string(user_settings.objective_energy);
 	cout << "\n  (4) - Objective Average Power      --> " << status_string(user_settings.objective_power);
-	cout << "\n" ;
 	cout << "\n  (5) - save simulated spaces        --> " << status_string(user_settings.save_spaces);
 	cout << "\n  (6) - save Trimaran PD_STATS files --> " << status_string(user_settings.save_PD_STATS);
 	cout << "\n  (7) - save estimation detail files --> " << status_string(user_settings.save_estimation);
@@ -400,22 +379,23 @@ void User_interface::edit_user_settings()
             " - " << user_settings.approx_settings.max << " )";
 	}
 
-	cout << "\n (11) - Multi directory support      --> " << status_string(user_settings.multidir);
-	cout << "\n (12) - Multi benchmark simuluation  --> " << status_string(user_settings.multibench);
+	cout << "\n (11) - save/restore simulations     --> " << status_string(user_settings.multidir);
+	cout << "\n (12) - Multi benchmark simulation   --> " << status_string(user_settings.multibench);
 	if(user_settings.multibench){
 	    cout << "\n Additional benchmarks:" << endl;
 	    for(vector<string>::iterator it = user_settings.bench_v.begin(); it != user_settings.bench_v.end(); it++)
 	        cout << " " << *it;
 	    cout << endl;
 	}
-
+	cout << "\n (13) - Save trimaran compilation log  --> " << status_string(user_settings.save_tcclog);
+	cout << "\n" ;
 	cout << "\n ----------------------------------------------------------";
-	cout << "\n\n (s) - Save current settings to file";
+	cout << "\n (s) - Save current settings to file";
 	cout << "\n (l) - Load settings from file";
-	cout << "\n (q) - Quit to main menu";
+	cout << "\n (x) - Exit to main menu";
 	cout << "\n ----------------------------------------------------------";
+	cout << "\n Make your choice:";
 
-	cout << "\n\n Make a choice: ";
 	cin >> ch;
 
 	if (ch=="0") 
@@ -455,9 +435,9 @@ void User_interface::edit_user_settings()
 	if (ch=="11")
 	{
 	    cout << "\n--------------------------------------------------------------------";
-	    cout << "\n NOTE: enabling multi-directory support will save the binary";
+	    cout << "\n NOTE: enabling save/restore simulations support will save the binary";
 	    cout << "\n and statistics of each simulation in a different folder, under";
-	    cout << "\n the trimaran-workspace/<benchmark name> directory.";
+	    cout << "\n the trimaran-workspace/<benchmark name> directory." << endl;
 	    cout << "\n This allows the avoidance of unnecessary compilations/simulation";
 	    cout << "\n potentially increasing the speed of the exploration.";
 	    cout << "\n Althought useful, this could be very disk-space consuming, so";
@@ -465,8 +445,8 @@ void User_interface::edit_user_settings()
 	    cout << "\n--------------------------------------------------------------------";
 
 	    int pippo;
-	    cout << "\n (0) Disable multi-dir support";
-	    cout << "\n (1) Enable multi-dir support";
+	    cout << "\n (0) Disable save/restore simulations support";
+	    cout << "\n (1) Enable save/restore simulations support";
 	    cout << "\n make your choice: ";
 	    cin >> pippo;
 
@@ -510,10 +490,16 @@ void User_interface::edit_user_settings()
 	    my_explorer->set_options(user_settings);
 	}
 
+	if (ch=="13") 
+	{
+	    user_settings.save_tcclog = !user_settings.save_tcclog;
+	    trimaran_interface->set_save_tcclog(user_settings.save_tcclog);
+	}
+
 	if (ch=="s") save_settings_wrapper();
 	if (ch=="l") load_settings_wrapper();
 
-    } while(ch!="q");
+    } while(ch!="x");
 
     my_explorer->set_options(user_settings);
 }
@@ -526,7 +512,7 @@ void User_interface::choose_benchmark() {
     cout << "\tCurrently available benchmarks:" << endl;
     cout << "-----------------------------------------------------------" << endl;
 
-    string command = "ls ";
+    string command = "ls -R";
     command+= base_path + "/trimaran/benchmarks";
 
     //sleep(5); // to avoid that 'system' execute before last cout has completed
@@ -551,7 +537,7 @@ void User_interface::choose_benchmark() {
 inline string User_interface::status_string(bool b)
 {
     if (b) return "ENABLED";
-    return "DISABLED";
+    return " --- ";
 }
 
 
@@ -561,6 +547,7 @@ void User_interface::edit_exploration_space()
     do
     {
 	system("clear");
+	my_explorer->processor.num_clusters.set_to_first();
 	my_explorer->processor.integer_units.set_to_first();
 	my_explorer->processor.float_units.set_to_first();
 	my_explorer->processor.branch_units.set_to_first();
@@ -627,6 +614,8 @@ void User_interface::edit_exploration_space()
 	do { cout << my_explorer->processor.cr_static_size.get_val() << ","; } while (my_explorer->processor.cr_static_size.increase());
 	cout << "\n [18]   btr_static_size: ";
 	do { cout << my_explorer->processor.btr_static_size.get_val() << ","; } while (my_explorer->processor.btr_static_size.increase());
+	cout << "\n [19]   num_clusters: ";
+	do { cout << my_explorer->processor.num_clusters.get_val() << ","; } while (my_explorer->processor.num_clusters.increase());
 
 	cout << "\n\n Total Space size: " << my_explorer->get_space_size();
 
@@ -635,7 +624,7 @@ void User_interface::edit_exploration_space()
 	cout << "\n (e) - Edit a parameter ";
 	cout << "\n (s) - Save current space to file ";
 	cout << "\n (l) - Load space from file ";
-	cout << "\n (q) - return to main menu";
+	cout << "\n (x) - Exit to main menu";
 	cout << "\n---------------------------------------------";
 	cout << "\n choice: ";
 	cin >> ch;
@@ -645,7 +634,7 @@ void User_interface::edit_exploration_space()
 	    int p,val,def_val;
 	    vector<int> values;
 
-	    cout << "\n Enter a parameter index (1-18): ";
+	    cout << "\n Enter a parameter index (1-19): ";
 	    cin >> p;
 	    cout << "\n Enter parameter values, separated by empty spaces ";
 	    cout << "\n Use 0 for the last ";
@@ -711,6 +700,9 @@ void User_interface::edit_exploration_space()
 		case 18:
 		    my_explorer->processor.btr_static_size.set_values(values,def_val);
 		    break;
+		case 19:
+		    my_explorer->processor.num_clusters.set_values(values,def_val);
+		    break;
 		default:
 		    cout << "\n ERROR: wrong parameter index ! ";
 		    break;
@@ -721,7 +713,7 @@ void User_interface::edit_exploration_space()
 	if (ch=='l') load_subspace_wrapper();
 
     }
-    while (ch!='q');
+    while (ch!='x');
 
 }
 
@@ -729,7 +721,7 @@ void User_interface::info()
 {
     system("clear");
 
-    cout << "\n     E p i c   E x p l o r e r  - version " << VERSION ;
+    cout << "\n     E p i c   E x p l o r e r  - release " << VERSION ;
     cout << "\n ******************************************************** ";
     cout << "\n Open Platform for Design Space Exploration of EPIC/VLIW architectures";
     cout << "\n";
@@ -750,14 +742,33 @@ void User_interface::info()
     cout << "\n Enjoy your exploration ;) !";
 }
 
-void User_interface::view_processor_config() {
+void User_interface::show_system_config() {
 
     system("clear");
+    cout <<"\n Memory subsystem ";
+    cout << "\n--------------------------------" << endl;
+    cout << my_explorer->mem_hierarchy.L1I.label<< ": ";
+    cout << my_explorer->mem_hierarchy.L1I.block_size.get_val() << "/";
+    cout << my_explorer->mem_hierarchy.L1I.size.get_val() << "/";
+    cout << my_explorer->mem_hierarchy.L1I.associativity.get_val();
+    cout << "  (block/size/assoc)" << endl;
+    
+    cout << my_explorer->mem_hierarchy.L1D.label<< ": ";
+    cout << my_explorer->mem_hierarchy.L1D.block_size.get_val() << "/";
+    cout << my_explorer->mem_hierarchy.L1D.size.get_val() << "/";
+    cout << my_explorer->mem_hierarchy.L1D.associativity.get_val();
+    cout << "  (block/size/assoc)" << endl;
 
+    cout << my_explorer->mem_hierarchy.L2U.label<< ": ";
+    cout << my_explorer->mem_hierarchy.L2U.block_size.get_val() << "/";
+    cout << my_explorer->mem_hierarchy.L2U.size.get_val() << "/";
+    cout << my_explorer->mem_hierarchy.L2U.associativity.get_val();
+    cout << "  (block/size/assoc)" << endl;
 
-   cout << "\n Functional Units ";
+   cout << "\n Functional Units (per-cluster)";
    cout << "\n--------------------------------";
 
+   cout<<"\n num_clusters:"<< my_explorer->processor.num_clusters.get_val();
    cout<<"\n integer_units:"<< my_explorer->processor.integer_units.get_val();
    cout<<"\n float_units:"<< my_explorer->processor.float_units.get_val();
    cout<<"\n memory_units:"<< my_explorer->processor.memory_units.get_val();
@@ -775,17 +786,6 @@ void User_interface::view_processor_config() {
 
    cout << "\n\n NOTE: rotating portion of each register file is assumed equal";
    cout << "\n to static portion.";
-
-}
-
-void User_interface::view_cache_config() {
-
-    system("clear");
-
-    my_explorer->mem_hierarchy.print_cache_config(my_explorer->mem_hierarchy.L1I);
-    my_explorer->mem_hierarchy.print_cache_config(my_explorer->mem_hierarchy.L1D);
-    my_explorer->mem_hierarchy.print_cache_config(my_explorer->mem_hierarchy.L2U);
-
 }
 
 void User_interface::load_settings_wrapper()
@@ -798,7 +798,7 @@ void User_interface::load_settings_wrapper()
    string command = "ls ";
    command+=base_dir+"*.conf";
    system(command.c_str());
-   cout << "\n Enter file name without path ( es. 'file.conf' -  Use 'x' to exit): ";
+   cout << "\n Enter file name without path (e.g. 'file.conf' or use 'x' to cancel): ";
    cin >> filename;
    if (filename!="x") load_settings(base_path+filename);
 
@@ -812,7 +812,7 @@ void User_interface::load_subspace_wrapper()
    cout << "\n\n List of available subspace files: \n";
    string command = "ls "+base_dir;
    system(command.c_str());
-   cout << "\n Enter file name without path ( es. 'my_space.sub' -  Use 'x' to exit): ";
+   cout << "\n Enter file name without path (e.g. 'my_space.sub' or  use 'x' to cancel): ";
    cin >> filename;
    if (filename!="x") 
    {
@@ -826,7 +826,6 @@ void User_interface::load_settings(string settings_file)
 {
 
    FILE * fp;
-
    fp = fopen(settings_file.c_str(),"r");
 
    // if there is no config file a default one is created
@@ -834,7 +833,7 @@ void User_interface::load_settings(string settings_file)
    {
        cout << "\n WARNING:configuration file not found... creating it ";
        user_settings.hyperblock = false;
-       user_settings.benchmark = "wave";
+       user_settings.benchmark = DEFAULT_BENCH;
        user_settings.objective_area = false;
        user_settings.objective_exec_time = true;
        user_settings.objective_energy = false;
@@ -848,6 +847,7 @@ void User_interface::load_settings(string settings_file)
        user_settings.approx_settings.min = 0;
        user_settings.approx_settings.max = 0;
        user_settings.multidir = false;
+       user_settings.save_tcclog = false;
 
        fp= fopen(settings_file.c_str(),"w");
        fclose(fp);
@@ -860,7 +860,7 @@ void User_interface::load_settings(string settings_file)
 
    if (!input_file)
    {
-       cout << "\n Error while reading " << settings_file;
+       cout << "\n Error while loading " << settings_file;
        wait_key();
    }
    else
@@ -874,15 +874,14 @@ void User_interface::load_settings(string settings_file)
 	user_settings.save_PD_STATS = false;
 	user_settings.save_estimation = false;
 	user_settings.auto_clock = false;
+	user_settings.save_tcclog = false;
 
 	go_until("hyperblock",input_file);
 	input_file >> word;
 	if (word=="ENABLED") user_settings.hyperblock = true;
-	trimaran_interface->set_hyperblock(user_settings.hyperblock);
 
 	go_until("benchmark",input_file);
 	input_file >> word;
-	trimaran_interface->set_benchmark(word);
 	user_settings.benchmark = word;
 
 	go_until("area",input_file);
@@ -933,6 +932,14 @@ void User_interface::load_settings(string settings_file)
 	input_file >> word;
 	if (word=="ENABLED") user_settings.multidir = true;
 
+	go_until("save_tcclog",input_file);
+	input_file >> word;
+	if (word=="ENABLED") user_settings.save_tcclog= true;
+
+	trimaran_interface->set_benchmark(user_settings.benchmark);
+	trimaran_interface->set_hyperblock(user_settings.hyperblock);
+	trimaran_interface->set_save_tcclog(user_settings.save_tcclog);
+
 	my_explorer->set_options(user_settings);
    }
 }
@@ -970,7 +977,7 @@ void User_interface::save_subspace_wrapper()
    cout << "\n " << base_dir ; 
    cout << "\n\n (1) - Save current subspace as default";
    cout << "\n (2) - Save subspace using an other filename ";
-   cout << "\n (q) - Exit to main menu' ";
+   cout << "\n (x) - Exit to main menu' ";
    cout << "\n\n Choose : ";
 
    char ch;
@@ -1016,7 +1023,7 @@ void User_interface::save_settings(string settings_file)
 	output_file << "\nfuzzy_min " << user_settings.approx_settings.min;
 	output_file << "\nfuzzy_max " << user_settings.approx_settings.max;
 	output_file << "\nmultidir " << status_string(user_settings.multidir);
-
+	output_file << "\nsave_tcclog " << status_string(user_settings.save_tcclog);
 
 	cout << "\n Ok, saved current settings in " << settings_file;
     }
@@ -1025,8 +1032,11 @@ void User_interface::save_settings(string settings_file)
 void User_interface::schedule_explorations()
 {
     
-    cout << "\n Ok, enter a string containing the sequence of explorations ";
-    cout << "\n to be scheduled (for example: 'psg' ): ";
+    cout << "\n Ok, you must enter a string containing a character for each exploration";
+    cout << "\n to be scheduled.";
+    cout << "\n Legend:";
+    cout << "\n g -> GA\n s -> SAP\n p -> PBSA\n r -> Random\n d -> DEP\n z -> DEP2\n m -> DEPMOD";
+    cout << "\n\n Enter a schedule string:";
     string schedule_string;
     cin >> schedule_string;
 
@@ -1134,30 +1144,20 @@ void User_interface::schedule_explorations()
 }
 
 
-void User_interface::reload_hmdes_file() 
+void User_interface::reload_system_config() 
 {
-    string filename = base_path+"/trimaran-workspace/step_by_step/machines/"+EXPLORER_HMDES2;
+    string filename = base_path+"/trimaran-workspace/epic-explorer/step_by_step/machines/"+EXPLORER_HMDES2;
     cout << "\n\n Loading processor config from hmdes file: " << filename;
     trimaran_interface->load_processor_config(&(my_explorer->processor),filename);
-}
 
-void User_interface::reload_memhierarchy_config()
-{
-    string cache_config_file = base_path + "/trimaran-workspace/step_by_step/cache.cfg";
-    cout << "\n\n Loading cache config from cache.cgf file: " << cache_config_file;
+    string cache_config_file = base_path + "/trimaran-workspace/epic-explorer/step_by_step/m5elements/default.py";
+
+    cout << "\n\n Loading memory configuration from m5 file: " << cache_config_file;
     trimaran_interface->load_mem_config(&(my_explorer->mem_hierarchy),cache_config_file);
 }
 
 
 void User_interface::compile_hmdes_file() {
-
-// VERBOSE_INTERFACE remains here only for hystorical reasons
-// all other similar references have been deleted
-#ifdef VERBOSE_INTERFACE
-    cout << "\n Now will be invoked the method:";
-    cout << "\n\n void Trimaran_interface::compile_hmdes_file() ";
-    wait_key();
-#endif
 
     string hmdes_dir = base_path + "/trimaran-workspace/epic-explorer/step_by_step/machines";
     trimaran_interface->compile_hmdes_file(hmdes_dir);
@@ -1172,34 +1172,34 @@ void User_interface::compile_benchmark() {
 void User_interface::execute_benchmark() {
 
     string base_dir = base_path + "/trimaran-workspace/epic-explorer/step_by_step";
-    string cache_dir_name = "CACHE_DIR";
-    trimaran_interface->execute_benchmark(base_dir,cache_dir_name);
+    trimaran_interface->execute_benchmark(base_dir,"simu_intermediate");
 }
 
 
 void User_interface::view_statistics() {
 
     system("clear");
-    string pd_stats_file = base_path + "/trimaran-workspace/epic-explorer/step_by_step/simu_intermediate/PD_STATS.O";
-    Dynamic_stats dynamic_stats = trimaran_interface->get_dynamic_stats(pd_stats_file);
+    string simu_path = base_path + "/trimaran-workspace/epic-explorer/step_by_step/SIMU_DIR/";
+    Dynamic_stats dynamic_stats = trimaran_interface->get_dynamic_stats(simu_path);
 
     cout << "\n D y n a m i c  S t a t s ";
 
     cout << "\n------------------------------------------------";
 
-    cout << "\n            Total cycles: "<<dynamic_stats.total_cycles;
-    cout << "\n          Compute cycles: "<<dynamic_stats.compute_cycles;
-    cout << "\n            Stall cycles: "<<dynamic_stats.stall_cycles;
-
-    cout << "\n                Branches: "<<dynamic_stats.branch;
-    cout << "\n                    Load: " <<dynamic_stats.load;
-    cout << "\n                   Store: "<<dynamic_stats.store;
+    cout << "\n            Total cycles: " << dynamic_stats.total_cycles;
+    cout << "\n          Compute cycles: " << dynamic_stats.compute_cycles;
+    cout << "\n            Stall cycles: " << dynamic_stats.stall_cycles;
+    cout << "\n       Total dynamic ops: " << dynamic_stats.total_dynamic_operations;
+    cout << "\n       Average ops/cycle: " << dynamic_stats.average_issued_ops_total_cycles;
+    cout << endl;
     cout << "\n             Integer alu: " << dynamic_stats.ialu;
     cout << "\n               Float alu: " << dynamic_stats.falu;
+    cout << "\n                    Load: " << dynamic_stats.load;
+    cout << "\n                   Store: " << dynamic_stats.store;
     cout << "\n    Compare to predicate: " << dynamic_stats.cmp;
     cout << "\n       Prepare to branch: " << dynamic_stats.pbr;
-    cout << "\nAverage issued ops/cycle: ";
-    cout << dynamic_stats.average_issued_ops_total_cycles;
+    cout << "\n                Branches: " << dynamic_stats.branch;
+    cout << "\n                     icm: " << dynamic_stats.icm;
     cout << "\n------------------------------------------------";
     cout << "\n\n L1 Data Cache";
     cout << "\n------------------------------------------------";
@@ -1214,8 +1214,7 @@ void User_interface::view_statistics() {
 
     cout << "\n\n Level 2 unified Cache ";
     cout << "\n------------------------------------------------";
-    cout << "\n read (hit/miss): ("<< dynamic_stats.L2U_r_hit<<"/" << dynamic_stats.L2U_r_miss<<")";
-    cout << "\n write (hit/miss): " << dynamic_stats.L2U_w_hit<<"/" << dynamic_stats.L2U_w_miss<<")";
+    cout << "\n read (hit/miss): ("<< dynamic_stats.L2U_hit<<"/" << dynamic_stats.L2U_miss<<")";
 
 }
 
@@ -1224,16 +1223,16 @@ void User_interface::compute_cost() {
     system("clear");
     string transitions_file = base_path + "/trimaran-workspace/epic-explorer/step_by_step/tmp_transition";
 
-    string pd_stats_file = base_path + "/trimaran-workspace/epic-explorer/step_by_step/simu_intermediate/PD_STATS.O";
+    string simu_path = base_path + "/trimaran-workspace/epic-explorer/step_by_step/SIMU_DIR/";
 
-    Dynamic_stats dynamic_stats = trimaran_interface->get_dynamic_stats(pd_stats_file);
-    Estimate estimate = my_explorer->estimator.get_estimate(dynamic_stats,my_explorer->mem_hierarchy,my_explorer->processor,transitions_file);
+    Dynamic_stats dynamic_stats = trimaran_interface->get_dynamic_stats(simu_path);
+    Estimate estimate = my_explorer->estimator.get_estimate(dynamic_stats,my_explorer->mem_hierarchy,my_explorer->processor);
 
     cout << "\n\n";
     cout << "\n  P e r f o r m a n c e ";
     cout << "\n ----------------------------------------------------";
     cout << "\n   Total cycles executed: " << estimate.execution_cycles;
-    cout << "\n   Total execution time (sec): " << estimate.execution_time;
+    cout << "\n   Total execution time (msec): " << estimate.execution_time*1000;
     cout << "\n   L1D access time (ns): " << estimate.L1D_access_time*1e9;
     cout << "\n   L1I access time (ns): " << estimate.L1I_access_time*1e9;
     cout << "\n   clock freq (Mhz): " << estimate.clock_freq/1e6;
@@ -1265,19 +1264,5 @@ void User_interface::compute_cost() {
     cout << "\n   L2 Unified cache area (cm^2): " << estimate.L2U_area;
     cout << "\n   Processor core area (cm^2): " << estimate.processor_area;
     cout << "\n\n--> Total System Area (cm^2 ): " << estimate.total_area;
-}
-
-void User_interface::save_processor_config() 
-{
-    string hmdes_file = base_path +"/trimaran-workspace/epic-explorer/step_by_step/machines/"+EXPLORER_HMDES2;
-    cout << "\n Saving current process configuration to "+hmdes_file;
-    trimaran_interface->save_processor_config(my_explorer->processor,hmdes_file);
-}
-
-void User_interface::save_cache_config() 
-{
-    string cache_file = base_path + "/trimaran-workspace/epic-explorer/step_by_step/cache.cfg";
-    cout << "\n Saving current cache config to "+cache_file;
-    trimaran_interface->save_mem_config(my_explorer->mem_hierarchy,cache_file);
 }
 

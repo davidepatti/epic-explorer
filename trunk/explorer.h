@@ -38,6 +38,7 @@
 #define EXPLORER_NOTHING_DONE 0
 #define EXPLORER_BINARY_DONE 1
 #define EXPLORER_ALL_DONE 2
+#define EXPLORER_RETRY_TIME 1
 // ---------------------------------------------------------------------------
 
 class Explorer {
@@ -133,22 +134,15 @@ public:
   double get_sensivity_energydelay(const vector<Simulation>& sim);
   double get_sensivity_PBSA(const vector<Simulation>& sim,const vector<Simulation>& all_sims);
   double distance(const Simulation& s1,const Simulation& s2);
-  bool same_intorno(const Simulation& sim1, const Simulation& sim2,double r);
 
   void append_simulations(vector<Simulation>& dest,const vector<Simulation>& new_sims);
-  void save_simulations(const vector<Simulation>& simulations,const string& filename,int format);
+  void save_simulations(const vector<Simulation>& simulations,const string& filename);
   void save_configurations(const vector<Configuration>& space,const string& filename);
   void save_stats(const Exploration_stats& stats,const string& filename);
   void save_estimation_file(const Dynamic_stats& ,const Estimate& ,Processor& ,Mem_hierarchy& ,string& filename) const;
   void save_objectives_details(const Dynamic_stats& dyn,const Configuration& conf, const string filename ) const;
-  vector<Simulation> load_simulations(const string& filename);
   void print_simulation(const Simulation& simulation) const ;
   void print_configuration(const Configuration& config) const ;
-
-  int get_obj_number() const;
-
-
-  //*double get_distance(vector<Simulation>& s1,vector<Simulation>& s2,double err);*/
 
   int get_sim_counter() const;
   void reset_sim_counter();
@@ -170,7 +164,7 @@ public:
 
 private:
   int get_explorer_status() const;
-  void check_directories_setup(const string& application,const Configuration& config);
+  void prepare_explorer(const string& application,const Configuration& config);
 
 
   // private methods 
@@ -194,19 +188,19 @@ private:
   bool force_simulation;
 
   string base_dir;
-
   string epic_dir;
   string application_dir;
   string processor_dir;
   string mem_hierarchy_dir;
   string cache_dir_name;
   string machine_dir;
+  string m5_dir;
   string mem_hierarchy_filename;
   string hmdes_filename;
   string bench_executable;
-
   string current_algo;
   string current_space;
+  string pd_stats_file;
 
   string REP_source_file;
   int n_obj;

@@ -18,7 +18,17 @@
 #include "processor.h"
 
 Processor::Processor(){
+    num_clusters.set_label("num_clusters");
+    integer_units.set_label("integer_units");
+    float_units.set_label("float_units");
+    branch_units.set_label("branch_units");
+    memory_units.set_label("memory_units");
 
+    gpr_static_size.set_label("gpr_static_size");
+    fpr_static_size.set_label("fpr_static_size");
+    pr_static_size.set_label("pr_static_size");
+    cr_static_size.set_label("cr_static_size");
+    btr_static_size.set_label("btr_static_size");
 }
 
 Processor::~Processor(){
@@ -26,6 +36,7 @@ Processor::~Processor(){
 
 void Processor::set_to_default()
 {
+    num_clusters.set_to_default();
     integer_units.set_to_default();
     float_units.set_to_default();
     branch_units.set_to_default();
@@ -41,6 +52,7 @@ void Processor::set_to_default()
 
 void Processor::set_config(const Configuration& conf)
 {
+    num_clusters.set_val(conf.num_clusters);
     integer_units.set_val(conf.integer_units);
     float_units.set_val(conf.float_units);
     branch_units.set_val(conf.branch_units);

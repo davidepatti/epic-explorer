@@ -43,6 +43,7 @@
 #include <math.h>
 #include "cacti.h"
 #include "stdio.h"
+#include <stdlib.h>
 
 extern double calculate_area(area_type,double);
 
