@@ -384,11 +384,6 @@ do
          shift;
       fi;;
 
-    -cache_dir*)
-	cache_option="$1"
-	echo "epic explorer: -cache_dir set to $1";
-	shift;;
-
    -I*)
       ARGS_TO_COMPILEBENCH="$ARGS_TO_COMPILEBENCH ${OPTION##-I}";;
 
@@ -939,13 +934,6 @@ if [ $VALID_ARGS -eq 1 ]; then
           else
             echo "> Skipping setup, no SETUP command(s) specified";
           fi
-# added for epic explorer by Davide Patti (dpatti@diit.unict.it)
-# 23/02/2008
-
-	   echo "cd ../$cache_option"
-	   cd ../$cache_option
-	   echo "ln -s ../simu_intermediate/$OUT_FILE"
-	   ln -s ../simu_intermediate/$OUT_FILE
 
 ######### RUN
 	  echo " "
@@ -964,10 +952,7 @@ if [ $VALID_ARGS -eq 1 ]; then
              exit 1;
           fi
 
-	  # modified by Davide Patti for epic explorer (March 13,2008)
-	  # do not create result.err file, since m5 warnings are too much space expensive
-	  #COMMAND="($CPREFIX nice -n ${NICE_VALUE} ./${OUT_FILE} $ARGS) > result.out.${whichinput} 2> result.err.${whichinput}"
-	  COMMAND="($CPREFIX nice -n ${NICE_VALUE} ./${OUT_FILE} $ARGS) > result.out.${whichinput} 2> /dev/null"
+	  COMMAND="($CPREFIX nice -n ${NICE_VALUE} ./${OUT_FILE} $ARGS) > result.out.${whichinput} 2> result.err.${whichinput}"
 	  if [ $? -ne 0 ]; then
 	     echo "$SCRIPT_NAME: Determining execution command error!"
 	  fi
