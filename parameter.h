@@ -18,6 +18,8 @@
 #ifndef PARAMETER_H
 #define PARAMETER_H
 
+#define NOT_VALID -1
+
 #include <iostream>
 #include <vector>
 
@@ -27,8 +29,8 @@ class Parameter {
 public: 
   Parameter();
 
-  Parameter(int * possible_values, int default_val);
-  Parameter(vector<int> possible_values,int default_val);
+  Parameter(const string& label,vector<int> possible_values,int default_val);
+  Parameter(int * possible_values, int default_val); // deprecated
 
 	
   ~Parameter();
@@ -37,6 +39,7 @@ public:
   int get_size() const;
   int get_default() const;
   void set_val(int new_value);
+  void set_label(const string& label);
 
   void set_to_default();
   void set_to_first();
@@ -59,6 +62,7 @@ private:
   vector<int> values; // vector of possible values 
   int current;  // index of current value in the array of values
   int default_value;
+  string label;
 
 };
 

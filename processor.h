@@ -37,6 +37,8 @@ class Processor {
 	void set_to_default();
 	void set_config(const Configuration&);
 
+	Parameter num_clusters;
+
 	Parameter integer_units;
 	Parameter float_units;
 	Parameter branch_units;

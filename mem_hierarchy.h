@@ -45,7 +45,6 @@ class Mem_hierarchy {
 	    Parameter size;
 	    Parameter associativity;
 
-	    int subblock_size;
 	    int latency;
 	    int bus_width;
 	};
@@ -57,7 +56,6 @@ class Mem_hierarchy {
 	void set_to_default();
 	void set_config(const Configuration&);
 
-	void print_cache_config(const Cache& cache) const;
 	bool test_valid_cache(const Cache& cache) const ;
 	bool test_valid_cache(int C, int B, int A) const ;
 	bool test_valid_config() const;

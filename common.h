@@ -16,23 +16,13 @@
 // you should set this to "DIR" if you install trimaran and
 // trimaran-workspace directories to the content of environment
 // variable $DIR
-// Default is $HOME directory
-#define BASE_DIR "PWD"
-//#define BASE_DIR "HOME"
+// DAV #define BASE_DIR "PWD"
+#define BASE_DIR "HOME"
 
-#define DEFAULT_BENCH "wave"
+#define DEFAULT_BENCH "fir_int"
 #define MAIN_HMDES2 "hpl_pd_elcor_std.hmdes2"
 #define EXPLORER_HMDES2 "explorer.hmdes2"
-
-// ---------------------------------------------------------------------------
-#define SHOW_L1D 1
-#define SHOW_L1I 2
-#define SHOW_L2U 3
-#define SHOW_REGISTER_FILES 4
-#define SHOW_UNITS 5
-#define SHOW_ALL 6
-#define SHOW_NONE 7
-#define SHOW_ENERGYDELAY 8
+#define EE_TAG "\n    >> EE: "
 
 // ---------------------------------------------------------------------------
 
@@ -51,11 +41,18 @@ string skip_to(ifstream& ifs,const string& target);
 int count_word(const string& w,ifstream& ifs);
 long long atoll(const string& s);
 double atof(const string& s);
+int atoi(const string& s);
 string get_base_dir();
 double max(const double& a,const double& b);
 bool file_exists(const string& filename);
 
 typedef unsigned long long uint64;
+
+template<typename T> std::string to_string(const T& t){
+     std::stringstream s;
+     s << t;
+     return s.str();
+}
 
 struct User_Settings 
 {
@@ -81,6 +78,7 @@ struct User_Settings
     //G
     bool multibench; //G enable multiple benchmarks
     vector<string> bench_v; //G additional benchmarks
+    bool save_tcclog;
 };
 
 struct Space_mask
@@ -89,6 +87,7 @@ struct Space_mask
   bool L1I_block; bool L1I_size; bool L1I_assoc;
   bool L2U_block; bool L2U_size; bool L2U_assoc;
 
+  bool num_clusters;
   bool integer_units; bool float_units; bool memory_units; bool branch_units;
 
   bool gpr_static_size;
@@ -98,7 +97,7 @@ struct Space_mask
   bool btr_static_size;
 };
 
-  enum Space_opt { STANDARD,NO_L2_SIZE_CHECK };
+  enum Space_opt { STANDARD,NO_L2_CHECK };
 
 // ---------------------------------------------------------------------------
 //  GA parameters used in exploration
@@ -130,6 +129,7 @@ struct Configuration
   int L1I_block, L1I_size, L1I_assoc;
   int L2U_block, L2U_size, L2U_assoc;
   
+  int num_clusters;
   int integer_units; int float_units; int memory_units; int branch_units;
   
   int gpr_static_size;
@@ -161,28 +161,51 @@ struct Simulation
 struct Dynamic_stats
 {
     uint64 total_cycles, stall_cycles,compute_cycles,total_dynamic_operations;
-    uint64 ialu,falu,load,store,branch,cmp,pbr;
+    uint64 ialu,falu,load,store,branch,cmp,pbr,icm;
     uint64 spills_restores;
 
     double average_issued_ops_compute_cycles; 
     double average_issued_ops_total_cycles;
 
-    // cache stats
+    // memory stats
     uint64 L1D_w_fetches, L1D_r_fetches, L1D_miss, L1D_hit;
     uint64 L1D_r_hit, L1D_r_miss, L1D_w_hit, L1D_w_miss; 
-    uint64 L1D_capacity_misses, L1D_conflict_misses;
+    uint64 L1D_writebacks;
 
     uint64 L1I_fetches,L1I_hit, L1I_miss;
-    uint64 L1I_capacity_misses, L1I_conflict_misses;
+    uint64 L1I_writebacks;
 
-    uint64 L2U_miss, L2U_hit;
-    uint64 L2U_demand, L2U_i_demand, L2U_d_demand,L2U_dw_demand, L2U_dr_demand;
-    uint64 L2U_i_miss, L2U_i_hit;
-    uint64 L2U_dr_hit, L2U_dw_hit, L2U_d_miss, L2U_dr_miss, L2U_dw_miss;
-    uint64 L2U_r_hit, L2U_r_miss, L2U_w_hit, L2U_w_miss;
-    uint64 L2U_capacity_misses, L2U_conflict_misses;
+    uint64 L2U_demand, L2U_miss, L2U_hit;
+    uint64 L2U_writebacks;
+
+    double L1D_transition_p, L1I_transition_p,L2U_transition_p;
+
+    uint64 SDRAM_accesses;
 
 };
+// ---------------------------------------------------------------------------
+typedef struct
+{
+    // performance 
+    double L1D_access_time, L1I_access_time;
+    double clock_freq, clock_T, power_density_scale;
+
+    uint64 execution_cycles, compute_cycles, stall_cycles;
+
+    double execution_time;
+    double IPC;
+    double L1D_transition_p, L1I_transition_p;
+
+    // power/energy
+
+    double L1I_energy, L1D_energy, L2U_energy, main_memory_energy;
+    double total_cache_energy, total_processor_energy;
+    double NO_MEM_system_energy, total_system_energy, total_average_power; 
+    // area
+    double L1D_area, L1I_area, L2U_area, processor_area;
+    double total_area;
+
+} Estimate;
 // ---------------------------------------------------------------------------
 struct Exploration_stats 
 {
@@ -212,6 +235,7 @@ public:
 	    t1.config.L2U_size == t2.config.L2U_size &&
 	    t1.config.L2U_assoc == t2.config.L2U_assoc &&
 	    t1.config.integer_units == t2.config.integer_units &&
+	    t1.config.num_clusters == t2.config.num_clusters &&
 	    t1.config.float_units == t2.config.float_units && 
 	    t1.config.memory_units == t2.config.memory_units &&
 	    t1.config.branch_units == t2.config.branch_units &&
@@ -233,6 +257,7 @@ public:
 	      t.config.L2U_size +
 	      t.config.L2U_assoc +
 	      t.config.integer_units +
+	      t.config.num_clusters +
 	      t.config.float_units +
 	      t.config.memory_units +
 	      t.config.branch_units +

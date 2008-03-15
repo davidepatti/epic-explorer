@@ -13,6 +13,7 @@ bool Configuration::is_feasible()
 
 void Configuration::invalidate()
 {
+    num_clusters = -1;
     integer_units = -1;
     float_units = -1;
     branch_units = -1;
@@ -45,6 +46,7 @@ bool Configuration::check_difference(const Configuration& conf, Space_mask mask)
     if (mask.pr_static_size && (pr_static_size!= conf.pr_static_size)) return true;
     if (mask.cr_static_size && (cr_static_size!= conf.cr_static_size)) return true;
     if (mask.btr_static_size && (btr_static_size!=conf.btr_static_size)) return true;
+    if (mask.num_clusters && (num_clusters!=conf.num_clusters)) return true;
 
     if (mask.L1D_size && (L1D_size!=conf.L1D_size)) return true;
     if (mask.L1D_block && (L1D_block!=conf.L1D_block)) return true;
@@ -64,8 +66,8 @@ bool Configuration::check_difference(const Configuration& conf, Space_mask mask)
 string Configuration::to_string() const
 {
     char s[100];
-    sprintf(s,"%% %u %u %u %u / %u %u %u %u %u / %u %u %u / %u %u %u / %u %u %u ",
-	    integer_units, float_units,branch_units,memory_units, gpr_static_size, fpr_static_size, pr_static_size, cr_static_size, btr_static_size, L1D_size, L1D_block, L1D_assoc, L1I_size, L1I_block, L1I_assoc, L2U_size, L2U_block, L2U_assoc);
+    sprintf(s,"%% %u / %u %u %u %u / %u %u %u %u %u / %u %u %u / %u %u %u / %u %u %u ",
+	    num_clusters,integer_units, float_units,branch_units,memory_units, gpr_static_size, fpr_static_size, pr_static_size, cr_static_size, btr_static_size, L1D_size, L1D_block, L1D_assoc, L1I_size, L1I_block, L1I_assoc, L2U_size, L2U_block, L2U_assoc);
 
     return string(s);
 
@@ -74,8 +76,8 @@ string Configuration::to_string() const
 string Configuration::get_processor_string() const
 {
     char s[100];
-    sprintf(s,"%u%u%u%u_%u%u%u%u%u",
-	    integer_units, float_units,branch_units,memory_units, gpr_static_size, fpr_static_size, pr_static_size, cr_static_size, btr_static_size);
+    sprintf(s,"%u_%u%u%u%u_%u%u%u%u%u",
+	    num_clusters,integer_units, float_units,branch_units,memory_units, gpr_static_size, fpr_static_size, pr_static_size, cr_static_size, btr_static_size);
 
     return string(s);
 }
@@ -124,6 +126,7 @@ void Simulation::add_simulation(const Simulation& other)
 }
 
 
+// File access utilities - mainly to improve readability
 void go_until(const string& dest,ifstream& ifs)
 {
     string word;
@@ -146,7 +149,7 @@ string skip_to(ifstream& ifs,const string& target)
 
 void wait_key()
 {
-    cout << "\n\n Press any key to continue.." << endl;
+    cout << "\n\n Press RETURN to continue..." << endl;
     getchar();
     getchar();
 }
@@ -156,30 +159,6 @@ int count_word(const string& w, ifstream& ifs)
     int n = 0;
     while ( ifs>>word ) if (word==w) n++;
     return n;
-}
-template<typename T> std::string to_string(const T& t){
-     std::stringstream s;
-     s << t;
-     return s.str();
-}
-
-extern "C" long long atoll(const char*);
-extern "C" double atof(const char*);
-
-long long atoll(const string& s)
-{
-    return atoll(s.c_str());
-}
-
-double atof(const string& s)
-{
-    return atof(s.c_str());
-}
-
-double max(const double& a,const double& b)
-{
-    if (a>b) return a;
-    return b;
 }
 
 bool file_exists(const string& filename)
@@ -196,7 +175,29 @@ bool file_exists(const string& filename)
     return false;
 }
 
-//inline string get_base_path()
-//{
-//    return string(getenv(BASE_DIR));
-//}
+// redefinition of some commonly used C-style functions
+extern "C" int atoi(const char*);
+int atoi(const string& s)
+{
+    return atoi(s.c_str());
+}
+
+extern "C" long long atoll(const char*);
+
+long long atoll(const string& s)
+{
+    return atoll(s.c_str());
+}
+
+extern "C" double atof(const char*);
+double atof(const string& s)
+{
+    return atof(s.c_str());
+}
+
+double max(const double& a,const double& b)
+{
+    if (a>b) return a;
+    return b;
+}
+

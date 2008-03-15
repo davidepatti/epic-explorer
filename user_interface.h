@@ -63,8 +63,7 @@ private:
 
 	void start_exploration_message();
 	void edit_exploration_space();
-	void reload_hmdes_file();
-	void reload_memhierarchy_config();
+	void reload_system_config();
 	void compile_hmdes_file();
 	void compile_benchmark();
 	void execute_benchmark();
@@ -72,10 +71,7 @@ private:
 	void compute_cost();
 	void choose_benchmark();
 	void info();
-	void view_processor_config();
-	void view_cache_config();
-	void save_processor_config();
-	void save_cache_config();
+	void show_system_config();
 	void schedule_explorations();
 
 	inline string status_string(bool b);

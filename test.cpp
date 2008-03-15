@@ -42,5 +42,5 @@ void test()
     vector<Simulation> pareto_set1 = my_explorer->get_pareto(sims1);
 
     // save them
-    my_explorer->save_simulations(pareto_set1,"TEMP_TEST",SHOW_ALL);
+    my_explorer->save_simulations(pareto_set1,"TEMP_TEST");
 }
