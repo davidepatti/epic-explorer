@@ -386,7 +386,7 @@ int Explorer::simulate_space()
 
 	    dyn_stats = trimaran_interface->get_dynamic_stats(mem_hierarchy_dir);
 
-	    estimate = estimator.get_estimate(dyn_stats,mem_hierarchy,processor,transitions_file);
+	    estimate = estimator.get_estimate(dyn_stats,mem_hierarchy,processor);
 	    current_sim.area = estimate.total_area;
 	    current_sim.exec_time = estimate.execution_time;
 	    current_sim.clock_freq = estimate.clock_freq;

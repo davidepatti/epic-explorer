@@ -1221,7 +1221,6 @@ void User_interface::view_statistics() {
 void User_interface::compute_cost() {
 
     system("clear");
-    string transitions_file = base_path + "/trimaran-workspace/epic-explorer/step_by_step/tmp_transition";
 
     string simu_path = base_path + "/trimaran-workspace/epic-explorer/step_by_step/SIMU_DIR/";
 
