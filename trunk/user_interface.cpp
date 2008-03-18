@@ -507,13 +507,13 @@ void User_interface::edit_user_settings()
 void User_interface::choose_benchmark() {
 
     cout << endl;
-    cout << "You must choose one of the benchmark available in the " << endl;
-    cout << "'" << base_path << "/trimaran/benchmarks' directory " << endl << endl;
+    cout << "IMPORTANT: if you want to add a benchmark package put it in the " << endl;
+    cout << "'" << base_path << "/trimaran/benchmarks/simple' directory " << endl;
     cout << "\tCurrently available benchmarks:" << endl;
     cout << "-----------------------------------------------------------" << endl;
 
-    string command = "ls -R";
-    command+= base_path + "/trimaran/benchmarks";
+    string command = "ls ";
+    command+= base_path + "/trimaran/benchmarks/simple";
 
     //sleep(5); // to avoid that 'system' execute before last cout has completed
     system(command.c_str());
@@ -1179,7 +1179,7 @@ void User_interface::execute_benchmark() {
 void User_interface::view_statistics() {
 
     system("clear");
-    string simu_path = base_path + "/trimaran-workspace/epic-explorer/step_by_step/SIMU_DIR/";
+    string simu_path = base_path + "/trimaran-workspace/epic-explorer/step_by_step/simu_intermediate/";
     Dynamic_stats dynamic_stats = trimaran_interface->get_dynamic_stats(simu_path);
 
     cout << "\n D y n a m i c  S t a t s ";
@@ -1222,7 +1222,7 @@ void User_interface::compute_cost() {
 
     system("clear");
 
-    string simu_path = base_path + "/trimaran-workspace/epic-explorer/step_by_step/SIMU_DIR/";
+    string simu_path = base_path + "/trimaran-workspace/epic-explorer/step_by_step/simu_intermediate/";
 
     Dynamic_stats dynamic_stats = trimaran_interface->get_dynamic_stats(simu_path);
     Estimate estimate = my_explorer->estimator.get_estimate(dynamic_stats,my_explorer->mem_hierarchy,my_explorer->processor);
