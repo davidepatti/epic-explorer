@@ -39,7 +39,7 @@ void Explorer::start_DEP()
 
     write_log("  -> Starting DEP simulation ");
 
-    sprintf(mess,"Space size: %d , feasible %d ",(int)stats.space_size,(int)stats.feasible_size);
+    sprintf(mess,"Space size: %lf , feasible %lf",stats.space_size,stats.feasible_size);
     write_log(mess);
 
     write_log("  -> Starting c1 exploration ");
@@ -495,7 +495,7 @@ void Explorer::start_DEP2()
 
     write_log("  -> Starting DEP2 simulation ");
 
-    sprintf(mess,"Space size: %d , feasible %d ",(int)stats.space_size,(int)stats.feasible_size);
+    sprintf(mess,"Space size: %lf , feasible %lf ",stats.space_size,stats.feasible_size);
     write_log(mess);
 
     write_log("  -> Starting c5 exploration ");

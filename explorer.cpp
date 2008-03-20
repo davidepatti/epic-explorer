@@ -1544,7 +1544,7 @@ Space_mask Explorer::mask_union(Space_mask& m1,Space_mask& m2) const
 // compute the total number of configurations considering all
 // possible values of paremeters whose mask boolean is set true
 
-double Explorer::get_space_size(const Space_mask& mask) const
+long double Explorer::get_space_size(const Space_mask& mask) const
 {
     double size = 1;
 
@@ -1578,7 +1578,7 @@ double Explorer::get_space_size(const Space_mask& mask) const
 
 ////////////////////////////////////////////////////////////////////////////
 // if no mask is specified, total configuration space size is returned
-double Explorer::get_space_size() const
+long double Explorer::get_space_size() const
 {
     Space_mask all_parm = get_space_mask(SET_ALL);
     return get_space_size(all_parm);
@@ -1587,7 +1587,7 @@ double Explorer::get_space_size() const
 
 ////////////////////////////////////////////////////////////////////////////
 // WARNING: disabled ( returns 0)
-double Explorer::get_feasible_size() const
+long double Explorer::get_feasible_size() const
 {
     Space_mask mask = get_space_mask(SET_ALL);
 

@@ -84,7 +84,7 @@ int User_interface::show_menu()
 
     char ch;
     char c;
-    int space_size;
+    long double space_size;
     struct GA_parameters ga_parameters;
 
     if (myrank == 0) {
@@ -242,7 +242,7 @@ int User_interface::show_menu()
 	    cout << "\n\n WARNING: You are going to start an exhaustive exploration of all parameters .";
 	    cout << "\n Depending on range variation of space parameters simulation might take";
 	    cout << "\n too much time to be completed. ";
-	    space_size = (int)my_explorer->get_space_size();
+	    space_size = my_explorer->get_space_size();
 	    cout << "\n Number of simulations to be performed: " << space_size;
 
 	    cout << "\n\n Proceed ? (y/n) ";
