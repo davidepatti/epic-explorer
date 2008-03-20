@@ -837,14 +837,17 @@ if [ $VALID_ARGS -eq 1 ]; then
 	   export M5_OUTPUT_DIR
 	   POSLINKING_OPTS="${POSLINKING_OPTS} -L${M5_ROOT}/m5/build/ALPHA \
 	                                       -lm5shared";
-	   if [ ! -f $M5_CONFIG_FILE ] ; then
-	     # This will cause an error in M5elements, but those errors
-	     # are harder to observe because they're expressed in the output
-	     # of the simu binary (result.err.*)      <lieberm 03/02/2007>
-	     echo -n "$SCRIPT_NAME: Error: M5_CONFIG_FILE does not exist: "
-	     echo "$M5_CONFIG_FILE, bailing out!"
-	     exit 1;
-	   fi
+	   # Modified by Davide Patti for epic explorer ######################
+	   # Removed M5_CONFIG_FILE checking, will be only used later during
+	   # simu (dpatti@diit.unict.it 20/03/2008)
+	   #if [ ! -f $M5_CONFIG_FILE ] ; then
+	   #  # This will cause an error in M5elements, but those errors
+	   #  # are harder to observe because they're expressed in the output
+	   #  # of the simu binary (result.err.*)      <lieberm 03/02/2007>
+	   #  echo -n "$SCRIPT_NAME: Error: M5_CONFIG_FILE does not exist: "
+	   #  echo "$M5_CONFIG_FILE, bailing out!"
+	   #  exit 1;
+	   #fi
 	 fi
 	 
          #check if file exists
