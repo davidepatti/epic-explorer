@@ -89,9 +89,9 @@ public:
 						const Space_mask& mask2) const;
   bool equivalent_spaces(const vector<Configuration>& s1,const vector<Configuration>& s2) const;
 
-  double get_space_size() const;
-  double get_space_size(const Space_mask& mask) const;
-  double get_feasible_size() const;
+  long double get_space_size() const;
+  long double get_space_size(const Space_mask& mask) const;
+  long double get_feasible_size() const;
   int count_needed_recompilations(const vector<Configuration>& space);
 
 
