@@ -10,6 +10,7 @@ TRIMARAN_ROOT=$BASE_DIR/trimaran
 EPIC_SOURCE=$BASE_DIR/epic
 
 # checking trimaran installation ###############################
+echo ""
 echo "** Checking for trimaran installation files..."
 
 if [ -e $TRIMARAN_ROOT/scripts ]; then
@@ -76,4 +77,5 @@ cp -f $EPIC_SOURCE/MISC_FILES/epic_default.conf $WORKSPACE/epic-explorer
 
 echo " ** Done. **"
 echo " Just type ./epic to start epic explorer!"
+echo ""
 
