@@ -25,7 +25,7 @@ First of all, you have to install the Trimaran compiler framework.
 
                      *** IMPORTANT! ****
 
-Before reporting a bug see section IV "COMMON PROBLEMS
+Before reporting a bug see section V "COMMON PROBLEMS
 AND ERRORS" at the end of this document.
 
 Please follow carefully these steps:
@@ -77,13 +77,14 @@ If upgrading from a previous Epic Explorer version for trimaran 3.x,
 delete all the files in 'trimaran-workspace/epic-explorer/' since they
 might be incompatible with the new version and cause segfaults.
 
-In any case, remove/rename the whole previous trimaran-workspace
+In any case, removing or renaming the whole previous trimaran-workspace
 directory is a safe choice, since the new 'post_install.sh' script
 creates everything needed.
 
-1) If not yet done, unpack epic explorer source in your home directory
+1) If not yet done, unpack epic explorer source (probably in your home
+directory)
 
-2) Enter the epic source directory
+2) Enter the 'epic' source directory
 
 3) Just type 'make' to compile the source 
 
