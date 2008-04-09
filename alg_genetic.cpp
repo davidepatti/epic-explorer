@@ -123,8 +123,6 @@ void Explorer::start_GA(const GA_parameters& parameters)
     stats.end_time = time(NULL);
     stats.n_sim = get_sim_counter();
     save_stats(stats, file_name+".stat");
-
-    wait_key();
 }
 
 //********************************************************************
