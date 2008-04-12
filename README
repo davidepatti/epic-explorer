@@ -2,7 +2,7 @@
 **************************************************************
 	EPIC Explorer - Installing instructions
 **************************************************************
-      				      Last update March 13, 2008
+      				      Last update April 12, 2008
 		        by Davide Patti (dpatti@diit.unict.it)
 
 
@@ -15,6 +15,10 @@ This version of epic explorer will work on Trimaran version 4.0
 If you need to use older versions of trimaran please download a
 previous versione of epic explorer (i.e.  20060312-r2 version works
 with trimaran 3.7)
+
+NOTE: if compiling for AMD64 architectures (e.g. Opteron) with a 64
+bit distribution, see also the specific notes at the appendix of this
+document.
 
 
 ***************************************************************
@@ -65,8 +69,14 @@ manual found in the trimaran/manual directory.
     same section of the manual.
 
 7) If the above step was ok, install M5 memory simulator as
-explained in Section 7 of trimaran manual. Note the you will probably
-encounter the error E.2 described in Section V of this README.
+explained in Section 7 of trimaran manual. 
+
+NOTE: you will probably encounter the errors E.2 described in
+Section V of this README.
+
+NOTE: if compiling for AMD64 architectures (e.g. Opteron) with a 64
+bit distribution, see also the specific notes at the appendix of this
+document.
 
 ***************************************************************
 	SECTION III. INSTALLING EPIC EXPLORER 
@@ -175,7 +185,7 @@ OUTPUT FILE NAMES
 This section lists common errors you can experience while trying to
 compile trimaran or epic explorer.
 
-OK, I HAVE A PROBLEM, CAN I ASK YOU ?
+    OK, I HAVE A PROBLEM, CAN I ASK YOU ?
 
 IMPORTANT: in order to avoid confusion it's essential that distinguish
 between the problems of trimaran and those of epic explorer.
@@ -193,8 +203,13 @@ me with problems that are strictly related to compiling trimaran.
 
 COMMONLY REPORTED ERRORS (and suggested solutions)
 
+***  ERROR.1.a ********************************************
+Missing 'aclocal'
 
-***  E.1 **************************
+>>> SOLUTION:
+Install automake!!
+
+***  ERROR.1.b ********************************************
 
 When finishing the compilation of openimpact, the following error is
 encountered:
@@ -213,7 +228,7 @@ the correct declaration is :
   const char * poptStrerror(const int error)
 
 
-***  E.2 **************************
+***  ERROR.2.a ****************************************
 
 While trying to compile M5 cache simulator,  the following error is
 encountered:
@@ -230,8 +245,35 @@ make: *** [install/m5/build/ALPHA/libm5shared.so] Error 2
 Switch to gcc 3.4 just to compile m5. Then you can continue
 compiling emulib files with gcc 4 without any problem.
 
+***  ERROR.2.b ****************************************
 
-***  E.3 **************************
+While trying to compile M5 cache simulator,  the following error is
+encountered:
+
+/usr/bin/ld: libelf/lib/libelf.a(begin.o): relocation R_X86_64_32
+against `a local symbol' can not be used when making a shared object;
+rec ompile with -fPIC libelf/lib/libelf.a: could not read symbols: Bad
+value
+
+>>> SOLUTION:
+
+You are probably using an AMD64 architecture.  In this case libelf.a is not
+properly linked and so libm5shared.so is NOT created.
+
+The problem is that the M5 used in trimaran is an old version that
+has some problems (see also E.2.a)
+I'm searching for old messages in http://osdir.com/ml/emulators.m5.users/ for a
+solution.
+
+In the meanwhile, you can try to compile trimaran and m5 in a
+different machine and then copy the file:
+
+trimaran/m5/install/m5/build/m5/build/ALPHA/libm5shared.so 
+
+to the not-working machine. In my case it did work!
+
+
+***  E.3 **********************************************
 
 When compiling/executing a benchmark, the following error is
 encountered:
@@ -247,7 +289,6 @@ tcc: Error: compile_bench -nosync -p ~/trimaran/openimpact/parms/STD_PARMS.IMPAC
 
 >>> SOLUTION:
 
-See footnote 1 on section 2.1 of trimaran manual.
 You should edit the file ~/trimaran/openimpact/scripts/gen_CtoP and
 apply these changes:
 
@@ -255,4 +296,69 @@ apply these changes:
 - At line 556 there are two lines containing the words: "for F in ....":
   delete both lines and replace them with a single line: 
         for F in `\ls *.pst` ; do FPST="$FPST $F"; done;
+
+
+*******************************************************
+AMD64 - SPECIFIC
+*******************************************************
+In order to compile trimaran M5 cache simulator on AMD64 bit machines
+with a 64 bit linux distribution some tweaks were required, since all
+the code needs to be compiled in 32 bit mode.
+
+1) Install multilib and ia32libs. On ubuntu linux the packages name
+are 'multilib' and 'ia32libs'. 
+
+NOTE: For unknown reasons, on my ubuntu linux the installation of
+these packages did not add the required lines on
+ld.so.conf, so the linker was not able to find the 32 bit version of
+the libraries. Referring to the 64bit Ubuntu, I had to create a file:
+
+/etc/ld.so.conf.d/x86_32-linux-gnu
+
+containing a single row that specifies the added path:
+
+/usr/lib32
+
+
+2) gcc4.1 DOES NOT work (gives some namespace related errors)
+
+---> Install 3.4 version of gcc and g++
+
+It's HIGHLY recommended to create two wrapper scripts, named
+respectively 'gcc' and 'g++', each containing these two lines:
+
+#!/bin/bash
+gcc-3.4 -m32 $*
+
+(obviously change gcc to g++ in the script named 'g++')
+Now you can put these two scripts in a certain directory, for example
+'my_wrappers' in your home. To be sure to execute them
+instead of the usual /usr/bin/gcc you should, just for the M5
+compilation, put this path before the standard path, for example:
+
+export PATH=/home/YOURUSER/my_wrappers:$PATH
+
+Remember: this is needed just for the M5 compilation, to be sure that
+the 3.4 version of compiler is invoked with the argument -m32.
+
+3) If you get:
+
+/usr/bin/ld: libelf/lib/libelf.a(begin.o): relocation R_X86_64_32
+against `a local symbol' can not be used when making a shared object;
+recompile with -fPIC
+
+you should add -fPIC to the gcc command in the file:
+trimaran/m5/install/m5/build/libelf/lib/Makefile
+
+and launch again the make command inside the
+'trimaran/m5/install/m5/build/libelf/lib/' directory.
+
+and then relaunch the 'ldconfig' command to regenerate the cache of
+library paths.
+
+
+
+
+
+
 
