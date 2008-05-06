@@ -59,7 +59,7 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
     // ********************************************************
 	
 	
-    int communicator[19];
+    int communicator[27]; //db
     int counter = 0;
     int counter2 = 0;
     
@@ -116,7 +116,15 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
           communicator[16] = space2[s].pr_static_size;
           communicator[17] = space2[s].btr_static_size;
           communicator[18] = space2[s].num_clusters;
-	  MPI_Send(communicator, 19, MPI_INT, p, 99, MPI_COMM_WORLD);
+	  communicator[19] = space2[s].tcc_region;	//db
+	  communicator[20] = space2[s].max_unroll_allowed; //db
+	  communicator[21] = space2[s].regroup_only;	//db
+	  communicator[22] = space2[s].do_classic_opti;	//db
+	  communicator[23] = space2[s].do_prepass_scalar_scheduling;	//db
+	  communicator[24] = space2[s].do_postpass_scalar_scheduling;	//db
+	  communicator[25] = space2[s].do_modulo_scheduling;	//db
+	  communicator[26] = space2[s].memvr_profiled;	//db
+	  MPI_Send(communicator, 27, MPI_INT, p, 99, MPI_COMM_WORLD);
         }
 	space2.clear();
     counter2 += counter;
@@ -134,6 +142,7 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
 
 	processor.set_config(space2[i]);
 	mem_hierarchy.set_config(space2[i]);
+	compiler.set_config(space2[i]);	//db
 	current_sim.config = space2[i];
 
 	prepare_explorer(Options.benchmark,space2[i]); //DDD
@@ -147,11 +156,12 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
 		if (explorer_status != EXPLORER_BINARY_DONE)
 		{
 		    trimaran_interface->save_processor_config(processor,hmdes_filename);
+		    trimaran_interface->save_compiler_parameter(compiler,comp_filename);  //db
 		    trimaran_interface->compile_hmdes_file(machine_dir);
-		    trimaran_interface->compile_benchmark(processor_dir);
+		    trimaran_interface->compile_benchmark(&compiler,processor_dir);	//db
 		}
 		trimaran_interface->save_mem_config(mem_hierarchy,mem_hierarchy_filename);
-		trimaran_interface->execute_benchmark(processor_dir,cache_dir_name);
+		trimaran_interface->execute_benchmark(&compiler,processor_dir,cache_dir_name); //db
 	    }
 
 	    dyn_stats = trimaran_interface->get_dynamic_stats(mem_hierarchy_dir);
@@ -227,7 +237,7 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
 		char temp[10];
 		sprintf(temp,"%d",i);
 		string filename= Options.benchmark+"_"+current_algo+"_"+current_space+"."+string(temp)+".est";
-		save_estimation_file(dyn_stats,estimate,processor, mem_hierarchy,filename);
+		save_estimation_file(dyn_stats,estimate,processor, mem_hierarchy,compiler,filename);	//db
 	    }
 
 	    if (Options.save_objectives_details) // 
@@ -269,6 +279,7 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
 	    if (Options.approx_settings.enabled>0) {
 	        processor.set_config(space2[s]);
 	        mem_hierarchy.set_config(space2[s]); 
+		compiler.set_config(space2[s]);	//db
 	  	function_approx->Learn(space2[s],current_sim,processor,mem_hierarchy);
 	    }
 	}
@@ -309,7 +320,7 @@ int Explorer::simulate_space()
     bool do_simulation = true;
 
 
-    int communicator[19];
+    int communicator[27];  //db
     Configuration tmp;
     MPI_Status status;
     int counter = 0;
@@ -330,7 +341,7 @@ int Explorer::simulate_space()
     trimaran_interface->set_benchmark(Options.benchmark);
 
     for(int i = 0; i<counter; i++) {
-    	MPI_Recv(communicator,19,MPI_INT,0,99,MPI_COMM_WORLD,&status);
+    	MPI_Recv(communicator,27,MPI_INT,0,99,MPI_COMM_WORLD,&status); //db
         tmp.L1D_block = communicator[0];
 	tmp.L1D_size = communicator[1];
 	tmp.L1D_assoc = communicator[2];
@@ -350,6 +361,14 @@ int Explorer::simulate_space()
         tmp.pr_static_size = communicator[16];
         tmp.btr_static_size = communicator[17];
         tmp.num_clusters = communicator[18];
+	tmp.tcc_region = communicator[19];	//db
+        tmp.max_unroll_allowed = communicator[20]; //db
+	tmp.regroup_only = communicator[21];	//db
+	tmp.do_classic_opti = communicator[22];	//db
+	tmp.do_prepass_scalar_scheduling = communicator[23];	//db
+	tmp.do_postpass_scalar_scheduling = communicator[24];	//db
+	tmp.do_modulo_scheduling = communicator[25];	//db
+	tmp.memvr_profiled = communicator[26];	//db
  	space.push_back(tmp);
     }
 
@@ -364,6 +383,7 @@ int Explorer::simulate_space()
 
 	processor.set_config(space[i]);
 	mem_hierarchy.set_config(space[i]);
+	compiler.set_config(space[i]);	//db
 	current_sim.config = space[i];
 
 	prepare_explorer(Options.benchmark,space[i]); //DDD
@@ -377,11 +397,12 @@ int Explorer::simulate_space()
 		if (explorer_status != EXPLORER_BINARY_DONE)
 		{
 		    trimaran_interface->save_processor_config(processor,hmdes_filename);
+		    trimaran_interface->save_compiler_parameter(compiler,comp_filename);  //db
 		    trimaran_interface->compile_hmdes_file(machine_dir);
-		    trimaran_interface->compile_benchmark(processor_dir);
+		    trimaran_interface->compile_benchmark(&compiler,processor_dir);	//db
 		}
 		trimaran_interface->save_mem_config(mem_hierarchy,mem_hierarchy_filename);
-		trimaran_interface->execute_benchmark(processor_dir,cache_dir_name);
+		trimaran_interface->execute_benchmark(&compiler,processor_dir,cache_dir_name); //db
 	    }
 
 	    dyn_stats = trimaran_interface->get_dynamic_stats(mem_hierarchy_dir);
@@ -442,7 +463,7 @@ int Explorer::simulate_space()
 		char temp[10];
 		sprintf(temp,"%d",i);
 		string filename= Options.benchmark+"_"+current_algo+"_"+current_space+"."+string(temp)+".est";
-		save_estimation_file(dyn_stats,estimate,processor, mem_hierarchy,filename);
+		save_estimation_file(dyn_stats,estimate,processor, mem_hierarchy,compiler,filename);	//db
 	    }
 
 	    if (Options.save_objectives_details) // 

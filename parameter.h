@@ -40,7 +40,7 @@ public:
   int get_default() const;
   void set_val(int new_value);
   void set_label(const string& label);
-  string get_label const;
+  string get_label() const;
 
   void set_to_default();
   void set_to_first();

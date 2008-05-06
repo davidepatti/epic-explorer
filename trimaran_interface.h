@@ -25,6 +25,7 @@
 #include "processor.h"
 #include "mem_hierarchy.h"
 #include "common.h"
+#include "compiler.h"	//db
 
 
 using namespace std;
@@ -37,8 +38,10 @@ public:
     
     ~Trimaran_interface();
 
+    //TODO: needed ??
+    Compiler compiler;	//db
+
 	void set_benchmark(string new_benchmark);
-	void set_hyperblock(bool hyperblock);
 	void set_save_tcclog(bool do_save_log);
 
 	void set_environment(const string& path);
@@ -46,14 +49,16 @@ public:
 	string get_benchmark_name() const;
 
 	void compile_hmdes_file(const string& path) const;
-	void compile_benchmark(const string& path);
-	void execute_benchmark(const string& path,const string& cache_dir);
+	void compile_benchmark(Compiler*, const string& path); //db
+	void execute_benchmark(Compiler*, const string& path,const string& cache_dir);	//db
 
 	void save_processor_config(const Processor&,const string& path) const;
 	void load_processor_config(Processor*,const string& filename) const;
 
 	void save_mem_config(const Mem_hierarchy&,const string& filename) const;
 	void load_mem_config(Mem_hierarchy*,const string& filename) const;
+	void save_compiler_parameter(const Compiler&, const string& filename) const; //db
+	void load_compiler_parameter(Compiler*, const string& filename) const; //db
 
 	Dynamic_stats get_dynamic_stats(const string& filename);
 

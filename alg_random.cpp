@@ -36,7 +36,16 @@ void Explorer::start_RAND(int n)
 	mem_hierarchy.L2U.block_size.set_random();
 	mem_hierarchy.L2U.associativity.set_random();
 
-	Configuration temp_conf = create_configuration(processor,mem_hierarchy);
+	compiler.tcc_region.set_random();	//db
+        compiler.max_unroll_allowed.set_random();	 	//db
+        compiler.regroup_only.set_random();	 	//db
+    	compiler.do_classic_opti.set_random();	 	//db
+    	compiler.do_prepass_scalar_scheduling.set_random();	 	//db
+    	compiler.do_postpass_scalar_scheduling.set_random();	 	//db
+    	compiler.do_modulo_scheduling.set_random();	 	//db
+    	compiler.memvr_profiled.set_random();	 	//db
+
+	Configuration temp_conf = create_configuration(processor,mem_hierarchy,compiler);
 
 	if (mem_hierarchy.test_valid_config())
 	{
