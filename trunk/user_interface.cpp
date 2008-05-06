@@ -361,7 +361,6 @@ void User_interface::edit_user_settings()
 	system("clear");
 	cout << "\n  O p t i o n  ";
 	cout << "\n ----------------------------------------------------------";
-	cout << "\n  (0) - Hyperblock formation         --> " << status_string(user_settings.hyperblock);
 	cout << "\n  (1) - Objective Area               --> " << status_string(user_settings.objective_area);
 	cout << "\n  (2) - Objective Execution Time     --> " << status_string(user_settings.objective_exec_time);
 	cout << "\n  (3) - Objective Energy             --> " << status_string(user_settings.objective_energy);
@@ -398,11 +397,6 @@ void User_interface::edit_user_settings()
 
 	cin >> ch;
 
-	if (ch=="0") 
-	{
-	    user_settings.hyperblock = !user_settings.hyperblock;
-	    trimaran_interface->set_hyperblock(user_settings.hyperblock);
-	}
 	if (ch=="1") user_settings.objective_area =   !user_settings.objective_area;
 	if (ch=="2") user_settings.objective_exec_time = !user_settings.objective_exec_time;
 	if (ch=="3") user_settings.objective_energy = !user_settings.objective_energy;
@@ -570,8 +564,16 @@ void User_interface::edit_exploration_space()
 	my_explorer->mem_hierarchy.L2U.block_size.set_to_first();
 	my_explorer->mem_hierarchy.L2U.associativity.set_to_first();
 
-	cout << "\n Mem Hierarchy parameters ";
-	cout << "\n---------------------------------------";
+	my_explorer->compiler.tcc_region.set_to_first();	//db
+	my_explorer->compiler.max_unroll_allowed.set_to_first();	//db
+	my_explorer->compiler.regroup_only.set_to_first();	//db
+	my_explorer->compiler.do_classic_opti.set_to_first();	//db
+	my_explorer->compiler.do_prepass_scalar_scheduling.set_to_first();	//db
+	my_explorer->compiler.do_postpass_scalar_scheduling.set_to_first();	//db
+	my_explorer->compiler.do_modulo_scheduling.set_to_first();	//db
+	my_explorer->compiler.memvr_profiled.set_to_first();	//db
+
+	cout << "\n --------- Cache ------------------------------- ";
 
 	cout << "\n [1]           L1D size: " ;
 	do { cout << my_explorer->mem_hierarchy.L1D.size.get_val() << ","; } while (my_explorer->mem_hierarchy.L1D.size.increase()); 
@@ -593,8 +595,7 @@ void User_interface::edit_exploration_space()
 	do { cout << my_explorer->mem_hierarchy.L2U.block_size.get_val() << ","; } while (my_explorer->mem_hierarchy.L2U.block_size.increase());
 	cout << "\n [9]  L2U associativity: " ;
 	do { cout << my_explorer->mem_hierarchy.L2U.associativity.get_val() << ","; } while (my_explorer->mem_hierarchy.L2U.associativity.increase());
-	cout << "\n\n VLIW Processor parameters ";
-	cout << "\n---------------------------------------";
+	cout << "\n\n ------ Processor ---------------------------- ";
 	cout << "\n [10]     integer_units: ";
 	do { cout << my_explorer->processor.integer_units.get_val() << ","; } while (my_explorer->processor.integer_units.increase());
 	cout << "\n [11]       float_units: ";
@@ -617,9 +618,30 @@ void User_interface::edit_exploration_space()
 	cout << "\n [19]   num_clusters: ";
 	do { cout << my_explorer->processor.num_clusters.get_val() << ","; } while (my_explorer->processor.num_clusters.increase());
 
+	cout << "\n ------- Compiler ------------------------------ ";	//db
+	cout << "\n [20]  tcc_region (1=b 2=h 3=s): ";	//db
+	do { cout << my_explorer->compiler.tcc_region.get_val() << ","; } while (my_explorer->compiler.tcc_region.increase());	//db
+	cout << "\n [21]  max_unroll_allowed: ";	//db
+	do { cout << my_explorer->compiler.max_unroll_allowed.get_val() << ","; } while (my_explorer->compiler.max_unroll_allowed.increase());	//db
+	cout << "\n\n       (1 = no, 2 = yes) ";	
+	cout << "\n [22]  regroup_only: ";	//db
+	do { cout << my_explorer->compiler.regroup_only.get_val() << ","; } while (my_explorer->compiler.regroup_only.increase());	//db
+	cout << "\n [23]  do_classic_opti: ";	//db
+	do { cout << my_explorer->compiler.do_classic_opti.get_val() << ","; } while (my_explorer->compiler.do_classic_opti.increase());	//db
+	cout << "\n [24]  do_prepass_scalar_scheduling: ";	//db
+	do { cout << my_explorer->compiler.do_prepass_scalar_scheduling.get_val() << ","; } //db
+		while (my_explorer->compiler.do_prepass_scalar_scheduling.increase());	//db
+	cout << "\n [25]  do_postpass_scalar_scheduling: ";	//db
+	do { cout << my_explorer->compiler.do_postpass_scalar_scheduling.get_val() << ","; } //db
+		while (my_explorer->compiler.do_postpass_scalar_scheduling.increase());	//db
+	cout << "\n [26]  do_modulo_scheduling: ";	//db
+	do { cout << my_explorer->compiler.do_modulo_scheduling.get_val() << ","; } //db
+		while (my_explorer->compiler.do_modulo_scheduling.increase());	//db
+	cout << "\n [27]  memvr_profiled: ";	//db
+	do { cout << my_explorer->compiler.memvr_profiled.get_val() << ","; } while (my_explorer->compiler.memvr_profiled.increase());	//db
 	cout << "\n\n Total Space size: " << my_explorer->get_space_size();
 
-	cout << "\n\n ";
+	cout << "\n ";
 	cout << "\n---------------------------------------------";
 	cout << "\n (e) - Edit a parameter ";
 	cout << "\n (s) - Save current space to file ";
@@ -634,7 +656,7 @@ void User_interface::edit_exploration_space()
 	    int p,val,def_val;
 	    vector<int> values;
 
-	    cout << "\n Enter a parameter index (1-19): ";
+	    cout << "\n Enter a parameter index: ";
 	    cin >> p;
 	    cout << "\n Enter parameter values, separated by empty spaces ";
 	    cout << "\n Use 0 for the last ";
@@ -703,6 +725,30 @@ void User_interface::edit_exploration_space()
 		case 19:
 		    my_explorer->processor.num_clusters.set_values(values,def_val);
 		    break;
+		case 20:						//db
+		    my_explorer->compiler.tcc_region.set_values(values,def_val);	//db
+		    break;	//db
+		case 21:			//db
+		    my_explorer->compiler.max_unroll_allowed.set_values(values,def_val);	//db
+		    break;	//db
+		case 22:
+		    my_explorer->compiler.regroup_only.set_values(values,def_val);	//db
+		    break;	//db
+		case 23:
+		    my_explorer->compiler.do_classic_opti.set_values(values,def_val);	//db
+		    break;	//db
+		case 24:
+		    my_explorer->compiler.do_prepass_scalar_scheduling.set_values(values,def_val);	//db
+		    break;	//db
+		case 25:
+		    my_explorer->compiler.do_postpass_scalar_scheduling.set_values(values,def_val);	//db
+		    break;	//db
+		case 26:
+		    my_explorer->compiler.do_modulo_scheduling.set_values(values,def_val);	//db
+		    break;	//db
+		case 27:
+		    my_explorer->compiler.memvr_profiled.set_values(values,def_val);	//db
+		    break;	//db
 		default:
 		    cout << "\n ERROR: wrong parameter index ! ";
 		    break;
@@ -745,8 +791,7 @@ void User_interface::info()
 void User_interface::show_system_config() {
 
     system("clear");
-    cout <<"\n Memory subsystem ";
-    cout << "\n--------------------------------" << endl;
+    cout <<"\n Cache  --------------------------------" << endl;
     cout << my_explorer->mem_hierarchy.L1I.label<< ": ";
     cout << my_explorer->mem_hierarchy.L1I.block_size.get_val() << "/";
     cout << my_explorer->mem_hierarchy.L1I.size.get_val() << "/";
@@ -765,9 +810,7 @@ void User_interface::show_system_config() {
     cout << my_explorer->mem_hierarchy.L2U.associativity.get_val();
     cout << "  (block/size/assoc)" << endl;
 
-   cout << "\n Functional Units (per-cluster)";
-   cout << "\n--------------------------------";
-
+   cout << "\n Units (per-cluster)---------------------"; 
    cout<<"\n num_clusters:"<< my_explorer->processor.num_clusters.get_val();
    cout<<"\n integer_units:"<< my_explorer->processor.integer_units.get_val();
    cout<<"\n float_units:"<< my_explorer->processor.float_units.get_val();
@@ -776,16 +819,32 @@ void User_interface::show_system_config() {
 
    //cout<<"\n local_memory_units "<< my_explorer->processor.memory_units.get_val();
 
-   cout << "\n\n Register Files ";
-   cout << "\n--------------------------------";
+   cout << "\n\n Register Files -----------------------";
    cout<<"\n gpr_static_size:"<< my_explorer->processor.gpr_static_size.get_val();
    cout<<"\n fpr_static_size:"<< my_explorer->processor.fpr_static_size.get_val();
    cout<<"\n pr_static_size:"<< my_explorer->processor.pr_static_size.get_val();
    cout<<"\n cr_static_size:"<< my_explorer->processor.cr_static_size.get_val();
    cout<<"\n btr_static_size:"<< my_explorer->processor.btr_static_size.get_val();
 
-   cout << "\n\n NOTE: rotating portion of each register file is assumed equal";
-   cout << "\n to static portion.";
+    cout << "\n Compiler ----------------------------------";	//db
+    if (my_explorer->compiler.tcc_region.get_default()== 1) cout << "\n tcc_region:\t basic block" << endl; 	//db
+    if (my_explorer->compiler.tcc_region.get_default()== 2) cout << "\n tcc_region:\t hyperblock" << endl; 	//db
+    if (my_explorer->compiler.tcc_region.get_default()== 3) cout << "\n tcc_region:\t superblock" << endl;	//db
+    cout << "\n >> Impact ";	//db
+    cout << "\n\tmax_unroll_allowed:\t " << my_explorer->compiler.max_unroll_allowed.get_default();	//db
+    if (my_explorer->compiler.regroup_only.get_default() == 1 ) cout << "\n regroup_only:\t\t no";	//db
+		    else cout << "\n regroup_only:\t\t yes" << endl;
+    cout << "\n >> Elcor ";		//db
+    if (my_explorer->compiler.do_classic_opti.get_default() == 1) cout << "\n do_classic_opti:\t\t no";	//db
+		    else cout << "\n\tdo_classic_opti:\t\t yes";	//db 
+    if (my_explorer->compiler.do_prepass_scalar_scheduling.get_default() == 1) cout << "\n do_prepass_scalar_scheduling:\t no";	//db
+		    else cout << "\n\tdo_prepass_scalar_scheduling:\t yes";	//db 
+    if (my_explorer->compiler.do_postpass_scalar_scheduling.get_default() == 1) cout << "\n do_postpass_scalar_scheduling:\t no";//db
+		    else cout << "\n\tdo_postpass_scalar_scheduling:\t yes";	//db
+    if (my_explorer->compiler.do_modulo_scheduling.get_default() == 1) cout << "\n do_modulo_scheduling:\t\t no";	//db 	
+		    else cout << "\n\tdo_modulo_scheduling:\t\t yes";	//db
+    if (my_explorer->compiler.memvr_profiled.get_default() == 1) cout << "\n memvr_profiled:\t\t no";	//db
+		    else cout << "\n\tmemvr_profiled:\t\t yes";	//db
 }
 
 void User_interface::load_settings_wrapper()
@@ -937,7 +996,6 @@ void User_interface::load_settings(string settings_file)
 	if (word=="ENABLED") user_settings.save_tcclog= true;
 
 	trimaran_interface->set_benchmark(user_settings.benchmark);
-	trimaran_interface->set_hyperblock(user_settings.hyperblock);
 	trimaran_interface->set_save_tcclog(user_settings.save_tcclog);
 
 	my_explorer->set_options(user_settings);
@@ -1154,6 +1212,10 @@ void User_interface::reload_system_config()
 
     cout << "\n\n Loading memory configuration from m5 file: " << cache_config_file;
     trimaran_interface->load_mem_config(&(my_explorer->mem_hierarchy),cache_config_file);
+
+    string comp_filename = base_path+"/trimaran-workspace/epic-explorer/step-by_step/machines/compiler_param";	//db
+    cout << "\n\n Loading compiler parameter from comp_file: " << comp_filename;	//db
+    trimaran_interface->load_compiler_parameter(&(my_explorer->compiler),comp_filename);	//db
 }
 
 
@@ -1166,13 +1228,13 @@ void User_interface::compile_hmdes_file() {
 void User_interface::compile_benchmark() {
 
     string base_dir = base_path + "/trimaran-workspace/epic-explorer/step_by_step";
-    trimaran_interface->compile_benchmark(base_dir);
+    trimaran_interface->compile_benchmark(&(my_explorer->compiler),base_dir);	//db
 }
 
 void User_interface::execute_benchmark() {
 
     string base_dir = base_path + "/trimaran-workspace/epic-explorer/step_by_step";
-    trimaran_interface->execute_benchmark(base_dir,"simu_intermediate");
+    trimaran_interface->execute_benchmark(&(my_explorer->compiler),base_dir,"simu_intermediate");
 }
 
 

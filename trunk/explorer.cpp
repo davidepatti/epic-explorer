@@ -79,7 +79,7 @@ void Explorer::set_options(const struct User_Settings& user_settings)
 ////////////////////////////////////////////////////////////////////////////
 //********************************************************************
 
-Configuration Explorer::create_configuration(const Processor& p,const Mem_hierarchy& mem)
+Configuration Explorer::create_configuration(const Processor& p,const Mem_hierarchy& mem, const Compiler& comp) //db
 {
     Configuration conf;
 
@@ -106,6 +106,15 @@ Configuration Explorer::create_configuration(const Processor& p,const Mem_hierar
     conf.L2U_size = mem.L2U.size.get_val();
     conf.L2U_block = mem.L2U.block_size.get_val();
     conf.L2U_assoc = mem.L2U.associativity.get_val();
+
+    conf.tcc_region = comp.tcc_region.get_val();	//db
+    conf.max_unroll_allowed = comp.max_unroll_allowed.get_val();	 	//db
+    conf.regroup_only = comp.regroup_only.get_val();	 	//db
+    conf.do_classic_opti = comp.do_classic_opti.get_val();	 	//db
+    conf.do_prepass_scalar_scheduling = comp.do_prepass_scalar_scheduling.get_val();	 	//db
+    conf.do_postpass_scalar_scheduling = comp.do_postpass_scalar_scheduling.get_val();	 	//db
+    conf.do_modulo_scheduling = comp.do_modulo_scheduling.get_val();	 	//db
+    conf.memvr_profiled = comp.memvr_profiled.get_val();	 	//db
 
 
     return conf;
@@ -141,6 +150,15 @@ Configuration Explorer::create_configuration() const
      default_config.L2U_block = mem_hierarchy.L2U.block_size.get_default();
      default_config.L2U_assoc = mem_hierarchy.L2U.associativity.get_default();
 
+     default_config.tcc_region = compiler.tcc_region.get_default();	//db
+     default_config.max_unroll_allowed = compiler.max_unroll_allowed.get_default();	 	//db
+     default_config.regroup_only = compiler.regroup_only.get_default();	 	//db
+     default_config.do_classic_opti = compiler.do_classic_opti.get_default();	 	//db
+     default_config.do_prepass_scalar_scheduling = compiler.do_prepass_scalar_scheduling.get_default();	 	//db
+     default_config.do_postpass_scalar_scheduling = compiler.do_postpass_scalar_scheduling.get_default();	 	//db
+     default_config.do_modulo_scheduling = compiler.do_modulo_scheduling.get_default();	 	//db
+     default_config.memvr_profiled = compiler.memvr_profiled.get_default();	 	//db
+
      return default_config;
 }
 
@@ -169,6 +187,16 @@ Configuration Explorer::create_configuration(const Space_mask& mask,const Config
     if (mask.pr_static_size) config.pr_static_size=base.pr_static_size;
     if (mask.cr_static_size) config.cr_static_size=base.cr_static_size;
     if (mask.btr_static_size) config.btr_static_size=base.btr_static_size;
+
+
+    if (mask.tcc_region) config.tcc_region=base.tcc_region;	//db
+    if (mask.max_unroll_allowed) config.max_unroll_allowed=base.max_unroll_allowed;	 	//db
+    if (mask.regroup_only) config.regroup_only=base.regroup_only;	 	//db
+    if (mask.do_classic_opti) config.do_classic_opti=base.do_classic_opti;	 	//db
+    if (mask.do_prepass_scalar_scheduling) config.do_prepass_scalar_scheduling=base.do_prepass_scalar_scheduling;	 	//db
+    if (mask.do_postpass_scalar_scheduling) config.do_postpass_scalar_scheduling=base.do_postpass_scalar_scheduling;	 	//db
+    if (mask.do_modulo_scheduling) config.do_modulo_scheduling=base.do_modulo_scheduling;	 	//db
+    if (mask.memvr_profiled) config.memvr_profiled=base.memvr_profiled;	 	//db
 
     return config;
 }
@@ -793,6 +821,7 @@ void Explorer::prepare_explorer(const string& application, const Configuration& 
 
     mem_hierarchy_filename = m5_dir+"/default.py";
     hmdes_filename = machine_dir +"/"+ EXPLORER_HMDES2;
+    comp_filename = epic_dir+"/machines/"+COMPILER_PARAM;  //db
 
     bench_executable = Options.benchmark+"_O";
     pd_stats_file = mem_hierarchy_dir+"/PD_STATS";
@@ -892,6 +921,7 @@ void Explorer::save_estimation_file( const Dynamic_stats& dynamic_stats,
 				         const Estimate& estimate, 
 					 Processor& processor, 
 					 Mem_hierarchy& mem,
+					 Compiler& comp,
 					 string& filename) const
 {
     string file_path;
@@ -927,6 +957,13 @@ void Explorer::save_estimation_file( const Dynamic_stats& dynamic_stats,
 	output_file <<"\n L2U Size,BSize,Assoc = " << mem.L2U.size.get_val() << "," << mem.L2U.block_size.get_val() << "," << mem.L2U.associativity.get_val();
 	output_file <<"\n L1I Size,BSize,Assoc = " << mem.L1I.size.get_val() << "," << mem.L1I.block_size.get_val() << "," << mem.L1I.associativity.get_val();
 	output_file <<"\n L1D Size,BSize,Assoc = " << mem.L1D.size.get_val() << "," << mem.L1D.block_size.get_val() << "," << mem.L1D.associativity.get_val();
+	output_file << "\n " << comp.tcc_region.get_label() << ": "<< comp.tcc_region.get_val();
+	output_file << "\n " << comp.max_unroll_allowed.get_label()<< ": " << comp.max_unroll_allowed.get_val();
+	output_file << "\n " << comp.do_classic_opti.get_label()<< ": " << comp.do_classic_opti.get_val(); 
+	output_file << "\n " << comp.do_prepass_scalar_scheduling.get_label()<< ": " << comp.do_prepass_scalar_scheduling.get_val();
+	output_file << "\n " << comp.do_postpass_scalar_scheduling.get_label()<< ": " << comp.do_postpass_scalar_scheduling.get_val();
+	output_file << "\n " << comp.do_modulo_scheduling.get_label()<< ": " << comp.do_modulo_scheduling.get_val();
+	output_file << "\n " << comp.memvr_profiled.get_label()<< ": " << comp.memvr_profiled.get_val(); //db
 	output_file << "\n ****************************************************";
 	output_file << "\n";
 	output_file << "\n  P e r f o r m a n c e ";
@@ -1034,6 +1071,16 @@ Space_mask Explorer::get_space_mask(Mask_type mask_type) const
     mask.L2U_assoc = false;
 
 
+    mask.tcc_region = false;	//db
+    mask.max_unroll_allowed = false;  //db
+    mask.regroup_only = false;	//db
+    mask.do_classic_opti = false;	//db
+    mask.do_prepass_scalar_scheduling = false;	//db
+    mask.do_postpass_scalar_scheduling = false;	//db
+    mask.do_modulo_scheduling = false;	//db
+    mask.memvr_profiled = false; 	//db
+
+
     switch (mask_type)
     {
 	case SET_ALL:
@@ -1061,6 +1108,14 @@ Space_mask Explorer::get_space_mask(Mask_type mask_type) const
 	    mask.L2U_block = true;
 	    mask.L2U_assoc = true;
 
+	    mask.tcc_region = true;  //db
+	    mask.max_unroll_allowed = true;  //db
+	    mask.regroup_only = true;	//db
+	    mask.do_classic_opti = true;	//db
+	    mask.do_prepass_scalar_scheduling = true;	//db
+	    mask.do_postpass_scalar_scheduling = true;	//db
+	    mask.do_modulo_scheduling = true;	//db
+	    mask.memvr_profiled = true; 	//db
 	    break;
 
 	case UNSET_ALL:
@@ -1108,6 +1163,17 @@ Space_mask Explorer::get_space_mask(Mask_type mask_type) const
 	    mask.branch_units = true;
 	    break;
 
+	case SET_COMPILER:
+
+	    mask.tcc_region = true;  //db
+	    mask.max_unroll_allowed = true;  //db
+	    mask.regroup_only = true;	//db
+	    mask.do_classic_opti = true;	//db
+	    mask.do_prepass_scalar_scheduling = true;	//db
+	    mask.do_postpass_scalar_scheduling = true;	//db
+	    mask.do_modulo_scheduling = true;	//db
+	    mask.memvr_profiled = true; 	//db
+	    break;
 	default:
 	    assert(false);
     }
@@ -1140,6 +1206,15 @@ vector<bool> Explorer::get_boolean_mask(const Space_mask& mask)
     b.push_back(mask.btr_static_size);
     b.push_back(mask.num_clusters);
     
+    b.push_back(mask.tcc_region);  //db
+    b.push_back(mask.max_unroll_allowed);  //db
+    b.push_back(mask.regroup_only);	//db
+    b.push_back(mask.do_classic_opti);	//db
+    b.push_back(mask.do_prepass_scalar_scheduling);	//db
+    b.push_back(mask.do_postpass_scalar_scheduling);	//db
+    b.push_back(mask.do_modulo_scheduling);	//db
+    b.push_back(mask.memvr_profiled); 	//db
+
 
     return b;
 }
@@ -1174,6 +1249,14 @@ Space_mask Explorer::create_space_mask(const vector<bool>& boolean_mask)
 
     mask.num_clusters = boolean_mask[18];
 
+    mask.tcc_region = boolean_mask[19];  //db
+    mask.max_unroll_allowed = boolean_mask[20];  //db
+    mask.regroup_only = boolean_mask[21];	//db
+    mask.do_classic_opti = boolean_mask[22];	//db
+    mask.do_prepass_scalar_scheduling = boolean_mask[23];	//db
+    mask.do_postpass_scalar_scheduling = boolean_mask[24];	//db
+    mask.do_modulo_scheduling = boolean_mask[25];	//db
+    mask.memvr_profiled = boolean_mask[26]; 	//db
     return mask;
 }
 
@@ -1252,72 +1335,105 @@ vector<Configuration> Explorer::build_space(const Space_mask& mask,Configuration
 					do {
 					    if (mask.btr_static_size) base_conf.btr_static_size=processor.btr_static_size.get_val();
 
-					    mem_hierarchy.L1D.size.set_to_first();
-					    do {
-						if (mask.L1D_size) base_conf.L1D_size=mem_hierarchy.L1D.size.get_val();
+					    compiler.tcc_region.set_to_first();	//db
+					    do{	//db
+						if (mask.tcc_region) base_conf.tcc_region=compiler.tcc_region.get_val();	//db
+						compiler.max_unroll_allowed.set_to_first();	//db
+						do{	//db
+						    if (mask.max_unroll_allowed) base_conf.max_unroll_allowed=compiler.max_unroll_allowed.get_val();	//db
+						    compiler.regroup_only.set_to_first();	//db
+						    do{	//db
+							if (mask.regroup_only) base_conf.regroup_only=compiler.regroup_only.get_val();	//db
+							compiler.do_classic_opti.set_to_first();	//db
+							do{	//db
+							    if (mask.do_classic_opti) base_conf.do_classic_opti=compiler.do_classic_opti.get_val();	//db
+							    compiler.do_prepass_scalar_scheduling.set_to_first();	//db
+							    do{	//db
+								if (mask.do_prepass_scalar_scheduling) base_conf.do_prepass_scalar_scheduling=compiler.do_prepass_scalar_scheduling.get_val();	//db
+								compiler.do_postpass_scalar_scheduling.set_to_first();	//db
+								do{	//db
+								    if (mask.do_postpass_scalar_scheduling) base_conf.do_postpass_scalar_scheduling=compiler.do_postpass_scalar_scheduling.get_val();	//db
+								    compiler.do_modulo_scheduling.set_to_first();	//db
+								    do{	//db
+									if (mask.do_modulo_scheduling) base_conf.do_modulo_scheduling=compiler.do_modulo_scheduling.get_val();	//db
+									compiler.memvr_profiled.set_to_first();	//db
+									do{	//db
+									    if (mask.memvr_profiled) base_conf.memvr_profiled=compiler.memvr_profiled.get_val();	//db
 
-						mem_hierarchy.L1D.block_size.set_to_first();
-						do {
-						    if (mask.L1D_block) base_conf.L1D_block=mem_hierarchy.L1D.block_size.get_val();
-
-						    mem_hierarchy.L1D.associativity.set_to_first();
-						    do {
-							if (mask.L1D_assoc) base_conf.L1D_assoc=mem_hierarchy.L1D.associativity.get_val();
-
-							mem_hierarchy.L1I.size.set_to_first();
-							do {
-							    if (mask.L1I_size) base_conf.L1I_size=mem_hierarchy.L1I.size.get_val();
-
-							    mem_hierarchy.L1I.block_size.set_to_first();
-							    do {
-								if (mask.L1I_block) base_conf.L1I_block=mem_hierarchy.L1I.block_size.get_val();
-
-								mem_hierarchy.L1I.associativity.set_to_first();
-								do {
-								    if (mask.L1I_assoc) base_conf.L1I_assoc=mem_hierarchy.L1I.associativity.get_val();
-
-								    mem_hierarchy.L2U.size.set_to_first();
-								    do {
-									if (mask.L2U_size) base_conf.L2U_size=mem_hierarchy.L2U.size.get_val();
-
-									mem_hierarchy.L2U.block_size.set_to_first();
-									do {
-									    if (mask.L2U_block) base_conf.L2U_block=mem_hierarchy.L2U.block_size.get_val();
-
-									    mem_hierarchy.L2U.associativity.set_to_first();
+									    mem_hierarchy.L1D.size.set_to_first();
 									    do {
-										if (mask.L2U_assoc) base_conf.L2U_assoc=mem_hierarchy.L2U.associativity.get_val();
+										if (mask.L1D_size) base_conf.L1D_size=mem_hierarchy.L1D.size.get_val();
 
-    //////////////////////////////////////////////////////////////////////////////////
-    //  inner loop
+										mem_hierarchy.L1D.block_size.set_to_first();
+										do {
+										    if (mask.L1D_block) base_conf.L1D_block=mem_hierarchy.L1D.block_size.get_val();
 
-	// if all cache parameters are valid
+										    mem_hierarchy.L1D.associativity.set_to_first();
+										    do {
+											if (mask.L1D_assoc) base_conf.L1D_assoc=mem_hierarchy.L1D.associativity.get_val();
 
-	if ((mem_hierarchy.test_valid_cache(base_conf.L1D_size,base_conf.L1D_block,base_conf.L1D_assoc)) &&
-	    (mem_hierarchy.test_valid_cache(base_conf.L1I_size,base_conf.L1I_block,base_conf.L1I_assoc)) &&
-	    (mem_hierarchy.test_valid_cache(base_conf.L2U_size,base_conf.L2U_block,base_conf.L2U_assoc)) )
-	    {
-		// admit or not all cache size combinations
-		if (opt==NO_L2_CHECK) space.push_back(base_conf);
-		else 
-		{// admit only configs with L2 size and block size >= L1 caches
-		    if ((base_conf.L2U_size >= base_conf.L1D_size + base_conf.L1I_size) &&
-		        (base_conf.L2U_block >= base_conf.L1I_block) &&
-		        (base_conf.L2U_block >= base_conf.L1D_block))
+											mem_hierarchy.L1I.size.set_to_first();
+											do {
+											    if (mask.L1I_size) base_conf.L1I_size=mem_hierarchy.L1I.size.get_val();
 
-		    space.push_back(base_conf);
-		}
-	    }
-    //////////////////////////////////////////////////////////////////////////////////
-									    }while ( (mask.L2U_assoc)&&(mem_hierarchy.L2U.associativity.increase()));
-									}while ( (mask.L2U_block)&&(mem_hierarchy.L2U.block_size.increase() ));
-								    }while ( (mask.L2U_size)&&(mem_hierarchy.L2U.size.increase()));
-								}while ( (mask.L1I_assoc)&&(mem_hierarchy.L1I.associativity.increase()));
-							    }while ( (mask.L1I_block)&&(mem_hierarchy.L1I.block_size.increase() ));
-							}while ( (mask.L1I_size)&&(mem_hierarchy.L1I.size.increase()));
-						    } while ( (mask.L1D_assoc)&&(mem_hierarchy.L1D.associativity.increase()));
-						} while ( (mask.L1D_block)&&(mem_hierarchy.L1D.block_size.increase() ));
-					    } while ( (mask.L1D_size)&&(mem_hierarchy.L1D.size.increase()));
+											    mem_hierarchy.L1I.block_size.set_to_first();
+											    do {
+												if (mask.L1I_block) base_conf.L1I_block=mem_hierarchy.L1I.block_size.get_val();
+
+												mem_hierarchy.L1I.associativity.set_to_first();
+												do {
+												    if (mask.L1I_assoc) base_conf.L1I_assoc=mem_hierarchy.L1I.associativity.get_val();
+
+												    mem_hierarchy.L2U.size.set_to_first();
+												    do {
+													if (mask.L2U_size) base_conf.L2U_size=mem_hierarchy.L2U.size.get_val();
+
+													mem_hierarchy.L2U.block_size.set_to_first();
+													do {
+													    if (mask.L2U_block) base_conf.L2U_block=mem_hierarchy.L2U.block_size.get_val();
+
+													    mem_hierarchy.L2U.associativity.set_to_first();
+													    do {
+														if (mask.L2U_assoc) base_conf.L2U_assoc=mem_hierarchy.L2U.associativity.get_val();
+
+														//////////////////////////////////////////////////////////////////////////////////
+														//  inner loop
+
+														// if all cache parameters are valid
+
+														if ((mem_hierarchy.test_valid_cache(base_conf.L1D_size,base_conf.L1D_block,base_conf.L1D_assoc)) &&
+															(mem_hierarchy.test_valid_cache(base_conf.L1I_size,base_conf.L1I_block,base_conf.L1I_assoc)) &&
+															(mem_hierarchy.test_valid_cache(base_conf.L2U_size,base_conf.L2U_block,base_conf.L2U_assoc)) )
+														{
+														    // admit or not all cache size combinations
+														    if (opt==NO_L2_CHECK) space.push_back(base_conf);
+														    else 
+														    {// admit only configs with L2 size and block size >= L1 caches
+															if ((base_conf.L2U_size >= base_conf.L1D_size + base_conf.L1I_size) &&
+																(base_conf.L2U_block >= base_conf.L1I_block) &&
+																(base_conf.L2U_block >= base_conf.L1D_block))
+
+															    space.push_back(base_conf);
+														    }
+														}
+														//////////////////////////////////////////////////////////////////////////////////
+													    }while ( (mask.L2U_assoc)&&(mem_hierarchy.L2U.associativity.increase()));
+													}while ( (mask.L2U_block)&&(mem_hierarchy.L2U.block_size.increase() ));
+												    }while ( (mask.L2U_size)&&(mem_hierarchy.L2U.size.increase()));
+												}while ( (mask.L1I_assoc)&&(mem_hierarchy.L1I.associativity.increase()));
+											    }while ( (mask.L1I_block)&&(mem_hierarchy.L1I.block_size.increase() ));
+											}while ( (mask.L1I_size)&&(mem_hierarchy.L1I.size.increase()));
+										    } while ( (mask.L1D_assoc)&&(mem_hierarchy.L1D.associativity.increase()));
+										} while ( (mask.L1D_block)&&(mem_hierarchy.L1D.block_size.increase() ));
+									    } while ( (mask.L1D_size)&&(mem_hierarchy.L1D.size.increase()));
+									}while ( (mask.memvr_profiled)&&(compiler.memvr_profiled.increase()));	//db
+								    }while ( (mask.do_modulo_scheduling)&&(compiler.do_modulo_scheduling.increase()));	//db
+								}while ( (mask.do_postpass_scalar_scheduling)&&(compiler.do_postpass_scalar_scheduling.increase()));	//db
+							    }while ( (mask.do_prepass_scalar_scheduling)&&(compiler.do_prepass_scalar_scheduling.increase()));	//db
+							}while ( (mask.do_classic_opti)&&(compiler.do_classic_opti.increase()));	//db
+						    }while ( (mask.regroup_only)&&(compiler.regroup_only.increase()));	//db
+						}while ( (mask.max_unroll_allowed)&&(compiler.max_unroll_allowed.increase()));	//db
+					    }while ( (mask.tcc_region)&&(compiler.tcc_region.increase()));	//db
 					}while ( (mask.btr_static_size) && (processor.btr_static_size.increase() ) );
 				    }while ( (mask.cr_static_size) && (processor.cr_static_size.increase() ) );
 				}while ( (mask.pr_static_size) && (processor.pr_static_size.increase() ) );
@@ -1417,6 +1533,15 @@ vector<Configuration> Explorer::build_space_cross_merge(const vector<Configurati
 	if (mask1.L2U_block) base_conf.L2U_block = s1[n1].L2U_block;
 	if (mask1.L2U_assoc) base_conf.L2U_assoc = s1[n1].L2U_assoc;
 
+	if (mask1.tcc_region) base_conf.tcc_region = s1[n1].tcc_region;	//db
+	if (mask1.max_unroll_allowed) base_conf.max_unroll_allowed = s1[n1].max_unroll_allowed;	//db
+	if (mask1.regroup_only) base_conf.regroup_only = s1[n1].regroup_only;	//db
+	if (mask1.do_classic_opti) base_conf.do_classic_opti = s1[n1].do_classic_opti;	//db
+	if (mask1.do_prepass_scalar_scheduling) base_conf.do_prepass_scalar_scheduling = s1[n1].do_prepass_scalar_scheduling;	//db
+	if (mask1.do_postpass_scalar_scheduling) base_conf.do_postpass_scalar_scheduling = s1[n1].do_postpass_scalar_scheduling;	//db
+	if (mask1.do_modulo_scheduling) base_conf.do_modulo_scheduling = s1[n1].do_modulo_scheduling;	//db
+	if (mask1.memvr_profiled) base_conf.memvr_profiled = s1[n1].memvr_profiled;	//db
+
 	for(unsigned int n2=0;n2<s2.size();n2++)
 	{
 	    if (mask2.gpr_static_size) base_conf.gpr_static_size=s2[n2].gpr_static_size;
@@ -1443,6 +1568,14 @@ vector<Configuration> Explorer::build_space_cross_merge(const vector<Configurati
 	    if (mask2.L2U_block) base_conf.L2U_block = s2[n2].L2U_block;
 	    if (mask2.L2U_assoc) base_conf.L2U_assoc = s2[n2].L2U_assoc;
 
+	    if (mask2.tcc_region) base_conf.tcc_region = s2[n2].tcc_region;	//db
+	    if (mask2.max_unroll_allowed) base_conf.max_unroll_allowed = s2[n2].max_unroll_allowed;	//db
+	    if (mask2.regroup_only) base_conf.regroup_only = s2[n2].regroup_only;	//db
+	    if (mask2.do_classic_opti) base_conf.do_classic_opti = s2[n2].do_classic_opti;	//db
+	    if (mask2.do_prepass_scalar_scheduling) base_conf.do_prepass_scalar_scheduling = s2[n2].do_prepass_scalar_scheduling;	//db
+	    if (mask2.do_postpass_scalar_scheduling) base_conf.do_postpass_scalar_scheduling = s2[n2].do_postpass_scalar_scheduling;	//db
+	    if (mask2.do_modulo_scheduling) base_conf.do_modulo_scheduling = s2[n2].do_modulo_scheduling;	//db
+	    if (mask2.memvr_profiled) base_conf.memvr_profiled = s2[n2].memvr_profiled;	//db
 	    // resulting combination of two configurations may result
 	    // in not feasible config
 
@@ -1450,7 +1583,9 @@ vector<Configuration> Explorer::build_space_cross_merge(const vector<Configurati
 	(mem_hierarchy.test_valid_cache(base_conf.L1I_size,base_conf.L1I_block,base_conf.L1I_assoc)) &&
 	(mem_hierarchy.test_valid_cache(base_conf.L2U_size,base_conf.L2U_block,base_conf.L2U_assoc)) && 
 	(base_conf.L2U_size>=base_conf.L1D_size+base_conf.L1I_size) &&
-	(!(configuration_present(base_conf,merged_space))) ) merged_space.push_back(base_conf);
+	(base_conf.L2U_block >= base_conf.L1I_block) &&
+	(base_conf.L2U_block >= base_conf.L1D_block) &&
+	!(configuration_present(base_conf,merged_space)) ) merged_space.push_back(base_conf);
 
 	}
     }
@@ -1483,8 +1618,15 @@ bool Explorer::configuration_present(const Configuration& conf, const vector<Con
 	    &&(conf.L1I_assoc == space[i].L1I_assoc)
 	    &&(conf.L2U_size == space[i].L2U_size)
 	    &&(conf.L2U_block == space[i].L2U_block)
-	    &&(conf.L2U_assoc == space[i].L2U_assoc))
-
+	    &&(conf.L2U_assoc == space[i].L2U_assoc)
+	    &&(conf.tcc_region == space[i].tcc_region) 		//db
+	    &&(conf.max_unroll_allowed == space[i].max_unroll_allowed)	 	//db
+	    &&(conf.regroup_only == space[i].regroup_only)	 	//db
+	    &&(conf.do_classic_opti == space[i].do_classic_opti)	 	//db
+	    &&(conf.do_prepass_scalar_scheduling == space[i].do_prepass_scalar_scheduling)	 	//db
+	    &&(conf.do_postpass_scalar_scheduling == space[i].do_postpass_scalar_scheduling)	 	//db
+            &&(conf.do_modulo_scheduling == space[i].do_modulo_scheduling)	 	//db
+	    &&(conf.memvr_profiled == space[i].memvr_profiled))	 	//db
 	    return true;
     }
 
@@ -1536,6 +1678,14 @@ Space_mask Explorer::mask_union(Space_mask& m1,Space_mask& m2) const
     mask.L2U_block = (m1.L2U_block) || (m2.L2U_block);
     mask.L2U_assoc =(m1.L2U_assoc) || (m2.L2U_assoc);
 
+    mask.tcc_region = (m1.tcc_region)||(m2.tcc_region);  //db
+    mask.max_unroll_allowed = (m1.max_unroll_allowed)||(m2.max_unroll_allowed);  //db
+    mask.regroup_only = (m1.regroup_only)||(m2.regroup_only);	//db
+    mask.do_classic_opti = (m1.do_classic_opti)||(m2.do_classic_opti);	//db
+    mask.do_prepass_scalar_scheduling = (m1.do_prepass_scalar_scheduling)||(m2.do_prepass_scalar_scheduling);	//db
+    mask.do_postpass_scalar_scheduling = (m1.do_postpass_scalar_scheduling)||(m2.do_postpass_scalar_scheduling);	//db
+    mask.do_modulo_scheduling = (m1.do_modulo_scheduling)||(m2.do_modulo_scheduling);	//db
+    mask.memvr_profiled = (m1.memvr_profiled)||(m2.memvr_profiled); 	//db
     return mask;
 
 }
@@ -1572,6 +1722,15 @@ long double Explorer::get_space_size(const Space_mask& mask) const
     if (mask.L2U_size) size = size*(mem_hierarchy.L2U.size.get_size());
     if (mask.L2U_block) size = size*(mem_hierarchy.L2U.block_size.get_size());
     if (mask.L2U_assoc) size = size*(mem_hierarchy.L2U.associativity.get_size());
+
+    if (mask.tcc_region) size = size*(compiler.tcc_region.get_size());	//db
+    if (mask.max_unroll_allowed) size = size*(compiler.max_unroll_allowed.get_size());	//db
+    if (mask.regroup_only) size = size*(compiler.regroup_only.get_size());	//db
+    if (mask.do_classic_opti) size = size*(compiler.do_classic_opti.get_size());	//db
+    if (mask.do_prepass_scalar_scheduling) size = size*(compiler.do_prepass_scalar_scheduling.get_size());	//db
+    if (mask.do_postpass_scalar_scheduling) size = size*(compiler.do_postpass_scalar_scheduling.get_size());	//db
+    if (mask.do_modulo_scheduling) size = size*(compiler.do_modulo_scheduling.get_size());	//db
+    if (mask.memvr_profiled) size = size*(compiler.memvr_profiled.get_size());	//db
 
     return size;
 }
@@ -1632,70 +1791,6 @@ void Explorer::write_log(string mess)
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void Explorer::print_simulation(const Simulation& simulation) const
-{
-    cout << "\n---------------------------------------";
-    cout << "\n " << simulation.area;
-    cout << "\n " << simulation.energy;
-    cout << "\n " << simulation.exec_time;
-
-    cout << "\n " << (simulation.config.L1D_size);
-    cout << "\n " << (simulation.config.L1D_block);
-    cout << "\n " << (simulation.config.L1D_assoc);
-
-    cout << "\n " << (simulation.config.L1I_size);
-    cout << "\n " << (simulation.config.L1I_block);
-    cout << "\n " << (simulation.config.L1I_assoc);
-
-    cout << "\n " << (simulation.config.L2U_size);
-    cout << "\n " << (simulation.config.L2U_block);
-    cout << "\n " << (simulation.config.L2U_assoc);
-
-    cout << "\n " << (simulation.config.integer_units);
-    cout << "\n " << (simulation.config.float_units);
-    cout << "\n " << (simulation.config.memory_units);
-    cout << "\n " << (simulation.config.branch_units);
-
-    cout << "\n " << (simulation.config.gpr_static_size);
-    cout << "\n " << (simulation.config.fpr_static_size);
-    cout << "\n " << (simulation.config.pr_static_size);
-    cout << "\n " << (simulation.config.cr_static_size);
-    cout << "\n " << (simulation.config.btr_static_size);
-    cout << "\n " << (simulation.config.num_clusters);
-    cout << "\n---------------------------------------";
-}
-
-////////////////////////////////////////////////////////////////////////////
-void Explorer::print_configuration(const Configuration& config) const
-{
-    cout << "\n---------------------------------------";
-    cout << "\n " << (config.L1D_size);
-    cout << "\n " << (config.L1D_block);
-    cout << "\n " << (config.L1D_assoc);
-
-    cout << "\n " << (config.L1I_size);
-    cout << "\n " << (config.L1I_block);
-    cout << "\n " << (config.L1I_assoc);
-
-    cout << "\n " << (config.L2U_size);
-    cout << "\n " << (config.L2U_block);
-    cout << "\n " << (config.L2U_assoc);
-
-    cout << "\n " << (config.integer_units);
-    cout << "\n " << (config.float_units);
-    cout << "\n " << (config.memory_units);
-    cout << "\n " << (config.branch_units);
-
-    cout << "\n " << (config.gpr_static_size);
-    cout << "\n " << (config.fpr_static_size);
-    cout << "\n " << (config.pr_static_size);
-    cout << "\n " << (config.cr_static_size);
-    cout << "\n " << (config.btr_static_size);
-    cout << "\n " << (config.num_clusters);
-    cout << "\n---------------------------------------";
-}
-
-////////////////////////////////////////////////////////////////////////////
 int Explorer::get_sim_counter() const
 {
     return sim_counter;
@@ -1732,6 +1827,14 @@ vector<pair<int,int> > Explorer::getParametersNumber()
   v.push_back(pair<int,int>(1, mem_hierarchy.L2U.block_size.get_size()));
   v.push_back(pair<int,int>(1, mem_hierarchy.L2U.associativity.get_size()));
   v.push_back(pair<int,int>(1, processor.num_clusters.get_size()));
+  v.push_back(pair<int,int>(1,compiler.tcc_region.get_size()));	//db
+  v.push_back(pair<int,int>(1,compiler.max_unroll_allowed.get_size()));	//db
+  v.push_back(pair<int,int>(1,compiler.regroup_only.get_size()));	//db
+  v.push_back(pair<int,int>(1,compiler.do_classic_opti.get_size()));	//db
+  v.push_back(pair<int,int>(1,compiler.do_prepass_scalar_scheduling.get_size()));	//db
+  v.push_back(pair<int,int>(1,compiler.do_postpass_scalar_scheduling.get_size()));	//db
+  v.push_back(pair<int,int>(1,compiler.do_modulo_scheduling.get_size()));	//db
+  v.push_back(pair<int,int>(1,compiler.memvr_profiled.get_size()));	//db
   return v;
 }
 	
@@ -1740,63 +1843,33 @@ vector<pair<int,int> > Explorer::getParameterRanges()
 {
   vector<pair<int,int> > v;
 
-  v.push_back(pair<int,int>(processor.integer_units.get_first(),
-			    processor.integer_units.get_last()));
-
-  v.push_back(pair<int,int>(processor.float_units.get_first(),
-			    processor.float_units.get_last()));
-
-  v.push_back(pair<int,int>(processor.branch_units.get_first(),
-			    processor.branch_units.get_last()));
-
-  v.push_back(pair<int,int>(processor.memory_units.get_first(),
-			    processor.memory_units.get_last()));
-
-  v.push_back(pair<int,int>(processor.gpr_static_size.get_first(),
-			    processor.gpr_static_size.get_last()));
-
-  v.push_back(pair<int,int>(processor.fpr_static_size.get_first(),
-			    processor.fpr_static_size.get_last()));
-
-  v.push_back(pair<int,int>(processor.pr_static_size.get_first(),
-			    processor.pr_static_size.get_last()));
-
-  v.push_back(pair<int,int>(processor.cr_static_size.get_first(),
-			    processor.cr_static_size.get_last()));
-
-  v.push_back(pair<int,int>(processor.btr_static_size.get_first(),
-			    processor.btr_static_size.get_last()));
-
-  v.push_back(pair<int,int>(mem_hierarchy.L1D.size.get_first(),
-			    mem_hierarchy.L1D.size.get_last()));
-
-  v.push_back(pair<int,int>(mem_hierarchy.L1D.block_size.get_first(),
-			    mem_hierarchy.L1D.block_size.get_last()));
-
-  v.push_back(pair<int,int>(mem_hierarchy.L1D.associativity.get_first(),
-			    mem_hierarchy.L1D.associativity.get_last()));
-
-  v.push_back(pair<int,int>(mem_hierarchy.L1I.size.get_first(),
-			    mem_hierarchy.L1I.size.get_last()));
-
-  v.push_back(pair<int,int>(mem_hierarchy.L1I.block_size.get_first(),
-			    mem_hierarchy.L1I.block_size.get_last()));
-
-  v.push_back(pair<int,int>(mem_hierarchy.L1I.associativity.get_first(),
-			    mem_hierarchy.L1I.associativity.get_last()));
-
-  v.push_back(pair<int,int>(mem_hierarchy.L2U.size.get_first(),
-			    mem_hierarchy.L2U.size.get_last()));
-
-  v.push_back(pair<int,int>(mem_hierarchy.L2U.block_size.get_first(),
-			    mem_hierarchy.L2U.block_size.get_last()));
-
-  v.push_back(pair<int,int>(mem_hierarchy.L2U.associativity.get_first(),
-			    mem_hierarchy.L2U.associativity.get_last()));
-
-  v.push_back(pair<int,int>(processor.num_clusters.get_first(),
-			    processor.num_clusters.get_last()));
-
+  v.push_back(pair<int,int>(processor.integer_units.get_first(), processor.integer_units.get_last()));
+  v.push_back(pair<int,int>(processor.float_units.get_first(), processor.float_units.get_last()));
+  v.push_back(pair<int,int>(processor.branch_units.get_first(), processor.branch_units.get_last()));
+  v.push_back(pair<int,int>(processor.memory_units.get_first(), processor.memory_units.get_last()));
+  v.push_back(pair<int,int>(processor.gpr_static_size.get_first(), processor.gpr_static_size.get_last()));
+  v.push_back(pair<int,int>(processor.fpr_static_size.get_first(), processor.fpr_static_size.get_last()));
+  v.push_back(pair<int,int>(processor.pr_static_size.get_first(), processor.pr_static_size.get_last()));
+  v.push_back(pair<int,int>(processor.cr_static_size.get_first(), processor.cr_static_size.get_last()));
+  v.push_back(pair<int,int>(processor.btr_static_size.get_first(), processor.btr_static_size.get_last()));
+  v.push_back(pair<int,int>(mem_hierarchy.L1D.size.get_first(), mem_hierarchy.L1D.size.get_last()));
+  v.push_back(pair<int,int>(mem_hierarchy.L1D.block_size.get_first(), mem_hierarchy.L1D.block_size.get_last()));
+  v.push_back(pair<int,int>(mem_hierarchy.L1D.associativity.get_first(), mem_hierarchy.L1D.associativity.get_last()));
+  v.push_back(pair<int,int>(mem_hierarchy.L1I.size.get_first(), mem_hierarchy.L1I.size.get_last()));
+  v.push_back(pair<int,int>(mem_hierarchy.L1I.block_size.get_first(), mem_hierarchy.L1I.block_size.get_last()));
+  v.push_back(pair<int,int>(mem_hierarchy.L1I.associativity.get_first(), mem_hierarchy.L1I.associativity.get_last()));
+  v.push_back(pair<int,int>(mem_hierarchy.L2U.size.get_first(), mem_hierarchy.L2U.size.get_last()));
+  v.push_back(pair<int,int>(mem_hierarchy.L2U.block_size.get_first(), mem_hierarchy.L2U.block_size.get_last()));
+  v.push_back(pair<int,int>(mem_hierarchy.L2U.associativity.get_first(), mem_hierarchy.L2U.associativity.get_last()));
+  v.push_back(pair<int,int>(processor.num_clusters.get_first(), processor.num_clusters.get_last()));
+  v.push_back(pair<int,int>(compiler.tcc_region.get_first(),compiler.tcc_region.get_last()));	//db
+  v.push_back(pair<int,int>(compiler.max_unroll_allowed.get_first(),compiler.max_unroll_allowed.get_last()));	//db
+  v.push_back(pair<int,int>(compiler.regroup_only.get_first(),compiler.regroup_only.get_last()));	//db
+  v.push_back(pair<int,int>(compiler.do_classic_opti.get_first(),compiler.do_classic_opti.get_last()));	//db
+  v.push_back(pair<int,int>(compiler.do_prepass_scalar_scheduling.get_first(),compiler.do_prepass_scalar_scheduling.get_last()));	//db
+  v.push_back(pair<int,int>(compiler.do_postpass_scalar_scheduling.get_first(),compiler.do_postpass_scalar_scheduling.get_last()));	//db
+  v.push_back(pair<int,int>(compiler.do_modulo_scheduling.get_first(),compiler.do_modulo_scheduling.get_last()));	//db
+  v.push_back(pair<int,int>(compiler.memvr_profiled.get_first(),compiler.memvr_profiled.get_last()));	//db
 
   return v;
 }
@@ -1967,6 +2040,64 @@ void Explorer::load_space_file(const string& filename)
 	processor.set_to_default();
 	//trimaran_interface->save_processor_config(processor,hmdes_filename);
 
+//add db	
+	values.clear();
+	input_file >> word; // skip parameter label
+	while ( (input_file>>val) && (val!=0)) { values.push_back(val); } // reads val until 0
+	input_file >> word; // skip default label
+	input_file >> val;  // get default value
+	compiler.tcc_region.set_values(values,val);
+
+	values.clear();
+	input_file >> word; // skip parameter label
+	while ( (input_file>>val) && (val!=0)) { values.push_back(val); } // reads val until 0
+	input_file >> word; // skip default label
+	input_file >> val;  // get default value
+	compiler.max_unroll_allowed.set_values(values,val);
+
+	values.clear();
+	input_file >> word; // skip parameter label
+	while ( (input_file>>val) && (val!=0)) { values.push_back(val); } // reads val until 0
+	input_file >> word; // skip default label
+	input_file >> val;  // get default value
+	compiler.regroup_only.set_values(values,val);
+
+	values.clear();
+	input_file >> word; // skip parameter label
+	while ( (input_file>>val) && (val!=0)) { values.push_back(val); } // reads val until 0
+	input_file >> word; // skip default label
+	input_file >> val;  // get default value
+	compiler.do_classic_opti.set_values(values,val);
+
+	values.clear();
+	input_file >> word; // skip parameter label
+	while ( (input_file>>val) && (val!=0)) { values.push_back(val); } // reads val until 0
+	input_file >> word; // skip default label
+	input_file >> val;  // get default value
+	compiler.do_prepass_scalar_scheduling.set_values(values,val);
+
+	values.clear();
+	input_file >> word; // skip parameter label
+	while ( (input_file>>val) && (val!=0)) { values.push_back(val); } // reads val until 0
+	input_file >> word; // skip default label
+	input_file >> val;  // get default value
+	compiler.do_postpass_scalar_scheduling.set_values(values,val);
+
+	values.clear();
+	input_file >> word; // skip parameter label
+	while ( (input_file>>val) && (val!=0)) { values.push_back(val); } // reads val until 0
+	input_file >> word; // skip default label
+	input_file >> val;  // get default value
+	compiler.do_modulo_scheduling.set_values(values,val);
+
+	values.clear();
+	input_file >> word; // skip parameter label
+	while ( (input_file>>val) && (val!=0)) { values.push_back(val); } // reads val until 0
+	input_file >> word; // skip default label
+	input_file >> val;  // get default value
+	compiler.memvr_profiled.set_values(values,val);
+
+//end add db
    }
 
 }
@@ -2005,6 +2136,15 @@ void Explorer::save_space_file(const string& filename)
 	mem_hierarchy.L2U.size.set_to_first();
 	mem_hierarchy.L2U.block_size.set_to_first();
 	mem_hierarchy.L2U.associativity.set_to_first();
+
+	compiler.tcc_region.set_to_first();	//db
+	compiler.max_unroll_allowed.set_to_first();	//db
+	compiler.regroup_only.set_to_first();	//db
+	compiler.do_classic_opti.set_to_first();	//db
+	compiler.do_prepass_scalar_scheduling.set_to_first();	//db
+	compiler.do_postpass_scalar_scheduling.set_to_first();	//db
+	compiler.do_modulo_scheduling.set_to_first();	//db
+	compiler.memvr_profiled.set_to_first();	//db
 
 	output_file << "\nL1D_size " ;
 	do { output_file << mem_hierarchy.L1D.size.get_val() << " "; } while (mem_hierarchy.L1D.size.increase()); 
@@ -2100,6 +2240,46 @@ void Explorer::save_space_file(const string& filename)
 	do { output_file << processor.num_clusters.get_val() << " "; } while (processor.num_clusters.increase());
 	output_file << "0";
 	output_file << "\n DEFAULT " << processor.num_clusters.get_default();
+
+	output_file <<"\ntcc_region "; 	//db
+	do { output_file << compiler.tcc_region.get_val() << " "; } while (compiler.tcc_region.increase()); //db
+	output_file << "0";	//db
+	output_file << "\n DEFAULT " << compiler.tcc_region.get_default();	//db
+
+	output_file <<"\nmax_unroll_allowed "; 	//db
+	do { output_file << compiler.max_unroll_allowed.get_val() << " "; } while (compiler.max_unroll_allowed.increase()); //db
+	output_file << "0";	//db
+	output_file << "\n DEFAULT " << compiler.max_unroll_allowed.get_default();	//db
+
+	output_file <<"\nregroup_only "; 	//db
+	do { output_file << compiler.regroup_only.get_val() << " "; } while (compiler.regroup_only.increase()); //db
+	output_file << "0";	//db
+	output_file << "\n DEFAULT " << compiler.regroup_only.get_default();	//db
+
+	output_file <<"\ndo_classic_opti "; 	//db
+	do { output_file << compiler.do_classic_opti.get_val() << " "; } while (compiler.do_classic_opti.increase()); //db
+	output_file << "0";	//db
+	output_file << "\n DEFAULT " << compiler.do_classic_opti.get_default();	//db
+
+	output_file <<"\ndo_prepass_scalar_scheduling "; 	//db
+	do { output_file << compiler.do_prepass_scalar_scheduling.get_val() << " "; } while (compiler.do_prepass_scalar_scheduling.increase()); //db
+	output_file << "0";	//db
+	output_file << "\n DEFAULT " << compiler.do_prepass_scalar_scheduling.get_default();	//db
+
+	output_file <<"\ndo_postpass_scalar_scheduling "; 	//db
+	do { output_file << compiler.do_postpass_scalar_scheduling.get_val() << " "; } while (compiler.do_postpass_scalar_scheduling.increase()); //db
+	output_file << "0";	//db
+	output_file << "\n DEFAULT " << compiler.do_postpass_scalar_scheduling.get_default();	//db
+
+	output_file <<"\ndo_modulo_scheduling "; 	//db
+	do { output_file << compiler.do_modulo_scheduling.get_val() << " "; } while (compiler.do_modulo_scheduling.increase()); //db
+	output_file << "0";	//db
+	output_file << "\n DEFAULT " << compiler.do_modulo_scheduling.get_default();	//db
+
+	output_file <<"\nmemvr_profiled "; 	//db
+	do { output_file << compiler.memvr_profiled.get_val() << " "; } while (compiler.memvr_profiled.increase()); //db
+	output_file << "0";	//db
+	output_file << "\n DEFAULT " << compiler.memvr_profiled.get_default();	//db
 
 	output_file << "\n\n [END_SPACE]";
 

@@ -22,6 +22,7 @@
 #define DEFAULT_BENCH "fir_int"
 #define MAIN_HMDES2 "hpl_pd_elcor_std.hmdes2"
 #define EXPLORER_HMDES2 "explorer.hmdes2"
+#define COMPILER_PARAM "compiler_param" //db
 #define EE_TAG "\n    >> EE: "
 
 // ---------------------------------------------------------------------------
@@ -95,6 +96,14 @@ struct Space_mask
   bool cr_static_size;
   bool pr_static_size;
   bool btr_static_size;
+  bool tcc_region;	//db
+  bool max_unroll_allowed;	//db
+  bool regroup_only;	//db
+  bool do_classic_opti;	//db
+  bool do_prepass_scalar_scheduling;	//db
+  bool do_postpass_scalar_scheduling;	//db
+  bool do_modulo_scheduling;	//db
+  bool memvr_profiled;		//db	
 };
 
   enum Space_opt { STANDARD,NO_L2_CHECK };
@@ -115,7 +124,7 @@ struct GA_parameters
 
 // ---------------------------------------------------------------------------
 // predefined mask types 
-enum Mask_type { SET_ALL, UNSET_ALL, SET_L1D, SET_L1I, SET_L2U, SET_PROCESSOR_UNITS, SET_PROCESSOR };
+enum Mask_type { SET_ALL, UNSET_ALL, SET_L1D, SET_L1I, SET_L2U, SET_PROCESSOR_UNITS, SET_PROCESSOR,SET_COMPILER }; //db
 
 struct Rule {
 	int* antecedents;
@@ -138,6 +147,16 @@ struct Configuration
   int pr_static_size;
   int btr_static_size;
   
+
+  int tcc_region;	//db
+  int max_unroll_allowed;	//db
+  int regroup_only;	//db
+  int do_classic_opti;	//db
+  int do_prepass_scalar_scheduling;	//db
+  int do_postpass_scalar_scheduling;	//db
+  int do_modulo_scheduling;	//db
+  int memvr_profiled;		//db		
+
   bool is_feasible(); // mau
   void invalidate();
   bool check_difference(const Configuration&,Space_mask);
@@ -243,7 +262,15 @@ public:
 	    t1.config.fpr_static_size == t2.config.fpr_static_size &&
 	    t1.config.cr_static_size == t2.config.cr_static_size &&
 	    t1.config.pr_static_size == t2.config.pr_static_size &&
-	    t1.config.btr_static_size == t2.config.btr_static_size);
+	    t1.config.btr_static_size == t2.config.btr_static_size &&
+	    t1.config.tcc_region == t2.config.tcc_region &&	//db
+	    t1.config.max_unroll_allowed == t2.config.max_unroll_allowed &&	//db
+	    t1.config.regroup_only == t2.config.regroup_only &&		//db
+	    t1.config.do_classic_opti == t2.config.do_classic_opti &&	//db
+	    t1.config.do_prepass_scalar_scheduling == t2.config.do_prepass_scalar_scheduling && 	//db
+	    t1.config.do_postpass_scalar_scheduling == t2.config.do_postpass_scalar_scheduling &&		//db
+	    t1.config.do_modulo_scheduling == t2.config.do_modulo_scheduling &&		//db
+	    t1.config.memvr_profiled == t2.config.memvr_profiled);	//db
   }
 
   virtual unsigned int T2Index(Simulation& t) {
@@ -265,7 +292,15 @@ public:
 	      t.config.fpr_static_size +
 	      t.config.cr_static_size +
 	      t.config.pr_static_size +
-	      t.config.btr_static_size) % vhash.size() );
+	      t.config.btr_static_size +
+	      t.config.tcc_region +	//db
+	      t.config.max_unroll_allowed +	//db
+	      t.config.regroup_only +		//db
+	      t.config.do_classic_opti +	//db
+	      t.config.do_prepass_scalar_scheduling + 	//db
+	      t.config.do_postpass_scalar_scheduling +		//db
+	      t.config.do_modulo_scheduling +		//db
+	      t.config.memvr_profiled ) % vhash.size() ); //db
   }
 };
 

@@ -23,16 +23,19 @@ endif
 
 all: epic
 
-epic: ${GALIB_DIR}/libspea2.a explorer.o alg_dep.o alg_random.o alg_sensivity.o alg_genetic.o \
+epic: ${GALIB_DIR}/libspea2.a compiler.o explorer.o alg_dep.o alg_random.o alg_sensivity.o alg_genetic.o \
 	estimator.o area.o time.o processor.o mem_hierarchy.o \
 	main.o user_interface.o trimaran_interface.o \
 	parameter.o common.o simulate_space.o \
 	FuzzyApprox.o RuleList.o FuzzyWrapper.o 
-	${MPICC} explorer.o simulate_space.o alg_dep.o alg_random.o alg_sensivity.o alg_genetic.o \
+	${MPICC} compiler.o explorer.o simulate_space.o alg_dep.o alg_random.o alg_sensivity.o alg_genetic.o \
 	user_interface.o trimaran_interface.o estimator.o area.o time.o \
 	processor.o mem_hierarchy.o main.o parameter.o common.o \
 	FuzzyApprox.o RuleList.o FuzzyWrapper.o \
 	-L${GALIB_DIR} -lspea2 -o epic
+
+compiler.o: compiler.cpp compiler.h parameter.h
+	${CXX} -I${GAINC_DIR} ${CFLAGS} -c compiler.cpp
 
 estimator.o: estimator.cpp estimator.h processor.h mem_hierarchy.h \
 	power_densities.h cacti_area_interface.h 

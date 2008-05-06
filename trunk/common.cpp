@@ -33,6 +33,15 @@ void Configuration::invalidate()
     L2U_size = -1;
     L2U_block = -1;
     L2U_assoc = -1;
+
+    tcc_region = -1;	//db
+    max_unroll_allowed = -1;	//db
+    regroup_only = -1;	//db
+    do_classic_opti = -1;	//db
+    do_prepass_scalar_scheduling = -1;	//db
+    do_postpass_scalar_scheduling = -1;	//db
+    do_modulo_scheduling = -1;	//db
+    memvr_profiled = -1;		//db	
 }
 
 bool Configuration::check_difference(const Configuration& conf, Space_mask mask)
@@ -60,14 +69,22 @@ bool Configuration::check_difference(const Configuration& conf, Space_mask mask)
     if (mask.L2U_block && (L2U_block!=conf.L2U_block)) return true;
     if (mask.L2U_assoc && (L2U_assoc!=conf.L2U_assoc)) return true;
 
+    
+    if (mask.tcc_region && (tcc_region!=conf.tcc_region)) return true;  //db
+    if (mask.max_unroll_allowed && (max_unroll_allowed!=conf.max_unroll_allowed)) return true;  //db
+    if (mask.regroup_only && (regroup_only|=conf.regroup_only)) return true;	//db
+    if (mask.do_classic_opti && (do_classic_opti!=conf.do_classic_opti)) return true;	//db
+    if (mask.do_prepass_scalar_scheduling && (do_prepass_scalar_scheduling!=conf.do_prepass_scalar_scheduling)) return true;	//db
+    if (mask.do_postpass_scalar_scheduling && (do_postpass_scalar_scheduling!=conf.do_postpass_scalar_scheduling)) return true;	//db
+    if (mask.do_modulo_scheduling && (do_modulo_scheduling!=conf.do_modulo_scheduling)) return true;	//db
+    if (mask.memvr_profiled && (memvr_profiled!=conf.memvr_profiled)) return true; 	//db
+
     return false;
 }
 
 string Configuration::to_string() const
 {
     char s[100];
-    sprintf(s,"%% %u / %u %u %u %u / %u %u %u %u %u / %u %u %u / %u %u %u / %u %u %u ",
-	    num_clusters,integer_units, float_units,branch_units,memory_units, gpr_static_size, fpr_static_size, pr_static_size, cr_static_size, btr_static_size, L1D_size, L1D_block, L1D_assoc, L1I_size, L1I_block, L1I_assoc, L2U_size, L2U_block, L2U_assoc);
 
     return string(s);
 
@@ -76,8 +93,11 @@ string Configuration::to_string() const
 string Configuration::get_processor_string() const
 {
     char s[100];
-    sprintf(s,"%u_%u%u%u%u_%u%u%u%u%u",
-	    num_clusters,integer_units, float_units,branch_units,memory_units, gpr_static_size, fpr_static_size, pr_static_size, cr_static_size, btr_static_size);
+    sprintf(s,"%% %u / %u %u %u %u / %u %u %u %u %u / %u %u %u / %u %u %u / %u %u %u / %u %u %u %u %u %u %u %u",
+	    num_clusters, integer_units, float_units, branch_units,memory_units, 
+	    gpr_static_size, fpr_static_size, pr_static_size, cr_static_size, btr_static_size, 
+	    L1D_size, L1D_block, L1D_assoc, L1I_size, L1I_block, L1I_assoc, L2U_size, L2U_block, L2U_assoc, 
+	    tcc_region, max_unroll_allowed, regroup_only, do_classic_opti, do_prepass_scalar_scheduling, do_postpass_scalar_scheduling, do_modulo_scheduling, memvr_profiled); //db
 
     return string(s);
 }

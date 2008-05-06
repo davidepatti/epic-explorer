@@ -33,6 +33,7 @@
 #include "FuzzyApprox.h" // ale
 //#include "FannApprox.h" // ale
 #include "containers.h" //G
+#include "compiler.h"	//db
 
 // ---------------------------------------------------------------------------
 #define EXPLORER_NOTHING_DONE 0
@@ -45,6 +46,7 @@ class Explorer {
 public: 
   Processor processor;
   Mem_hierarchy mem_hierarchy;
+  Compiler compiler;	//db
   Estimator estimator;
 
   Explorer(Trimaran_interface * ti);
@@ -109,7 +111,7 @@ public:
 
   Configuration create_configuration() const; // default values
   Configuration create_configuration(const Space_mask& mask,const Configuration& base) const;
-  Configuration create_configuration(const Processor& p,const Mem_hierarchy& mem);
+  Configuration create_configuration(const Processor& p,const Mem_hierarchy& mem, const Compiler& comp);
 
   bool configuration_present(const Configuration& conf,const vector<Configuration>& space) const;
   int simulation_present(const Simulation& sim,const vector<Simulation>& simulations) const;
@@ -139,10 +141,8 @@ public:
   void save_simulations(const vector<Simulation>& simulations,const string& filename);
   void save_configurations(const vector<Configuration>& space,const string& filename);
   void save_stats(const Exploration_stats& stats,const string& filename);
-  void save_estimation_file(const Dynamic_stats& ,const Estimate& ,Processor& ,Mem_hierarchy& ,string& filename) const;
+  void save_estimation_file(const Dynamic_stats& ,const Estimate& ,Processor& ,Mem_hierarchy&, Compiler& comp, string& filename) const;
   void save_objectives_details(const Dynamic_stats& dyn,const Configuration& conf, const string filename ) const;
-  void print_simulation(const Simulation& simulation) const ;
-  void print_configuration(const Configuration& config) const ;
 
   int get_sim_counter() const;
   void reset_sim_counter();
@@ -197,6 +197,7 @@ private:
   string m5_dir;
   string mem_hierarchy_filename;
   string hmdes_filename;
+  string comp_filename;	//db
   string bench_executable;
   string current_algo;
   string current_space;

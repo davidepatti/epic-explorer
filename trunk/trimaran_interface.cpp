@@ -23,7 +23,6 @@ Trimaran_interface::Trimaran_interface(const string& base_dir)
 {
     set_benchmark(string("BENCH_NOT_SET"));
     set_environment(base_dir);
-    set_hyperblock(false);
     set_save_tcclog(false);
 }
 
@@ -32,10 +31,6 @@ Trimaran_interface::~Trimaran_interface()
     cout << "\n Destroying Trimaran_interface object...";
 }
 
-void Trimaran_interface::set_hyperblock(bool hyperblock)
-{
-    do_hyperblock = hyperblock;
-}
 
 void Trimaran_interface::set_benchmark(string new_benchmark)
 {
@@ -81,24 +76,44 @@ void Trimaran_interface::compile_hmdes_file(const string& machine_dir) const
 //
 
 
-void Trimaran_interface::compile_benchmark(const string& path) {
+void Trimaran_interface::compile_benchmark(Compiler* c,const string& path) 
+{
 
     char old_path[50];
     getcwd(old_path,50);
     chdir(path.c_str());
-
+    int mua = c->max_unroll_allowed.get_default();	//db
+    int ro = c->regroup_only.get_default();	//db
+    ostringstream ossmua;	//db
+    ossmua << mua;	//db
+    string muas = ossmua.str();	//db
+        
     string command;
     string redirection;
-
+   
     string tcc_args = " -bench "+current_benchmark;
+	
+    if (c->tcc_region.get_default() == 1) tcc_args +=" -region b";  //db	
+    if (c->tcc_region.get_default() == 2) tcc_args +=" -region h";  //db
+    if (c->tcc_region.get_default() == 3) tcc_args +=" -region s";  //db
+	
+    string tcc_impact_args, tcc_elcor_args="";	//db
+	   tcc_impact_args =" -I\"-max_unroll "+muas+"\" ";	//db
+   if (c->regroup_only.get_default() == 1) tcc_impact_args +=" -I\"-no_inlining\""; 	//db
+   if (c->do_classic_opti.get_default() == 2) tcc_elcor_args += " -E\"-Fdo_classic_opti=yes\"";	//db
+   if (c->do_prepass_scalar_scheduling.get_default() == 2) tcc_elcor_args += " -E\"-Fdo_prepass_scalar_scheduling=yes\"";	//db
+   if (c->do_postpass_scalar_scheduling.get_default() == 2) tcc_elcor_args += " -E\"-Fdo_postpass_scalar_scheduling=yes\"";	//db
+   if (c->do_modulo_scheduling.get_default() == 1) tcc_elcor_args += " -E\"-Fdo_do_modulo_scheduling=no\"";	//db
+   if (c->memvr_profiled.get_default() == 2) tcc_elcor_args += " -E\"-Fmemvr_profiled=yes\"";	//db
 
-    if (do_hyperblock) tcc_args += " -region h";
-    else tcc_args += " -region b";
+    
+    //if (do_hyperblock) tcc_args += " -region h";
+    
 
     if (do_save_log) redirection += " | tee -a "+path+"/compilation.log";
     else redirection += " | tee -a /dev/null";
 
-    command = "tcc "+tcc_args+" -i2s -M"+path+"/machines/hpl_pd_elcor_std.lmdes2 -S\"-Fcontrol_flow_trace=yes -Faddress_trace=yes\" -project \"full\" -clean -gui "+redirection;
+    command = "tcc "+tcc_args+tcc_impact_args+tcc_elcor_args+" -i2s -M"+path+"/machines/hpl_pd_elcor_std.lmdes2 -S\"-Fcontrol_flow_trace=yes -Faddress_trace=yes\" -project \"full\" -clean -gui "+redirection; //db
 
     cout << EE_TAG << "executing: " << command;
     //int c; cin>> c;
@@ -107,23 +122,45 @@ void Trimaran_interface::compile_benchmark(const string& path) {
     chdir(old_path);
 }
 
-void Trimaran_interface::execute_benchmark(const string& path, const string& cache_dir) 
+void Trimaran_interface::execute_benchmark(Compiler* c,const string& path, const string& cache_dir) //db
 {
     char old_path[50];
     getcwd(old_path,50);
     chdir(path.c_str());
-    // TODO: check proper tcc command options
+    
+    int mua = c->max_unroll_allowed.get_default();	//db
+    int ro = c->regroup_only.get_default();	//db
+    ostringstream ossmua;	//db
+    ossmua << mua;	//db
+    string muas = ossmua.str();	//db
+     
     string command;
     string tcc_args = " -bench "+current_benchmark;
-    string redirection;
+    string redirection;   
+    
+    if (c->tcc_region.get_default() == 1) tcc_args +=" -region b";  //db	
+    if (c->tcc_region.get_default() == 2) tcc_args +=" -region h";  //db
+    if (c->tcc_region.get_default() == 3) tcc_args +=" -region s";  //db
+	
+    string tcc_impact_args, tcc_elcor_args="";	//db
+	   tcc_impact_args =" -I\"-max_unroll "+muas+"\" ";	//db
+   if (c->regroup_only.get_default() == 1) tcc_impact_args +=" -I\"-no_inlining\""; 	//db
+   if (c->do_classic_opti.get_default() == 2) tcc_elcor_args += " -E\"-Fdo_classic_opti=yes\"";	//db
+   if (c->do_prepass_scalar_scheduling.get_default() == 2) tcc_elcor_args += " -E\"-Fdo_prepass_scalar_scheduling=yes\"";	//db
+   if (c->do_postpass_scalar_scheduling.get_default() == 2) tcc_elcor_args += " -E\"-Fdo_postpass_scalar_scheduling=yes\"";	//db
+   if (c->do_modulo_scheduling.get_default() == 1) tcc_elcor_args += " -E\"-Fdo_do_modulo_scheduling=no\"";	//db
+   if (c->memvr_profiled.get_default() == 2) tcc_elcor_args += " -E\"-Fmemvr_profiled=yes\"";	//db
+
+    
+    
 
     if (do_save_log) redirection += " | tee -a "+path+"/"+cache_dir+"/execution.log";
     else redirection += " | tee -a /dev/null";
 
-    if (do_hyperblock) tcc_args += " -region h";
-    else tcc_args += " -region b";
+   // if (do_hyperblock) tcc_args += " -region h";
+    //else tcc_args += " -region b";
 
-    command = "tcc "+tcc_args+" -m2m -M"+path+"/machines/hpl_pd_elcor_std.lmdes2 -S\"-Fcontrol_flow_trace=yes -Faddress_trace=yes\" -project \"full\" -gui -cache_dir "+cache_dir+redirection;
+    command = "tcc "+tcc_args+tcc_impact_args+tcc_elcor_args+" -m2m -M"+path+"/machines/hpl_pd_elcor_std.lmdes2 -S\"-Fcontrol_flow_trace=yes -Faddress_trace=yes\" -project \"full\" -gui -cache_dir "+cache_dir+redirection;
 
     cout << EE_TAG << "executing: " << command;
     //int c; cin>> c;
@@ -341,6 +378,101 @@ void Trimaran_interface::set_environment(const string& base_dir) {
 	exit(-1);
     }
 }
+
+//db
+void Trimaran_interface::save_compiler_parameter(const Compiler& cmp, const string& path) const
+{
+
+  string filename = path;
+  std::ofstream output_file(filename.c_str());
+
+  
+   if (!output_file)
+    {
+	cout << "\nError opening compiler file :" << filename;
+	wait_key();
+    }
+    else
+    {
+	// NOTE:
+	// - we assume that rotating and static portion of registers
+	// have equal sizes.
+	// - All the other parameters are fixed to their default values as specified
+	// in the standard trimaran hmdes2 files.
+
+	output_file << "\n//////////////////////////////////////////////////";
+	output_file << "\n// Epic Explorer processor configuration";
+	output_file << "\n//////////////////////////////////////////////////";
+	output_file << "\n// DO NOT EDIT: this file is generated by epic explorer ";
+	output_file << "\n// and should be included into the main hmdes2 machine ";
+	output_file << "\n// description file using the $include directive";
+
+	output_file << "\n\n";
+	output_file << "\n// Compiler parameters ";
+	output_file << "\n ----------------------------------";
+	output_file << "\n$def !tcc_region:\t " << cmp.tcc_region.get_val();
+	output_file << "\n\n";
+	output_file << "\n// Impact Parameters ";	
+	output_file << "\n ----------------------------------";	
+	output_file << "\n$def !max_unroll_allowed:\t" << cmp.max_unroll_allowed.get_val();
+	output_file << "\n$def !regroup_only:\t\t"<< cmp.regroup_only.get_val();
+	output_file << "\n\n";
+	output_file << "\n// Elcor Parameters ";		
+	output_file << "\n ----------------------------------";	
+	output_file << "\n$def !do_classic_opti:\t\t\t"<< cmp.do_classic_opti.get_val();
+	output_file << "\n$def !do_prepass_scalar_scheduling:\t"<< cmp.do_prepass_scalar_scheduling.get_val();
+	output_file << "\n$def !do_postpass_scalar_scheduling:\t"<< cmp.do_postpass_scalar_scheduling.get_val();
+	output_file << "\n$def !do_modulo_scheduling:\t\t"<< cmp.do_modulo_scheduling.get_val();
+	output_file << "\n$def !memvr_profiled:\t\t\t"<< cmp.memvr_profiled.get_val();
+	}
+
+}
+
+void Trimaran_interface::load_compiler_parameter(Compiler* c, const string& filename) const
+{
+	std::ifstream input_file(filename.c_str());
+
+    if (!input_file) 
+    {
+	cout << "\nError opening compiler file : " << filename;
+	exit(-1);
+    }
+    else
+    {
+	int val;
+	go_until("!tcc_region:",input_file);
+	input_file >> val;
+	c->tcc_region.set_val(val);
+
+	go_until("!max_unroll_allowed:",input_file);
+	input_file >> val;
+	c->max_unroll_allowed.set_val(val);
+
+	go_until("!regroup_only:",input_file);
+	input_file >> val;
+	c->regroup_only.set_val(val);
+
+	go_until("!do_classic_opti:",input_file);
+	input_file >> val;
+	c->do_classic_opti.set_val(val);
+	
+	go_until("!do_prepass_scalar_scheduling:",input_file);
+	input_file >> val;
+	c->do_prepass_scalar_scheduling.set_val(val);
+	
+	go_until("!do_postpass_scalar_scheduling:",input_file);
+	input_file >> val;
+	c->do_postpass_scalar_scheduling.set_val(val);
+
+	go_until("!do_modulo_scheduling:",input_file);
+	input_file >> val;
+	c->do_modulo_scheduling.set_val(val);
+
+	go_until("!memvr_profiled:",input_file);
+	input_file >> val;
+	c->memvr_profiled.set_val(val);
+    }
+} //db
 
 void Trimaran_interface::save_processor_config(const Processor& p, const string& path) const
 {
