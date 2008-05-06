@@ -51,6 +51,11 @@ void Parameter::set_label(const string& l)
     label = l;
 }
 
+string Parameter::get_label() const
+{
+    return label;
+}
+
 
 Parameter::~Parameter(){
 
