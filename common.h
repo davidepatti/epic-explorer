@@ -160,9 +160,9 @@ struct Configuration
   bool is_feasible(); // mau
   void invalidate();
   bool check_difference(const Configuration&,Space_mask);
-  string to_string() const;
-  string get_processor_string() const;
-  string get_mem_hierarchy_string() const;
+  string get_header() const;
+  string get_executable_dir() const;
+  string get_mem_dir() const;
 };
 
 struct Simulation 
