@@ -82,33 +82,30 @@ void Trimaran_interface::compile_benchmark(Compiler* c,const string& path)
     char old_path[50];
     getcwd(old_path,50);
     chdir(path.c_str());
-    int mua = c->max_unroll_allowed.get_default();	//db
-    int ro = c->regroup_only.get_default();	//db
+    int mua = c->max_unroll_allowed.get_val();	//db
+    int ro = c->regroup_only.get_val();	//db
     ostringstream ossmua;	//db
     ossmua << mua;	//db
     string muas = ossmua.str();	//db
-        
+
     string command;
     string redirection;
-   
-    string tcc_args = " -bench "+current_benchmark;
-	
-    if (c->tcc_region.get_default() == 1) tcc_args +=" -region b";  //db	
-    if (c->tcc_region.get_default() == 2) tcc_args +=" -region h";  //db
-    if (c->tcc_region.get_default() == 3) tcc_args +=" -region s";  //db
-	
-    string tcc_impact_args, tcc_elcor_args="";	//db
-	   tcc_impact_args =" -I\"-max_unroll "+muas+"\" ";	//db
-   if (c->regroup_only.get_default() == 1) tcc_impact_args +=" -I\"-no_inlining\""; 	//db
-   if (c->do_classic_opti.get_default() == 2) tcc_elcor_args += " -E\"-Fdo_classic_opti=yes\"";	//db
-   if (c->do_prepass_scalar_scheduling.get_default() == 2) tcc_elcor_args += " -E\"-Fdo_prepass_scalar_scheduling=yes\"";	//db
-   if (c->do_postpass_scalar_scheduling.get_default() == 2) tcc_elcor_args += " -E\"-Fdo_postpass_scalar_scheduling=yes\"";	//db
-   if (c->do_modulo_scheduling.get_default() == 1) tcc_elcor_args += " -E\"-Fdo_do_modulo_scheduling=no\"";	//db
-   if (c->memvr_profiled.get_default() == 2) tcc_elcor_args += " -E\"-Fmemvr_profiled=yes\"";	//db
 
-    
-    //if (do_hyperblock) tcc_args += " -region h";
-    
+    string tcc_args = " -bench "+current_benchmark;
+
+    if (c->tcc_region.get_val() == 1) tcc_args +=" -region b";  //db	
+    if (c->tcc_region.get_val() == 2) tcc_args +=" -region h";  //db
+    if (c->tcc_region.get_val() == 3) tcc_args +=" -region s";  //db
+
+    string tcc_impact_args, tcc_elcor_args="";	//db
+    tcc_impact_args =" -I\"-max_unroll "+muas+"\" ";	//db
+    if (c->regroup_only.get_val() == 1) tcc_impact_args +=" -I\"-no_inlining\""; 	//db
+    if (c->do_classic_opti.get_val() == 2) tcc_elcor_args += " -E\"-Fdo_classic_opti=yes\"";	//db
+    if (c->do_prepass_scalar_scheduling.get_val() == 2) tcc_elcor_args += " -E\"-Fdo_prepass_scalar_scheduling=yes\"";	//db
+    if (c->do_postpass_scalar_scheduling.get_val() == 2) tcc_elcor_args += " -E\"-Fdo_postpass_scalar_scheduling=yes\"";	//db
+    if (c->do_modulo_scheduling.get_val() == 1) tcc_elcor_args += " -E\"-Fdo_do_modulo_scheduling=no\"";	//db
+    if (c->memvr_profiled.get_val() == 2) tcc_elcor_args += " -E\"-Fmemvr_profiled=yes\"";	//db
+
 
     if (do_save_log) redirection += " | tee -a "+path+"/compilation.log";
     else redirection += " | tee -a /dev/null";
@@ -128,8 +125,8 @@ void Trimaran_interface::execute_benchmark(Compiler* c,const string& path, const
     getcwd(old_path,50);
     chdir(path.c_str());
     
-    int mua = c->max_unroll_allowed.get_default();	//db
-    int ro = c->regroup_only.get_default();	//db
+    int mua = c->max_unroll_allowed.get_val();	//db
+    int ro = c->regroup_only.get_val();	//db
     ostringstream ossmua;	//db
     ossmua << mua;	//db
     string muas = ossmua.str();	//db
@@ -138,18 +135,18 @@ void Trimaran_interface::execute_benchmark(Compiler* c,const string& path, const
     string tcc_args = " -bench "+current_benchmark;
     string redirection;   
     
-    if (c->tcc_region.get_default() == 1) tcc_args +=" -region b";  //db	
-    if (c->tcc_region.get_default() == 2) tcc_args +=" -region h";  //db
-    if (c->tcc_region.get_default() == 3) tcc_args +=" -region s";  //db
+    if (c->tcc_region.get_val() == 1) tcc_args +=" -region b";  //db	
+    if (c->tcc_region.get_val() == 2) tcc_args +=" -region h";  //db
+    if (c->tcc_region.get_val() == 3) tcc_args +=" -region s";  //db
 	
     string tcc_impact_args, tcc_elcor_args="";	//db
 	   tcc_impact_args =" -I\"-max_unroll "+muas+"\" ";	//db
-   if (c->regroup_only.get_default() == 1) tcc_impact_args +=" -I\"-no_inlining\""; 	//db
-   if (c->do_classic_opti.get_default() == 2) tcc_elcor_args += " -E\"-Fdo_classic_opti=yes\"";	//db
-   if (c->do_prepass_scalar_scheduling.get_default() == 2) tcc_elcor_args += " -E\"-Fdo_prepass_scalar_scheduling=yes\"";	//db
-   if (c->do_postpass_scalar_scheduling.get_default() == 2) tcc_elcor_args += " -E\"-Fdo_postpass_scalar_scheduling=yes\"";	//db
-   if (c->do_modulo_scheduling.get_default() == 1) tcc_elcor_args += " -E\"-Fdo_do_modulo_scheduling=no\"";	//db
-   if (c->memvr_profiled.get_default() == 2) tcc_elcor_args += " -E\"-Fmemvr_profiled=yes\"";	//db
+   if (c->regroup_only.get_val() == 1) tcc_impact_args +=" -I\"-no_inlining\""; 	//db
+   if (c->do_classic_opti.get_val() == 2) tcc_elcor_args += " -E\"-Fdo_classic_opti=yes\"";	//db
+   if (c->do_prepass_scalar_scheduling.get_val() == 2) tcc_elcor_args += " -E\"-Fdo_prepass_scalar_scheduling=yes\"";	//db
+   if (c->do_postpass_scalar_scheduling.get_val() == 2) tcc_elcor_args += " -E\"-Fdo_postpass_scalar_scheduling=yes\"";	//db
+   if (c->do_modulo_scheduling.get_val() == 1) tcc_elcor_args += " -E\"-Fdo_do_modulo_scheduling=no\"";	//db
+   if (c->memvr_profiled.get_val() == 2) tcc_elcor_args += " -E\"-Fmemvr_profiled=yes\"";	//db
 
     
     

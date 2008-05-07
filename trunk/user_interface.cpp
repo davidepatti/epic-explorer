@@ -827,23 +827,23 @@ void User_interface::show_system_config() {
    cout<<"\n btr_static_size:"<< my_explorer->processor.btr_static_size.get_val();
 
     cout << "\n Compiler ----------------------------------";	//db
-    if (my_explorer->compiler.tcc_region.get_default()== 1) cout << "\n tcc_region:\t basic block" << endl; 	//db
-    if (my_explorer->compiler.tcc_region.get_default()== 2) cout << "\n tcc_region:\t hyperblock" << endl; 	//db
-    if (my_explorer->compiler.tcc_region.get_default()== 3) cout << "\n tcc_region:\t superblock" << endl;	//db
-    cout << "\n >> Impact ";	//db
-    cout << "\n\tmax_unroll_allowed:\t " << my_explorer->compiler.max_unroll_allowed.get_default();	//db
-    if (my_explorer->compiler.regroup_only.get_default() == 1 ) cout << "\n regroup_only:\t\t no";	//db
+    if (my_explorer->compiler.tcc_region.get_val()== 1) cout << "\n tcc_region:\t basic block" << endl; 	//db
+    if (my_explorer->compiler.tcc_region.get_val()== 2) cout << "\n tcc_region:\t hyperblock" << endl; 	//db
+    if (my_explorer->compiler.tcc_region.get_val()== 3) cout << "\n tcc_region:\t superblock" << endl;	//db
+    cout << "\n\t>> Impact ";	//db
+    cout << "\n\tmax_unroll_allowed:\t " << my_explorer->compiler.max_unroll_allowed.get_val();	//db
+    if (my_explorer->compiler.regroup_only.get_val() == 1 ) cout << "\n regroup_only:\t\t no";	//db
 		    else cout << "\n regroup_only:\t\t yes" << endl;
     cout << "\n >> Elcor ";		//db
-    if (my_explorer->compiler.do_classic_opti.get_default() == 1) cout << "\n do_classic_opti:\t\t no";	//db
+    if (my_explorer->compiler.do_classic_opti.get_val() == 1) cout << "\n do_classic_opti:\t\t no";	//db
 		    else cout << "\n\tdo_classic_opti:\t\t yes";	//db 
-    if (my_explorer->compiler.do_prepass_scalar_scheduling.get_default() == 1) cout << "\n do_prepass_scalar_scheduling:\t no";	//db
+    if (my_explorer->compiler.do_prepass_scalar_scheduling.get_val() == 1) cout << "\n do_prepass_scalar_scheduling:\t no";	//db
 		    else cout << "\n\tdo_prepass_scalar_scheduling:\t yes";	//db 
-    if (my_explorer->compiler.do_postpass_scalar_scheduling.get_default() == 1) cout << "\n do_postpass_scalar_scheduling:\t no";//db
+    if (my_explorer->compiler.do_postpass_scalar_scheduling.get_val() == 1) cout << "\n do_postpass_scalar_scheduling:\t no";//db
 		    else cout << "\n\tdo_postpass_scalar_scheduling:\t yes";	//db
-    if (my_explorer->compiler.do_modulo_scheduling.get_default() == 1) cout << "\n do_modulo_scheduling:\t\t no";	//db 	
+    if (my_explorer->compiler.do_modulo_scheduling.get_val() == 1) cout << "\n do_modulo_scheduling:\t\t no";	//db 	
 		    else cout << "\n\tdo_modulo_scheduling:\t\t yes";	//db
-    if (my_explorer->compiler.memvr_profiled.get_default() == 1) cout << "\n memvr_profiled:\t\t no";	//db
+    if (my_explorer->compiler.memvr_profiled.get_val() == 1) cout << "\n memvr_profiled:\t\t no";	//db
 		    else cout << "\n\tmemvr_profiled:\t\t yes";	//db
 }
 
@@ -891,7 +891,6 @@ void User_interface::load_settings(string settings_file)
    if (fp==NULL)
    {
        cout << "\n WARNING:configuration file not found... creating it ";
-       user_settings.hyperblock = false;
        user_settings.benchmark = DEFAULT_BENCH;
        user_settings.objective_area = false;
        user_settings.objective_exec_time = true;
@@ -924,7 +923,6 @@ void User_interface::load_settings(string settings_file)
    }
    else
    {
-        user_settings.hyperblock = false;
 	user_settings.objective_area = false;
 	user_settings.objective_exec_time = false;
 	user_settings.objective_energy = false;
@@ -934,10 +932,6 @@ void User_interface::load_settings(string settings_file)
 	user_settings.save_estimation = false;
 	user_settings.auto_clock = false;
 	user_settings.save_tcclog = false;
-
-	go_until("hyperblock",input_file);
-	input_file >> word;
-	if (word=="ENABLED") user_settings.hyperblock = true;
 
 	go_until("benchmark",input_file);
 	input_file >> word;
@@ -1066,7 +1060,6 @@ void User_interface::save_settings(string settings_file)
     {
 	output_file << "\n\n# Epic Explorer settings";
 
-	output_file << "\nhyperblock " << status_string(user_settings.hyperblock);
 	output_file << "\nbenchmark "  << user_settings.benchmark ;
 	output_file << "\narea " << status_string(user_settings.objective_area);
 	output_file << "\ncycles " << status_string(user_settings.objective_exec_time);

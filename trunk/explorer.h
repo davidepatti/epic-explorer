@@ -213,7 +213,6 @@ private:
   int sim_counter;
   vector<Simulation> previous_simulations;
   string previous_benchmark;
-  bool previous_hyperblock;
 
   int DEP_phase1_time(int n_ott_c1,int n_ott_c2,int n_ott_c4);
   int DEP_phase2_time(float P,int * n_ott);

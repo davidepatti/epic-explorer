@@ -690,8 +690,6 @@ void Explorer::save_simulations(const vector<Simulation>& simulations, const str
 
     string path = get_base_dir()+"/trimaran-workspace/epic-explorer/";
 
-    // TODO: fix this
-    //if (Options.hyperblock) filename = "H_"+filename;
     string file_path = path+filename;
 
     time_t now = time(NULL);
@@ -702,6 +700,12 @@ void Explorer::save_simulations(const vector<Simulation>& simulations, const str
 
     string pretitle2 ="\n%% Enabled minimization objectives: ";
     //G
+
+    if (Options.objective_area) pretitle2+="Area, ";
+    if (Options.objective_energy) pretitle2+="Energy, ";
+    if (Options.objective_power) pretitle2+= "Average Power, ";
+    if (Options.objective_exec_time) pretitle2+="Execution Time";
+
     string pretitle3 ="\n%% Benchmark: ";
     if(Options.multibench)
         for(int i=0; i<benchmarks.size(); i++)
@@ -709,23 +713,16 @@ void Explorer::save_simulations(const vector<Simulation>& simulations, const str
     else
         pretitle3 += Options.benchmark;
 
-    if (Options.objective_area) pretitle2+="Area, ";
-    if (Options.objective_energy) pretitle2+="Energy, ";
-    if (Options.objective_power) pretitle2+= "Average Power, ";
-    if (Options.objective_exec_time) pretitle2+="Execution Time";
+    string pretitle4 = "\n%% Compiler: tcc_region, max_unroll_allowed, regroup_only, do_classic_opti, do_prepass_scalar_scheduling, do_postpass_scalar_scheduling, do_modulo_scheduling, memvr_profiled";
 
-    if (Options.hyperblock) pretitle2+="\n%% Compiler options: hyperblock";
-    else
-	pretitle2+="\n%% Compiler options: basicblocks";
-
-    string title = "\n%% ";
+    string title = "\n\n%% ";
 
     // currently, energy and power are mutually exclusive objectives
-    if (Options.objective_energy) title+="Area(cm^2)           Energy(J)  Exec time(ms) - ";
+    if (Options.objective_energy) title+="Area(cm^2)\tEnergy(J)\tTime(ms)";
     else
-	title+="Area(cm^2)     Average Power(W)  Exec time(ms) - ";
+	title+="Area(cm^2)\tPower(W)\tTime(ms)";
 
-    title+="/ clust / I F B M / gpr fpr pr cr btr / L1D(CBA) / L1I(CBA) / L2U(CBA) ";
+    title+=" clust/ I F B M / gpr fpr pr cr btr / L1D(CBA) / L1I(CBA) / L2U(CBA) / Compiler";
 
     fp=fopen(file_path.c_str(),"w");
     
@@ -733,6 +730,7 @@ void Explorer::save_simulations(const vector<Simulation>& simulations, const str
     fprintf(fp,pretitle.c_str());
     fprintf(fp,pretitle2.c_str());
     fprintf(fp,pretitle3.c_str());
+    fprintf(fp,pretitle4.c_str());
     fprintf(fp,title.c_str());
     fprintf(fp,"\n% ----------------------------------------------");
 
@@ -749,7 +747,7 @@ void Explorer::save_simulations(const vector<Simulation>& simulations, const str
 	char ch = ' ';
 	if (!simulations[i].simulated) ch = '*';
 
-	fprintf(fp,"\n%.14f  %.14f  %.14f %s %c",area,energy,exec_time,conf_string.c_str(),ch);
+	fprintf(fp,"\n%.10f  %.10f  %.10f %s %c",area,energy,exec_time,conf_string.c_str(),ch);
     }
     fclose(fp);
 }
@@ -823,7 +821,11 @@ void Explorer::prepare_explorer(const string& application, const Configuration& 
     hmdes_filename = machine_dir +"/"+ EXPLORER_HMDES2;
     comp_filename = epic_dir+"/machines/"+COMPILER_PARAM;  //db
 
-    bench_executable = Options.benchmark+"_O";
+    bench_executable = Options.benchmark;
+    if (config.tcc_region == 1) bench_executable +="_O";  //db	
+    if (config.tcc_region == 2) bench_executable +="_HS";  //db
+    if (config.tcc_region == 3) bench_executable +="_S";  //db
+
     pd_stats_file = mem_hierarchy_dir+"/PD_STATS";
 #ifdef TEST
     cout <<  EE_TAG << " Assuming the following setup:";
@@ -926,7 +928,6 @@ void Explorer::save_estimation_file( const Dynamic_stats& dynamic_stats,
 {
     string file_path;
     file_path = get_base_dir()+"/trimaran-workspace/epic-explorer/";
-    if (Options.hyperblock) filename = "H_"+filename;
     file_path += filename;
 
     std::ofstream output_file(file_path.c_str());

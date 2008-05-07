@@ -58,7 +58,6 @@ template<typename T> std::string to_string(const T& t){
 struct User_Settings 
 {
     string benchmark;
-    bool hyperblock;
     bool objective_area;
     bool objective_exec_time;
     bool objective_power;
