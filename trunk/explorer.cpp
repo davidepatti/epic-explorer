@@ -742,7 +742,7 @@ void Explorer::save_simulations(const vector<Simulation>& simulations, const str
 	energy = simulations[i].energy;
 	exec_time = simulations[i].exec_time*1000;
 	
-	string conf_string = simulations[i].config.to_string();
+	string conf_string = simulations[i].config.get_header();
 
 	int mhz = int(simulations[i].clock_freq/1e6);
 	   
@@ -759,7 +759,7 @@ void Explorer::save_objectives_details(const Dynamic_stats& dyn,const Configurat
     FILE * fp;
     fp=fopen(filename.c_str(),"a");
 
-    string c = config.to_string();
+    string c = config.get_header();
 
     fprintf(fp,"\n %llu %llu %llu %llu %llu %llu %llu %llu %llu %llu %llu %llu %llu %llu %llu %s",
 		    					    dyn.compute_cycles,
@@ -813,8 +813,8 @@ void Explorer::prepare_explorer(const string& application, const Configuration& 
     // simply sets explorer class members according to the app and configuration
     epic_dir = get_base_dir()+"/trimaran-workspace/epic-explorer/";
     application_dir = epic_dir + Options.benchmark;
-    processor_dir = application_dir+"/"+config.get_processor_string();
-    cache_dir_name = config.get_mem_hierarchy_string();
+    processor_dir = application_dir+"/"+config.get_executable_dir();
+    cache_dir_name = config.get_mem_dir();
     mem_hierarchy_dir = processor_dir+"/"+cache_dir_name+"/";
     machine_dir = processor_dir+"/machines";
     m5_dir = mem_hierarchy_dir+"./m5elements";

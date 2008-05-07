@@ -82,15 +82,7 @@ bool Configuration::check_difference(const Configuration& conf, Space_mask mask)
     return false;
 }
 
-string Configuration::to_string() const
-{
-    char s[100];
-
-    return string(s);
-
-}
-
-string Configuration::get_processor_string() const
+string Configuration::get_header() const
 {
     char s[100];
     sprintf(s,"%% %u / %u %u %u %u / %u %u %u %u %u / %u %u %u / %u %u %u / %u %u %u / %u %u %u %u %u %u %u %u",
@@ -100,9 +92,21 @@ string Configuration::get_processor_string() const
 	    tcc_region, max_unroll_allowed, regroup_only, do_classic_opti, do_prepass_scalar_scheduling, do_postpass_scalar_scheduling, do_modulo_scheduling, memvr_profiled); //db
 
     return string(s);
+
 }
 
-string Configuration::get_mem_hierarchy_string() const
+string Configuration::get_executable_dir() const
+{
+    char s[100];
+     sprintf(s,"%u_%u%u%u%u_%u%u%u%u%u_%u%u%u%u%u%u%u%u",
+	    num_clusters, integer_units, float_units, branch_units, memory_units, 
+	    gpr_static_size, fpr_static_size, pr_static_size, cr_static_size, btr_static_size,
+	    tcc_region, max_unroll_allowed, regroup_only, do_classic_opti, do_prepass_scalar_scheduling, do_postpass_scalar_scheduling, do_modulo_scheduling, memvr_profiled); //db
+
+    return string(s);
+}
+
+string Configuration::get_mem_dir() const
 {
     char s[100];
     sprintf(s,"%u%u%u_%u%u%u_%u%u%u",L1D_size, L1D_block, L1D_assoc, L1I_size, L1I_block, L1I_assoc, L2U_size, L2U_block, L2U_assoc);
