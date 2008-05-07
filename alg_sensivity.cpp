@@ -47,7 +47,6 @@ void Explorer::start_SAP()
 
     string path = get_base_dir()+"/trimaran-workspace/epic-explorer/";
     string name;
-    if (Options.hyperblock) name = "H_";
     name = path + name + Options.benchmark + "_SAP_"+current_space+"_sensitivity.stat";
     FILE * fp = fopen(name.c_str(),"w");
 
@@ -268,7 +267,6 @@ void Explorer::start_PBSA()
     }
 
     string name = get_base_dir()+"/trimaran-workspace/epic-explorer/";
-    if (Options.hyperblock) name+="H_";
     name+= Options.benchmark+"_PBSA_"+current_space+"_sensitivity.stat";
 
     FILE * fp = fopen(name.c_str(),"w");

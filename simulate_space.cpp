@@ -296,7 +296,6 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
     previous_simulations.clear();
     append_simulations(previous_simulations,simulations);
     previous_benchmark = Options.benchmark;
-    previous_hyperblock = Options.hyperblock;
 
     return simulations;
 }
