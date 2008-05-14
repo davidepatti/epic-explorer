@@ -91,15 +91,15 @@ common.o: common.cpp common.h
 	${CXX} ${CFLAGS} -c common.cpp
 
 FuzzyApprox.o: FuzzyApprox.cpp FuzzyApprox.h common.h RuleList.h FunctionApprox.h
-	${CXX} ${CFLAGS} -O3 -c FuzzyApprox.cpp
-#	${CXX} ${CFLAGS} -O3 -funroll-loops -ffast-math -c FuzzyApprox.cpp
+	${CXX} ${CFLAGS} -c FuzzyApprox.cpp
+#	${CXX} ${CFLAGS}  -funroll-loops -ffast-math -c FuzzyApprox.cpp
 
 RuleList.o: RuleList.cpp RuleList.h common.h 
-	${CXX} ${CFLAGS} -O3 -c RuleList.cpp
-#	${CXX} ${CFLAGS} -O3 -funroll-loops -ffast-math -c RuleList.cpp
+	${CXX} ${CFLAGS} -c RuleList.cpp
+#	${CXX} ${CFLAGS} -funroll-loops -ffast-math -c RuleList.cpp
 
 FuzzyWrapper.o: FuzzyWrapper.cpp FuzzyApprox.h
-	${CXX} ${CFLAGS} -O3 -c FuzzyWrapper.cpp
+	${CXX} ${CFLAGS} -c FuzzyWrapper.cpp
 
 .PHONY: spea2 clean cleanall
 
