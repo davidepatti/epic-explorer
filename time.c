@@ -48,34 +48,35 @@
 extern double calculate_area(area_type,double);
 
 int powers (int base, int n) {
-int i,p;
+	int i,p;
 
-  p = 1;
-  for (i = 1; i <= n; ++i)
-     p *= base;
-  return p;
+	p = 1;
+	for (i = 1; i <= n; ++i)
+		p *= base;
+	return p;
 }
 
 /*----------------------------------------------------------------------*/
 
-double logtwo(x)
-double x;
+double logtwo(double x)
 {
-if (x<=0) printf("%e\n",x);
+	if (x<=0) printf("%e\n",x);
 	return( (double) (log(x)/log(2.0)) );
 }
 /*----------------------------------------------------------------------*/
-
-double gatecap(width,wirelength) /* returns gate capacitance in Farads */
-double width;		/* gate width in um (length is Leff) */
-double wirelength;	/* poly wire length going to gate in lambda */
+/*
+double width;		 gate width in um (length is Leff) 
+double wirelength;	 poly wire length going to gate in lambda 
+*/
+double gatecap(double width,double wirelength) /* returns gate capacitance in Farads */
 {
 	return(width*Leff*Cgate+wirelength*Cpolywire*Leff);
 }
 
-double gatecappass(width,wirelength) /* returns gate capacitance in Farads */
-double width;           /* gate width in um (length is Leff) */
-double wirelength;      /* poly wire length going to gate in lambda */
+/*
+double width;           gate width in um (length is Leff) 
+double wirelength;      poly wire length going to gate in lambda */
+double gatecappass(double width,double wirelength) /* returns gate capacitance in Farads */
 {
         return(width*Leff*Cgatepass+wirelength*Cpolywire*Leff);
 }
@@ -86,10 +87,10 @@ double wirelength;      /* poly wire length going to gate in lambda */
 /* Routine for calculating drain capacitances.  The draincap routine
  * folds transistors larger than 10um */
 
-double draincap(width,nchannel,stack)  /* returns drain cap in Farads */
-double width;		/* um */
-int nchannel;		/* whether n or p-channel (boolean) */
-int stack;		/* number of transistors in series that are on */
+double draincap(double width,int nchannel,int stack)  /* returns drain cap in Farads */
+/* um */
+/* whether n or p-channel (boolean) */
+/* number of transistors in series that are on */
 {
 	double Cdiffside,Cdiffarea,Coverlap,cap;
 
@@ -120,10 +121,10 @@ int stack;		/* number of transistors in series that are on */
    gives the "switching" resistance, and the second gives the 
    "full-on" resistance */
 
-double transresswitch(width,nchannel,stack)  /* returns resistance in ohms */
-double width;		/* um */
-int nchannel;		/* whether n or p-channel (boolean) */
-int stack;		/* number of transistors in series */
+double transresswitch(double width,int nchannel, int stack)  /* returns resistance in ohms */
+/* um */
+/* whether n or p-channel (boolean) */
+/* number of transistors in series */
 {
 	double restrans;
         restrans = (nchannel) ? (Rnchannelstatic):
@@ -135,10 +136,10 @@ int stack;		/* number of transistors in series */
 
 /*----------------------------------------------------------------------*/
 
-double transreson(width,nchannel,stack)  /* returns resistance in ohms */
-double width;           /* um */
-int nchannel;           /* whether n or p-channel (boolean) */
-int stack;              /* number of transistors in series */
+double transreson(double width,int nchannel,int stack)  /* returns resistance in ohms */
+ /* um */
+ /* whether n or p-channel (boolean) */
+ /* number of transistors in series */
 {
         double restrans;
         restrans = (nchannel) ? Rnchannelon : Rpchannelon;
@@ -155,9 +156,9 @@ int stack;              /* number of transistors in series */
  * the transistor width that would have this R.  It is used in the
  * data wordline to estimate the wordline driver size. */
 
-double restowidth(res,nchannel)  /* returns width in um */
-double res;            /* resistance in ohms */
-int nchannel;          /* whether N-channel or P-channel */
+double restowidth(double res,int nchannel)  /* returns width in um */
+ /* resistance in ohms */
+ /* whether N-channel or P-channel */
 {
    double restrans;
 
@@ -169,11 +170,11 @@ int nchannel;          /* whether N-channel or P-channel */
 
 /*----------------------------------------------------------------------*/
 
-double horowitz(inputramptime,tf,vs1,vs2,rise)
-double inputramptime,    /* input rise time */
-       tf,               /* time constant of gate */
-       vs1,vs2;          /* threshold voltages */
-int rise;                /* whether INPUT rise or fall (boolean) */
+double horowitz(double inputramptime,double tf,double vs1,double vs2,int rise)
+ /* input rise time */
+ /* time constant of gate */
+ /* threshold voltages */
+ /* whether INPUT rise or fall (boolean) */
 {
     double a,b,td;
 
@@ -203,11 +204,12 @@ int rise;                /* whether INPUT rise or fall (boolean) */
 
 /*----------------------------------------------------------------------*/
 
-void subbank_routing_length(C,B,A,fullyassoc,Ndbl,Nspd,Ndwl,Ntbl,Ntwl,Ntspd,NSubbanks,subbank_v,subbank_h)
+void subbank_routing_length(int C,int B,int A,char fullyassoc,int Ndbl,int Nspd,int Ndwl,int Ntbl,int Ntwl,int Ntspd,double NSubbanks,double * subbank_v,double * subbank_h)
+/*
 int C,B,A,Ndbl,Nspd,Ndwl,Ntbl,Ntspd;
 double NSubbanks;
 double *subbank_v, *subbank_h;
-char fullyassoc;
+char fullyassoc;*/
 {
 double htree;
 int htree_int, tagbits;
@@ -369,121 +371,125 @@ int cols_fa_subarray,rows_fa_subarray;
   }
 }
 
-void subbank_dim(C,B,A,fullyassoc,Ndbl,Ndwl,Nspd,Ntbl,Ntwl,Ntspd,NSubbanks,subbank_h,subbank_v)
+/* Old stype declaration:
 int C,B,A,Ndbl,Nspd,Ndwl;
 double *subbank_h,*subbank_v;
 char fullyassoc;
-double NSubbanks;
+double NSubbanks; */
+void subbank_dim(int C,int B,int A,char fullyassoc, int Ndbl, int Ndwl,int Nspd, int Ntbl,int Ntwl,int Ntspd,double NSubbanks,double * subbank_h,double * subbank_v)
 {
-double htree;
-int htree_int, tagbits;
-int cols_data_subarray,rows_data_subarray,cols_tag_subarray,rows_tag_subarray;
-double sub_h, sub_v, inter_v, inter_h;
-int cols_fa_subarray,rows_fa_subarray;
+	double htree;
+	int htree_int, tagbits;
+	int cols_data_subarray,rows_data_subarray,cols_tag_subarray,rows_tag_subarray;
+	double sub_h, sub_v, inter_v, inter_h;
+	int cols_fa_subarray,rows_fa_subarray;
 
-  if (!fullyassoc) {
+	if (!fullyassoc) {
 
-           /* calculation of subbank dimensions */
-            cols_data_subarray = (8*B*A*Nspd/Ndwl);
-            rows_data_subarray = (C/(B*A*Ndbl*Nspd));
+		/* calculation of subbank dimensions */
+		cols_data_subarray = (8*B*A*Nspd/Ndwl);
+		rows_data_subarray = (C/(B*A*Ndbl*Nspd));
 
-            if(Ndwl*Ndbl==1) {
-                   sub_v= rows_data_subarray;
-                   sub_h= cols_data_subarray;
-            }
-            if(Ndwl*Ndbl==2) {
-                   sub_v= rows_data_subarray;
-                   sub_h= 2*cols_data_subarray;
-            }
-            if(Ndwl*Ndbl>2) {
-                htree=logtwo((double)(Ndwl*Ndbl));
-                htree_int = (int) htree;
-                if (htree_int % 2 ==0) {
-                  sub_v = sqrt(Ndwl*Ndbl)*rows_data_subarray;
-                  sub_h = sqrt(Ndwl*Ndbl)*cols_data_subarray;
-                }
-                else {
-                  sub_v = sqrt(Ndwl*Ndbl/2)*rows_data_subarray;
-                  sub_h = 2*sqrt(Ndwl*Ndbl/2)*cols_data_subarray;
-                }
-            }
-                inter_v=sub_v;
-                inter_h=sub_h;
+		if(Ndwl*Ndbl==1) {
+			sub_v= rows_data_subarray;
+			sub_h= cols_data_subarray;
+		}
+		if(Ndwl*Ndbl==2) {
+			sub_v= rows_data_subarray;
+			sub_h= 2*cols_data_subarray;
+		}
+		if(Ndwl*Ndbl>2) {
+			htree=logtwo((double)(Ndwl*Ndbl));
+			htree_int = (int) htree;
+			if (htree_int % 2 ==0) {
+				sub_v = sqrt(Ndwl*Ndbl)*rows_data_subarray;
+				sub_h = sqrt(Ndwl*Ndbl)*cols_data_subarray;
+			}
+			else {
+				sub_v = sqrt(Ndwl*Ndbl/2)*rows_data_subarray;
+				sub_h = 2*sqrt(Ndwl*Ndbl/2)*cols_data_subarray;
+			}
+		}
+		inter_v=sub_v;
+		inter_h=sub_h;
 
-            rows_tag_subarray = C/(B*A*Ntbl*Ntspd);
+		printf("\n sto fando %d / (%d*%d*%d*%d)",C,B,A,Ntbl,Ntspd);
+		fflush(stdout);
+		rows_tag_subarray = C/(B*A*Ntbl*Ntspd);
 
-            tagbits = ADDRESS_BITS+2-(int)logtwo((double)C)+(int)logtwo((double)A)-(int)(logtwo(NSubbanks));
-            cols_tag_subarray = tagbits*A*Ntspd/Ntwl ;
+		tagbits = ADDRESS_BITS+2-(int)logtwo((double)C)+(int)logtwo((double)A)-(int)(logtwo(NSubbanks));
+		cols_tag_subarray = tagbits*A*Ntspd/Ntwl ;
 
-            if(Ntwl*Ntbl==1) {
-                   sub_v= rows_tag_subarray;
-                   sub_h= cols_tag_subarray;
-            }
-            if(Ntwl*Ntbl==2) {
-                   sub_v= rows_tag_subarray;
-                   sub_h= 2*cols_tag_subarray;
-            }
+		if(Ntwl*Ntbl==1) {
+			sub_v= rows_tag_subarray;
+			sub_h= cols_tag_subarray;
+		}
+		if(Ntwl*Ntbl==2) {
+			sub_v= rows_tag_subarray;
+			sub_h= 2*cols_tag_subarray;
+		}
 
-            if(Ntwl*Ntbl>2) {
-                htree=logtwo((double)(Ndwl*Ndbl));
-                htree_int = (int) htree;
-                if (htree_int % 2 ==0) {
-                  sub_v = sqrt(Ndwl*Ndbl)*rows_tag_subarray;
-                  sub_h = sqrt(Ndwl*Ndbl)*cols_tag_subarray;
-                }
-                else {
-                  sub_v = sqrt(Ndwl*Ndbl/2)*rows_tag_subarray;
-                  sub_h = 2*sqrt(Ndwl*Ndbl/2)*cols_tag_subarray;
-                }
-            }
+		if(Ntwl*Ntbl>2) {
+			htree=logtwo((double)(Ndwl*Ndbl));
+			htree_int = (int) htree;
+			if (htree_int % 2 ==0) {
+				sub_v = sqrt(Ndwl*Ndbl)*rows_tag_subarray;
+				sub_h = sqrt(Ndwl*Ndbl)*cols_tag_subarray;
+			}
+			else {
+				sub_v = sqrt(Ndwl*Ndbl/2)*rows_tag_subarray;
+				sub_h = 2*sqrt(Ndwl*Ndbl/2)*cols_tag_subarray;
+			}
+		}
 
-                inter_v=MAX(sub_v,inter_v);
-                inter_h+=sub_h;
+		inter_v=MAX(sub_v,inter_v);
+		inter_h+=sub_h;
 
-	   *subbank_v=inter_v;
-	   *subbank_h=inter_h;
-  }
+		*subbank_v=inter_v;
+		*subbank_h=inter_h;
+	}
 
-  else {
-            rows_fa_subarray = (C/(B*Ndbl));
-            tagbits = ADDRESS_BITS+2-(int)logtwo((double)B);
-            cols_fa_subarray = (8*B)+tagbits;
+	else {
+		rows_fa_subarray = (C/(B*Ndbl));
+		tagbits = ADDRESS_BITS+2-(int)logtwo((double)B);
+		cols_fa_subarray = (8*B)+tagbits;
 
-            if(Ndbl==1) {
-                   sub_v= rows_fa_subarray;
-                   sub_h= cols_fa_subarray;
-            }
-            if(Ndbl==2) {
-                   sub_v= rows_fa_subarray;
-                   sub_h= 2*cols_fa_subarray;
-            }
+		if(Ndbl==1) {
+			sub_v= rows_fa_subarray;
+			sub_h= cols_fa_subarray;
+		}
+		if(Ndbl==2) {
+			sub_v= rows_fa_subarray;
+			sub_h= 2*cols_fa_subarray;
+		}
 
-            if(Ndbl>2) {
-                htree=logtwo((double)(Ndbl));
-                htree_int = (int) htree;
-                if (htree_int % 2 ==0) {
-                  sub_v = sqrt(Ndbl)*rows_fa_subarray;
-                  sub_h = sqrt(Ndbl)*cols_fa_subarray;
-                }
-                else {
-                  sub_v = sqrt(Ndbl/2)*rows_fa_subarray;
-                  sub_h = 2*sqrt(Ndbl/2)*cols_fa_subarray;
-                }
-            }
-                inter_v=sub_v;
-                inter_h=sub_h;
+		if(Ndbl>2) {
+			htree=logtwo((double)(Ndbl));
+			htree_int = (int) htree;
+			if (htree_int % 2 ==0) {
+				sub_v = sqrt(Ndbl)*rows_fa_subarray;
+				sub_h = sqrt(Ndbl)*cols_fa_subarray;
+			}
+			else {
+				sub_v = sqrt(Ndbl/2)*rows_fa_subarray;
+				sub_h = 2*sqrt(Ndbl/2)*cols_fa_subarray;
+			}
+		}
+		inter_v=sub_v;
+		inter_h=sub_h;
 
-           *subbank_v=inter_v;
-           *subbank_h=inter_h;
-  }
+		*subbank_v=inter_v;
+		*subbank_h=inter_h;
+	}
 }
 
 
-void subbanks_routing_power(fullyassoc,A,NSubbanks,subbank_h,subbank_v,power)
+void subbanks_routing_power(char fullyassoc,int A,double NSubbanks,double * subbank_h,double * subbank_v,double * power)
+/*
 double *subbank_h,*subbank_v;
 double NSubbanks;
 double *power;
-char fullyassoc;
+char fullyassoc;*/
 {
 double Ceq,Ceq_outdrv;
 int i,blocks,htree_int,subbank_mod;
@@ -594,12 +600,13 @@ double htree, wire_cap, wire_cap_outdrv, start_h,start_v,line_h,line_v;
 	}
 }
 
-double address_routing_delay(C, B, A,fullyassoc, Ndwl, Ndbl, Nspd, Ntwl, Ntbl, Ntspd,NSubbanks,outrisetime,power)
+double address_routing_delay(int C, int B, int A,char fullyassoc, int Ndwl, int Ndbl,int  Nspd,int  Ntwl, int Ntbl,int  Ntspd,double * NSubbanks,double * outrisetime,double * power)
+/*
 int C,B,A,Ndwl,Ndbl,Nspd,Ntwl,Ntbl,Ntspd;
 double *NSubbanks;
 double *outrisetime;
 double *power;
-char fullyassoc;
+char fullyassoc;*/
 {
         double Ceq,Req,Rwire,tf,nextinputtime,delay_stage1,delay_stage2;
         double addr_h,addr_v;
@@ -648,13 +655,14 @@ char fullyassoc;
 
 /* Decoder delay:  (see section 6.1 of tech report) */
 
-double decoder_delay(C, B, A, Ndwl, Ndbl, Nspd, Ntwl, Ntbl, Ntspd, Tdecdrive,
-             Tdecoder1, Tdecoder2,inrisetime,outrisetime, nor_inputs, power)
+double decoder_delay(int C,int  B,int  A, int Ndwl,int  Ndbl,int  Nspd,int  Ntwl,int  Ntbl,int  Ntspd,double * Tdecdrive,
+             double * Tdecoder1, double * Tdecoder2,double inrisetime,double *outrisetime, int *nor_inputs, double *power)
+/*
 int C,B,A,Ndwl,Ndbl,Nspd,Ntwl,Ntbl,Ntspd;
 double *Tdecdrive,*Tdecoder1,*Tdecoder2,*outrisetime;
 double inrisetime;
 int *nor_inputs;
-double *power;
+double *power;*/
 {
   int numstack;
         double Ceq,Req,Rwire,rows,cols,tf,nextinputtime,vth,tstep,m,a,b,c;
@@ -812,14 +820,15 @@ double *power;
 /* Decoder delay in the tag array (see section 6.1 of tech report) */
 
 
-double decoder_tag_delay(C, B, A, Ndwl, Ndbl, Nspd, Ntwl, Ntbl, Ntspd,NSubbanks, 
-             Tdecdrive, Tdecoder1, Tdecoder2,inrisetime,outrisetime, nor_inputs, power)
+double decoder_tag_delay(int C, int B, int A,int  Ndwl,int  Ndbl,int  Nspd, int Ntwl,int  Ntbl,int  Ntspd,double NSubbanks, 
+             double * Tdecdrive, double * Tdecoder1,double *  Tdecoder2,double inrisetime,double *outrisetime, int *nor_inputs,double* power)
+/*
 int C,B,A,Ndwl,Ndbl,Nspd,Ntwl,Ntbl,Ntspd;
 double *Tdecdrive,*Tdecoder1,*Tdecoder2,*outrisetime;
 double inrisetime;
 int *nor_inputs;
 double *power;
-double NSubbanks;
+double NSubbanks;*/
 {
         double Ceq,Req,Rwire,rows,cols,tf,nextinputtime,vth,tstep,m,a,b,c;
 	int numstack,tagbits;
@@ -971,12 +980,14 @@ double NSubbanks;
         return(*Tdecdrive+*Tdecoder1+*Tdecoder2);
 }
 
-double fa_tag_delay(C, B, Ndwl, Ndbl, Nspd, Ntwl, Ntbl, Ntspd, 
-             Tagdrive, Tag1, Tag2,Tag3,Tag4,Tag5,outrisetime, nor_inputs, power)
+double fa_tag_delay(int C, int B, int Ndwl,int  Ndbl,int Nspd, int Ntwl, int Ntbl,int  Ntspd, 
+             double * Tagdrive, double * Tag1,double *  Tag2,double * Tag3,double * Tag4,double * Tag5,double * outrisetime, int *nor_inputs, double *power)
+/*
 int C,B,Ndwl,Ndbl,Nspd,Ntwl,Ntbl,Ntspd;
 double *Tagdrive,*Tag1,*Tag2,*Tag3,*Tag4,*Tag5,*outrisetime;
 int *nor_inputs;
 double *power;
+*/
 {
         double Ceq,Req,Rwire,rows,tf,nextinputtime,vth,tstep,m,a,b,c;
 	int numstack;
@@ -1203,10 +1214,11 @@ double *power;
 /* Data array wordline delay (see section 6.2 of tech report) */
 
 
-double wordline_delay(B,A,Ndwl,Nspd,inrisetime,outrisetime, power)
+double wordline_delay(int B,int A,int Ndwl,int Nspd,double inrisetime,double *outrisetime,double * power)
+/*
 int B,A,Ndwl,Nspd;
 double inrisetime,*outrisetime;
-double *power;
+double *power;*/
 {
         double Rpdrive,nextrisetime;
         double desiredrisetime,psize,nsize;
@@ -1265,12 +1277,14 @@ double *power;
 /* Tag array wordline delay (see section 6.3 of tech report) */
 
 
-double wordline_tag_delay(C,A,Ntspd,Ntwl,NSubbanks,inrisetime,outrisetime,power)
+double wordline_tag_delay(int C,int A,int Ntspd,int Ntwl,double NSubbanks,double inrisetime,double* outrisetime,double *power)
+/*
 int C,A,Ntspd,Ntwl;
 double *outrisetime;
 double inrisetime;
 double *power;
 double NSubbanks;
+*/
 {
         double tf,m,a,b,c;
         double Cline,Rline,Ceq,nextinputtime;
@@ -1310,10 +1324,12 @@ double NSubbanks;
 /* Data array bitline: (see section 6.4 in tech report) */
 
 
-double bitline_delay(C,A,B,Ndwl,Ndbl,Nspd,inrisetime,outrisetime,power)
+double bitline_delay(int C,int A,int B,int Ndwl,int Ndbl,int Nspd,double inrisetime,double *outrisetime,double *power)
+/*
 int C,A,B,Ndbl,Nspd;
 double inrisetime,*outrisetime;
 double *power;
+*/
 {
         double Tbit,Cline,Ccolmux,Rlineb,r1,r2,c1,c2,a,b,c;
         double m,tstep;
@@ -1391,11 +1407,12 @@ double *power;
 /* Tag array bitline: (see section 6.4 in tech report) */
 
 
-double bitline_tag_delay(C,A,B,Ntwl,Ntbl,Ntspd,NSubbanks,inrisetime,outrisetime,power)
+double bitline_tag_delay(int C,int A,int B,int Ntwl,int Ntbl,int Ntspd,double NSubbanks,double inrisetime,double *outrisetime,double *power)
+/*
 int C,A,B,Ntbl,Ntspd;
 double inrisetime,*outrisetime;
 double *power;
-double NSubbanks;
+double NSubbanks;*/
 {
         double Tbit,Cline,Ccolmux,Rlineb,r1,r2,c1,c2,a,b,c;
         double m,tstep;
@@ -1457,10 +1474,11 @@ double NSubbanks;
 /* It is assumed the sense amps have a constant delay
    (see section 6.5) */
 
-double sense_amp_delay(inrisetime,outrisetime,rows,power)
+double sense_amp_delay(double inrisetime,double* outrisetime,int rows,double *power)
+/*
 double inrisetime,*outrisetime;
 int rows;
-double *power;
+double *power;*/
 {
    *outrisetime = tfalldata;
    *power*=psensedata;
@@ -1469,9 +1487,10 @@ double *power;
 
 /*--------------------------------------------------------------*/
 
-double sense_amp_tag_delay(inrisetime,outrisetime,power)
+double sense_amp_tag_delay(double inrisetime,double* outrisetime,double* power)
+/*
 double inrisetime,*outrisetime;
-double *power;
+double *power;*/
 {
    *outrisetime = tfalltag;
    *power*=psensetag;
@@ -1483,10 +1502,11 @@ double *power;
 /* Comparator Delay (see section 6.6) */
 
 
-double compare_time(C,A,Ntbl,Ntspd,NSubbanks,inputtime,outputtime)
+double compare_time(int C,int A,int Ntbl,int Ntspd,double NSubbanks,double inputtime,double *outputtime)
+/*
 int C,A,Ntbl,Ntspd;
 double inputtime,*outputtime;
-double NSubbanks;
+double NSubbanks;*/
 {
    double Req,Ceq,tf,st1del,st2del,st3del,nextinputtime,m;
    double c1,c2,r1,r2,tstep,a,b,c;
@@ -1554,11 +1574,12 @@ double NSubbanks;
    return(Tcomparatorni+st1del+st2del+st3del);
 }
 
-double half_compare_time(C,A,Ntbl,Ntspd,NSubbanks,inputtime,outputtime,power)
+double half_compare_time(int C,int A,int Ntbl,int Ntspd,double NSubbanks,double inputtime,double* outputtime,double *power)
+/*
 int C,A,Ntbl,Ntspd;
 double inputtime,*outputtime;
 double *power;
-double NSubbanks;
+double NSubbanks;*/
 {
    double Req,Ceq,tf,st1del,st2del,st3del,nextinputtime,m;
    double c1,c2,r1,r2,tstep,a,b,c;
@@ -1642,10 +1663,11 @@ double NSubbanks;
 /* Delay of the multiplexor Driver (see section 6.7) */
 
 
-double mux_driver_delay(C,B,A,Ndbl,Nspd,Ndwl,Ntbl,Ntspd,inputtime,outputtime, wirelength)
+double mux_driver_delay(int C,int B,int A,int Ndbl,int Nspd,int Ndwl,int Ntbl,int Ntspd,double inputtime,double *outputtime, double wirelength)
+/*
 int C,B,A,Ndbl,Nspd,Ndwl,Ntbl,Ntspd;
 double inputtime,*outputtime;
-double wirelength;
+double wirelength;*/
 {
    double Ceq,Req,tf,nextinputtime;
    double Tst1,Tst2,Tst3;
@@ -1685,11 +1707,12 @@ double wirelength;
 
 }
 
-double mux_driver_delay_dualin(C,B,A,Ndbl,Nspd,Ndwl,Ntbl,Ntspd,inputtime1,outputtime, wirelength_v, wirelength_h, power)
+double mux_driver_delay_dualin(int C,int B,int A,int Ndbl,int Nspd,int Ndwl,int Ntbl,int Ntspd,double inputtime1,double *outputtime, double wirelength_v, double wirelength_h, double *power)
+/*
 int C,B,A,Ndbl,Nspd,Ndwl,Ntbl,Ntspd;
 double inputtime1,*outputtime;
 double wirelength_v, wirelength_h;
-double *power;
+double *power;*/
 {
    double Ceq,Req,tf,nextinputtime;
    double Tst1,Tst2,Tst3;
@@ -1743,12 +1766,13 @@ double *power;
 
 }
 
-double senseext_driver_delay(C,B,A,fullyassoc,Ndbl,Nspd,Ndwl,Ntbl,Ntspd,inputtime,outputtime, wirelength_sense_v, wirelength_sense_h, power)
+double senseext_driver_delay(int C,int B,int A,char fullyassoc,int Ndbl,int Nspd,int Ndwl,int Ntbl,int Ntspd,double inputtime,double* outputtime, double wirelength_sense_v, double wirelength_sense_h, double *power)
+/*
 int C,B,A,Ndbl,Nspd,Ndwl,Ntbl,Ntspd;
 double inputtime,*outputtime;
 double wirelength_sense_v, wirelength_sense_h;
 double *power;
-char fullyassoc;
+char fullyassoc;*/
 {
    double Ceq,Req,tf,nextinputtime;
    double Tst1,Tst2,Tst3;
@@ -1786,12 +1810,13 @@ char fullyassoc;
 
 }
 
-double total_out_driver_delay(C,B,A,fullyassoc,Ndbl,Nspd,Ndwl,Ntbl,Ntwl,Ntspd,NSubbanks,inputtime,outputtime,power)
+double total_out_driver_delay(int C,int B,int A,char fullyassoc,int Ndbl,int Nspd,int Ndwl,int Ntbl,int Ntwl,int Ntspd,double NSubbanks,double inputtime,double *outputtime,double *power)
+/*
 int C,B,A,Ndbl,Nspd,Ndwl,Ntbl,Ntwl,Ntspd;
 double NSubbanks;
 double inputtime,*outputtime;
 double *power;
-char fullyassoc;
+char fullyassoc;*/
 {
 double single_power,total_senseext_driver,single_senseext_driver;
 int cols_data_subarray,rows_data_subarray,cols_tag_subarray,rows_tag_subarray;
@@ -1927,12 +1952,13 @@ int cols_fa_subarray,rows_fa_subarray;
 /* Valid driver (see section 6.9 of tech report)
    Note that this will only be called for a direct mapped cache */
 
-double valid_driver_delay(C,B,A,fullyassoc,Ndbl,Ndwl,Nspd,Ntbl,Ntwl,Ntspd,NSubbanks,inputtime,power)
+double valid_driver_delay(int C,int B,int A,char fullyassoc,int Ndbl,int Ndwl,int Nspd,int Ntbl,int Ntwl,int Ntspd,double *NSubbanks,double inputtime,double *power)
+/*
 int C,B,A,Ntbl,Ntwl,Ntspd,Ndbl,Ndwl,Nspd;
 double *NSubbanks;
 double inputtime;
 double *power;
-char fullyassoc;
+char fullyassoc;*/
 {
    double Ceq,Tst1,tf;
    int rows,tagbits,cols,htree_int,l_valdrv_v,l_valdrv_h,exp;
@@ -1991,12 +2017,14 @@ char fullyassoc;
    This is the time through the NAND/NOR gate and the final inverter 
    assuming sel is already present */
 
-double dataoutput_delay(C,B,A,fullyassoc,Ndbl,Nspd,Ndwl,
-              inrisetime,outrisetime,power)
+double dataoutput_delay(int C,int B,int A,char fullyassoc,int Ndbl,int Nspd,int Ndwl,
+              double inrisetime,double *outrisetime,double *power)
+/*
 int C,B,A,Ndbl,Nspd,Ndwl;
 double *outrisetime,inrisetime;
 double *power;
 char fullyassoc;
+*/
 {
         double Ceq,Rwire,Rline;
         double aspectRatio;     /* as height over width */
@@ -2096,9 +2124,10 @@ char fullyassoc;
 
 /* Sel inverter delay (part of the output driver)  see section 6.8 */
 
-double selb_delay_tag_path(inrisetime,outrisetime, power)
+double selb_delay_tag_path(double inrisetime,double *outrisetime, double *power)
+/*
 double inrisetime,*outrisetime;
-double *power;
+double *power;*/
 {
    double Ceq,Tst1,tf;
 
@@ -2119,8 +2148,7 @@ double *power;
  * the next access can occur [ie.  it returns (cycle time-access time)].
  */
 
-double precharge_delay(worddata)
-double worddata;
+double precharge_delay(double worddata)
 {
    double Ceq,tf,pretime;
 
@@ -2141,12 +2169,13 @@ double worddata;
 /*======================================================================*/
 
 
-void calculate_time(result,arearesult,arearesult_subbanked,parameters,NSubbanks)
+void calculate_time(result_type * result,arearesult_type * arearesult,area_type * arearesult_subbanked,parameter_type * parameters,double *NSubbanks)
+/*
 arearesult_type *arearesult;
 area_type *arearesult_subbanked;
 result_type *result;
 parameter_type *parameters;
-double *NSubbanks;
+double *NSubbanks;*/
 {
    arearesult_type arearesult_temp;
    area_type arearesult_subbanked_temp;
