@@ -225,3 +225,11 @@ double max(const double& a,const double& b)
     return b;
 }
 
+string noyes(int x)
+{
+    if (x==1) return string("no");
+    if (x==2) return string("yes");
+
+    return string("NOT_VALID noyes");
+}
+
