@@ -45,6 +45,7 @@ double atof(const string& s);
 int atoi(const string& s);
 string get_base_dir();
 double max(const double& a,const double& b);
+string noyes(int x);
 bool file_exists(const string& filename);
 
 typedef unsigned long long uint64;
