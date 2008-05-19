@@ -163,16 +163,14 @@ public:
   int n_objectives() {return n_obj;}
 
 private:
+
   int get_explorer_status() const;
   void prepare_explorer(const string& application,const Configuration& config);
+  vector<Simulation> simulate_loop(const vector<Configuration>& space);
 
 
   // private methods 
-//  void init_GA(SPEA& ga, ExportUserData* eud,GA_parameters* ga_parameters); // mau
   void init_GA(); //G
-//  void init_GA_Fuzzy(SPEA& ga, ExportUserData* eud,GA_parameters* ga_parameters); // mau
-//  vector<AlleleString::Allele> values2alleles(vector<int> values); // mau
-//  void ga_show_info(SPEA& ga, ExportUserData& eud, string fname); // mau
   //---------FuzzyApprox
   void SimulateBestWorst();
   //--------------------
