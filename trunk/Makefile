@@ -81,7 +81,7 @@ trimaran_interface.o: trimaran_interface.cpp trimaran_interface.h processor.h
 area.o: cacti.h area.c 
 	${CC} ${CFLAGS} -c area.c
 
-time.o: cacti.h area.c 
+time.o: cacti.h time.c 
 	${CC} ${CFLAGS} -c time.c
 
 parameter.o: parameter.cpp parameter.h 
