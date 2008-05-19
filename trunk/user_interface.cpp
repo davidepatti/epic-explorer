@@ -574,21 +574,18 @@ void User_interface::edit_exploration_space()
 	my_explorer->compiler.memvr_profiled.set_to_first();	//db
 
 	cout << "\n --------- Cache ------------------------------- ";
-
 	cout << "\n [1]           L1D size: " ;
 	do { cout << my_explorer->mem_hierarchy.L1D.size.get_val() << ","; } while (my_explorer->mem_hierarchy.L1D.size.increase()); 
 	cout << "\n [2]     L1D block_size: " ;
 	do { cout << my_explorer->mem_hierarchy.L1D.block_size.get_val() << ","; } while (my_explorer->mem_hierarchy.L1D.block_size.increase());
 	cout << "\n [3]  L1D associativity: " ;
 	do { cout << my_explorer->mem_hierarchy.L1D.associativity.get_val() << ","; } while (my_explorer->mem_hierarchy.L1D.associativity.increase());
-
 	cout << "\n [4]           L1I size: " ;
 	do { cout << my_explorer->mem_hierarchy.L1I.size.get_val() << ","; } while (my_explorer->mem_hierarchy.L1I.size.increase());
 	cout << "\n [5]     L1I block_size: " ;
 	do { cout << my_explorer->mem_hierarchy.L1I.block_size.get_val() << ","; } while (my_explorer->mem_hierarchy.L1I.block_size.increase());
 	cout << "\n [6]  L1I associativity: " ;
 	do { cout << my_explorer->mem_hierarchy.L1I.associativity.get_val() << ","; } while (my_explorer->mem_hierarchy.L1I.associativity.increase());
-	
 	cout << "\n [7]           L2U size: " ;
 	do { cout << my_explorer->mem_hierarchy.L2U.size.get_val() << ","; } while (my_explorer->mem_hierarchy.L2U.size.increase());
 	cout << "\n [8]     L2U block_size: " ;
@@ -604,7 +601,6 @@ void User_interface::edit_exploration_space()
 	do { cout << my_explorer->processor.memory_units.get_val() << ","; } while (my_explorer->processor.memory_units.increase());
 	cout << "\n [13]      branch_units: ";
 	do { cout << my_explorer->processor.branch_units.get_val() << ","; } while (my_explorer->processor.branch_units.increase());
-	cout << "\n";
 	cout << "\n [14]   gpr_static_size: ";
 	do { cout << my_explorer->processor.gpr_static_size.get_val() << ","; } while (my_explorer->processor.gpr_static_size.increase());
 	cout << "\n [15]   fpr_static_size: ";
@@ -623,25 +619,23 @@ void User_interface::edit_exploration_space()
 	do { cout << my_explorer->compiler.tcc_region.get_val() << ","; } while (my_explorer->compiler.tcc_region.increase());	//db
 	cout << "\n [21]  max_unroll_allowed: ";	//db
 	do { cout << my_explorer->compiler.max_unroll_allowed.get_val() << ","; } while (my_explorer->compiler.max_unroll_allowed.increase());	//db
-	cout << "\n\n       (1 = no, 2 = yes) ";	
 	cout << "\n [22]  regroup_only: ";	//db
-	do { cout << my_explorer->compiler.regroup_only.get_val() << ","; } while (my_explorer->compiler.regroup_only.increase());	//db
+	do { cout << noyes(my_explorer->compiler.regroup_only.get_val()) << ","; } while (my_explorer->compiler.regroup_only.increase());	//db
 	cout << "\n [23]  do_classic_opti: ";	//db
-	do { cout << my_explorer->compiler.do_classic_opti.get_val() << ","; } while (my_explorer->compiler.do_classic_opti.increase());	//db
+	do { cout << noyes(my_explorer->compiler.do_classic_opti.get_val()) << ","; } while (my_explorer->compiler.do_classic_opti.increase());	//db
 	cout << "\n [24]  do_prepass_scalar_scheduling: ";	//db
-	do { cout << my_explorer->compiler.do_prepass_scalar_scheduling.get_val() << ","; } //db
+	do { cout << noyes(my_explorer->compiler.do_prepass_scalar_scheduling.get_val()) << ","; } //db
 		while (my_explorer->compiler.do_prepass_scalar_scheduling.increase());	//db
 	cout << "\n [25]  do_postpass_scalar_scheduling: ";	//db
-	do { cout << my_explorer->compiler.do_postpass_scalar_scheduling.get_val() << ","; } //db
+	do { cout << noyes(my_explorer->compiler.do_postpass_scalar_scheduling.get_val()) << ","; } //db
 		while (my_explorer->compiler.do_postpass_scalar_scheduling.increase());	//db
 	cout << "\n [26]  do_modulo_scheduling: ";	//db
-	do { cout << my_explorer->compiler.do_modulo_scheduling.get_val() << ","; } //db
+	do { cout << noyes(my_explorer->compiler.do_modulo_scheduling.get_val()) << ","; } //db
 		while (my_explorer->compiler.do_modulo_scheduling.increase());	//db
 	cout << "\n [27]  memvr_profiled: ";	//db
-	do { cout << my_explorer->compiler.memvr_profiled.get_val() << ","; } while (my_explorer->compiler.memvr_profiled.increase());	//db
+	do { cout << noyes(my_explorer->compiler.memvr_profiled.get_val()) << ","; } while (my_explorer->compiler.memvr_profiled.increase());	//db
 	cout << "\n\n Total Space size: " << my_explorer->get_space_size();
 
-	cout << "\n ";
 	cout << "\n---------------------------------------------";
 	cout << "\n (e) - Edit a parameter ";
 	cout << "\n (s) - Save current space to file ";
@@ -659,7 +653,7 @@ void User_interface::edit_exploration_space()
 	    cout << "\n Enter a parameter index: ";
 	    cin >> p;
 	    cout << "\n Enter parameter values, separated by empty spaces ";
-	    cout << "\n Use 0 for the last ";
+	    cout << "\n Use 0 for to end the sequence (e.g. 1 2 3 0)";
 	    cout << "\n values: ";
 	    while ( (cin>>val) && (val!=0) ) values.push_back(val);
 
@@ -772,7 +766,7 @@ void User_interface::info()
     cout << "\n Open Platform for Design Space Exploration of EPIC/VLIW architectures";
     cout << "\n";
     cout << "\n -------------------------------------------------------- ";
-    cout << "\n Written by Davide Patti <dpatti@diit.unict.it>";
+    cout << "\n Written by Davide Patti <dpatti@diit.unict.it>" << endl;
     cout << "\n Additional coding by Maurizio Palesi <mpalesi@diit.unict.it>";
     cout << "\n Fuzzy code by Alessandro Di Nuovo <adinuovo@diit.unict.it>";
     cout << "\n MPI GA Multi-Bench code by Gianmarco De Francisci Morales <gmorales@diit.unict.it>";
@@ -791,7 +785,7 @@ void User_interface::info()
 void User_interface::show_system_config() {
 
     system("clear");
-    cout <<"\n Cache  --------------------------------" << endl;
+    cout <<"\n -----------------------------------------" << endl;
     cout << my_explorer->mem_hierarchy.L1I.label<< ": ";
     cout << my_explorer->mem_hierarchy.L1I.block_size.get_val() << "/";
     cout << my_explorer->mem_hierarchy.L1I.size.get_val() << "/";
@@ -808,43 +802,38 @@ void User_interface::show_system_config() {
     cout << my_explorer->mem_hierarchy.L2U.block_size.get_val() << "/";
     cout << my_explorer->mem_hierarchy.L2U.size.get_val() << "/";
     cout << my_explorer->mem_hierarchy.L2U.associativity.get_val();
-    cout << "  (block/size/assoc)" << endl;
+    cout << "  (block/size/assoc)";
 
-   cout << "\n Units (per-cluster)---------------------"; 
-   cout<<"\n num_clusters:"<< my_explorer->processor.num_clusters.get_val();
-   cout<<"\n integer_units:"<< my_explorer->processor.integer_units.get_val();
-   cout<<"\n float_units:"<< my_explorer->processor.float_units.get_val();
-   cout<<"\n memory_units:"<< my_explorer->processor.memory_units.get_val();
-   cout<<"\n branch_units:"<< my_explorer->processor.branch_units.get_val();
+    cout <<"\n -----------------------------------------";
+   cout<<"\n num_clusters:\t"<< my_explorer->processor.num_clusters.get_val();
+   cout<<"\n integer_units:\t"<< my_explorer->processor.integer_units.get_val();
+   cout<<"\n float_units:\t"<< my_explorer->processor.float_units.get_val();
+   cout<<"\n memory_units:\t"<< my_explorer->processor.memory_units.get_val();
+   cout<<"\n branch_units:\t"<< my_explorer->processor.branch_units.get_val();
 
    //cout<<"\n local_memory_units "<< my_explorer->processor.memory_units.get_val();
 
-   cout << "\n\n Register Files -----------------------";
-   cout<<"\n gpr_static_size:"<< my_explorer->processor.gpr_static_size.get_val();
-   cout<<"\n fpr_static_size:"<< my_explorer->processor.fpr_static_size.get_val();
-   cout<<"\n pr_static_size:"<< my_explorer->processor.pr_static_size.get_val();
-   cout<<"\n cr_static_size:"<< my_explorer->processor.cr_static_size.get_val();
-   cout<<"\n btr_static_size:"<< my_explorer->processor.btr_static_size.get_val();
+    cout <<"\n -----------------------------------------";
+   cout<<"\n gpr_static_size:\t"<< my_explorer->processor.gpr_static_size.get_val();
+   cout<<"\n fpr_static_size:\t"<< my_explorer->processor.fpr_static_size.get_val();
+   cout<<"\n pr_static_size:\t"<< my_explorer->processor.pr_static_size.get_val();
+   cout<<"\n cr_static_size:\t"<< my_explorer->processor.cr_static_size.get_val();
+   cout<<"\n btr_static_size:\t"<< my_explorer->processor.btr_static_size.get_val();
 
-    cout << "\n Compiler ----------------------------------";	//db
-    if (my_explorer->compiler.tcc_region.get_val()== 1) cout << "\n tcc_region:\t basic block" << endl; 	//db
-    if (my_explorer->compiler.tcc_region.get_val()== 2) cout << "\n tcc_region:\t hyperblock" << endl; 	//db
-    if (my_explorer->compiler.tcc_region.get_val()== 3) cout << "\n tcc_region:\t superblock" << endl;	//db
-    cout << "\n\t>> Impact ";	//db
-    cout << "\n\tmax_unroll_allowed:\t " << my_explorer->compiler.max_unroll_allowed.get_val();	//db
-    if (my_explorer->compiler.regroup_only.get_val() == 1 ) cout << "\n regroup_only:\t\t no";	//db
-		    else cout << "\n regroup_only:\t\t yes" << endl;
-    cout << "\n >> Elcor ";		//db
-    if (my_explorer->compiler.do_classic_opti.get_val() == 1) cout << "\n do_classic_opti:\t\t no";	//db
-		    else cout << "\n\tdo_classic_opti:\t\t yes";	//db 
-    if (my_explorer->compiler.do_prepass_scalar_scheduling.get_val() == 1) cout << "\n do_prepass_scalar_scheduling:\t no";	//db
-		    else cout << "\n\tdo_prepass_scalar_scheduling:\t yes";	//db 
-    if (my_explorer->compiler.do_postpass_scalar_scheduling.get_val() == 1) cout << "\n do_postpass_scalar_scheduling:\t no";//db
-		    else cout << "\n\tdo_postpass_scalar_scheduling:\t yes";	//db
-    if (my_explorer->compiler.do_modulo_scheduling.get_val() == 1) cout << "\n do_modulo_scheduling:\t\t no";	//db 	
-		    else cout << "\n\tdo_modulo_scheduling:\t\t yes";	//db
-    if (my_explorer->compiler.memvr_profiled.get_val() == 1) cout << "\n memvr_profiled:\t\t no";	//db
-		    else cout << "\n\tmemvr_profiled:\t\t yes";	//db
+    cout <<"\n -----------------------------------------";
+    if (my_explorer->compiler.tcc_region.get_val()== 1) cout << "\n tcc_region: basic block" << endl; 	//db
+    if (my_explorer->compiler.tcc_region.get_val()== 2) cout << "\n tcc_region: hyperblock" << endl; 	//db
+    if (my_explorer->compiler.tcc_region.get_val()== 3) cout << "\n tcc_region: superblock" << endl;	//db
+    // impact
+    cout << "\n max_unroll_allowed: " << my_explorer->compiler.max_unroll_allowed.get_val();	//db
+    cout << "\n regroup_only: " << noyes(my_explorer->compiler.regroup_only.get_val());
+    // Elcor
+    cout << "\n do_classic_opti: " << noyes(my_explorer->compiler.do_classic_opti.get_val());	//db 
+    cout << "\n do_prepass_scalar_scheduling: " << noyes(my_explorer->compiler.do_prepass_scalar_scheduling.get_val());
+    cout << "\n do_postpass_scalar_scheduling: " << noyes(my_explorer->compiler.do_postpass_scalar_scheduling.get_val());
+    cout << "\n do_modulo_scheduling: " << noyes(my_explorer->compiler.do_modulo_scheduling.get_val());
+    cout << "\n memvr_profiled: " << noyes(my_explorer->compiler.memvr_profiled.get_val());
+
 }
 
 void User_interface::load_settings_wrapper()
@@ -1238,15 +1227,13 @@ void User_interface::view_statistics() {
     Dynamic_stats dynamic_stats = trimaran_interface->get_dynamic_stats(simu_path);
 
     cout << "\n D y n a m i c  S t a t s ";
-
     cout << "\n------------------------------------------------";
-
     cout << "\n            Total cycles: " << dynamic_stats.total_cycles;
     cout << "\n          Compute cycles: " << dynamic_stats.compute_cycles;
     cout << "\n            Stall cycles: " << dynamic_stats.stall_cycles;
     cout << "\n       Total dynamic ops: " << dynamic_stats.total_dynamic_operations;
     cout << "\n       Average ops/cycle: " << dynamic_stats.average_issued_ops_total_cycles;
-    cout << endl;
+    cout << "\n------------------------------------------------";
     cout << "\n             Integer alu: " << dynamic_stats.ialu;
     cout << "\n               Float alu: " << dynamic_stats.falu;
     cout << "\n                    Load: " << dynamic_stats.load;
@@ -1256,21 +1243,11 @@ void User_interface::view_statistics() {
     cout << "\n                Branches: " << dynamic_stats.branch;
     cout << "\n                     icm: " << dynamic_stats.icm;
     cout << "\n------------------------------------------------";
-    cout << "\n\n L1 Data Cache";
-    cout << "\n------------------------------------------------";
-    cout << "\n read  (hit/miss): ("<< dynamic_stats.L1D_r_hit<<"/"<<dynamic_stats.L1D_r_miss<<")";
-    cout << "\n write (hit/miss): ("<< dynamic_stats.L1D_w_hit<<"/"<<dynamic_stats.L1D_w_miss<<")";
-
-    cout << "\n\n L1 Instruction Cache ";
-    cout << "\n------------------------------------------------";
-
-    cout << "\n total fetches: " << dynamic_stats.L1I_fetches;
-    cout << "\n read (hit/miss): ("<< dynamic_stats.L1I_hit <<"/"<< dynamic_stats.L1I_miss<<")";
-
-    cout << "\n\n Level 2 unified Cache ";
-    cout << "\n------------------------------------------------";
-    cout << "\n read (hit/miss): ("<< dynamic_stats.L2U_hit<<"/" << dynamic_stats.L2U_miss<<")";
-
+    cout << "\n     L1D (read hit/miss): "<< dynamic_stats.L1D_r_hit<<"/"<<dynamic_stats.L1D_r_miss;
+    cout << "\n    L1D (write hit/miss): "<< dynamic_stats.L1D_w_hit<<"/"<<dynamic_stats.L1D_w_miss;
+    cout << "\n     L1I (total fetches): " << dynamic_stats.L1I_fetches;
+    cout << "\n          L1I (hit/miss): "<< dynamic_stats.L1I_hit <<"/"<< dynamic_stats.L1I_miss;
+    cout << "\n          L2U (hit/miss): "<< dynamic_stats.L2U_hit<<"/" << dynamic_stats.L2U_miss;
 }
 
 void User_interface::compute_cost() {
@@ -1282,7 +1259,6 @@ void User_interface::compute_cost() {
     Dynamic_stats dynamic_stats = trimaran_interface->get_dynamic_stats(simu_path);
     Estimate estimate = my_explorer->estimator.get_estimate(dynamic_stats,my_explorer->mem_hierarchy,my_explorer->processor);
 
-    cout << "\n\n";
     cout << "\n  P e r f o r m a n c e ";
     cout << "\n ----------------------------------------------------";
     cout << "\n   Total cycles executed: " << estimate.execution_cycles;
@@ -1292,31 +1268,25 @@ void User_interface::compute_cost() {
     cout << "\n   clock freq (Mhz): " << estimate.clock_freq/1e6;
     cout << "\n   Average Ops/Cycle: "  << dynamic_stats.average_issued_ops_total_cycles;
     cout << "\n   L1D bus transition prob: " << estimate.L1D_transition_p;
-    cout << "\n   L1I bus transition prob: " << estimate.L1I_transition_p;
-
-
-    cout << "\n\n";
+    cout << "\n   L1I bus transition prob: " << estimate.L1I_transition_p << endl;
 
     cout << "\n  E n e r g y  &  P o w e r ";
     cout << "\n ---------------------------------------------------";
-    cout << "\n   L1D cache energy (mJ): " << estimate.L1D_energy*1000;
-    cout << "\n   L1I cache energy (mJ): " << estimate.L1I_energy*1000;
-    cout << "\n   L2U cache energy (mJ): " << estimate.L2U_energy*1000;
+    cout << "\n   L1D Cache energy (mJ): " << estimate.L1D_energy*1000;
+    cout << "\n   L1I Cache energy (mJ): " << estimate.L1I_energy*1000;
+    cout << "\n   L2U Cache energy (mJ): " << estimate.L2U_energy*1000;
     cout << "\n   Total Cache energy (mJ) " << estimate.total_cache_energy*1000;
-    cout << "\n";
     cout << "\n   Main Memory energy (mJ): " << estimate.main_memory_energy*1000;
-    cout << "\n";
     cout << "\n   Processor energy (mJ): " << estimate.total_processor_energy*1000;
-    cout << "\n\n--> Total System Energy (mJ): "<< estimate.total_system_energy*1000;
-    cout << "\n--> Average System Power (W):"<< estimate.total_average_power;
+    cout << "\n   Total System Energy (mJ): "<< estimate.total_system_energy*1000;
+    cout << "\n   Average System Power (W):"<< estimate.total_average_power << endl;
 
-    cout << "\n\n";
     cout << "\n  A r e a ";
     cout << "\n ---------------------------------------------------";
     cout << "\n   L1 Instruction cache area (cm^2): " << estimate.L1I_area;
     cout << "\n   L1 Data cache area (cm^2): " << estimate.L1D_area;
     cout << "\n   L2 Unified cache area (cm^2): " << estimate.L2U_area;
     cout << "\n   Processor core area (cm^2): " << estimate.processor_area;
-    cout << "\n\n--> Total System Area (cm^2 ): " << estimate.total_area;
+    cout << "\n   Total System Area (cm^2 ): " << estimate.total_area;
 }
 
