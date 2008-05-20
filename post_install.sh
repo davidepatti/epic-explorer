@@ -15,7 +15,6 @@ echo "** Checking for trimaran installation files..."
 
 if [ -e $TRIMARAN_ROOT/scripts ]; then
    echo "  ** Ok, found a trimaran 4 installation, copying new tcc script..."
-   mv $TRIMARAN_ROOT/scripts/tcc $TRIMARAN_ROOT/scripts/tcc.old
    cp $EPIC_SOURCE/MISC_FILES/tcc $TRIMARAN_ROOT/scripts
 else
    echo "  > Missing $TRIMARAN_ROOT/scripts directory !"
@@ -34,38 +33,18 @@ else # missing workspace
     mkdir -p $WORKSPACE/epic-explorer
 fi
 
-if [ ! -e "$WORKSPACE/epic-explorer/m5elements" ]; then
-    echo " > Copying m5elements configuration files..."
-    cp -R $EPIC_SOURCE/MISC_FILES/m5elements $WORKSPACE/epic-explorer/
-    else
-    echo "  ** Ok, found $WORKSPACE/epic-explorer/m5elements"
-fi
+echo " > Copying m5elements configuration files..."
+cp -Rf $EPIC_SOURCE/MISC_FILES/m5elements $WORKSPACE/epic-explorer/
+echo " > Copying SUBSPACES directory..."
+cp -Rf $EPIC_SOURCE/SUBSPACES $WORKSPACE/epic-explorer
 
-if [ ! -e "$WORKSPACE/epic-explorer/SUBSPACES" ]; then
-    echo " > Creating $WORKSPACE/epic-explorer/SUBSPACES directory and copying files..."
-    cp -R $EPIC_SOURCE/SUBSPACES $WORKSPACE/epic-explorer
-    else
-    echo "  ** Ok, found $WORKSPACE/epic-explorer/SUBSPACES"
-fi
+echo " > Creating $WORKSPACE/epic-explorer/machines directory..."
+cp -Rf $EPIC_SOURCE/MISC_FILES/machines $WORKSPACE/epic-explorer/
 
-# checking machines dir ##########################################
-if [ -e $WORKSPACE/epic-explorer/machines ]; then
-    echo "  ** Ok, found $WORKSPACE/epic-explorer/machines"
-else
-    echo " > Creating $WORKSPACE/epic-explorer/machines directory..."
-    cp -R $EPIC_SOURCE/MISC_FILES/machines $WORKSPACE/epic-explorer/
-fi
+echo " > Creating $WORKSPACE/epic-explorer/step_by_step directory..."
 
-# checking step_by_step dir ######################################
-if [ -e $WORKSPACE/epic-explorer/step_by_step ]; then
-    echo "  ** Ok, Found $WORKSPACE/epic-explorer/step_by_step"
-else
-    echo " > Creating $WORKSPACE/epic-explorer/step_by_step directory..."
-    mkdir $WORKSPACE/epic-explorer/step_by_step
-fi
-
-cp -R $EPIC_SOURCE/MISC_FILES/machines $WORKSPACE/epic-explorer/step_by_step
-cp -R $EPIC_SOURCE/MISC_FILES/m5elements $WORKSPACE/epic-explorer/step_by_step 
+cp -Rf $EPIC_SOURCE/MISC_FILES/machines $WORKSPACE/epic-explorer/step_by_step
+cp -Rf $EPIC_SOURCE/MISC_FILES/m5elements $WORKSPACE/epic-explorer/step_by_step 
 
 if [ -e "$WORKSPACE/epic-explorer/epic_default.conf" ]; then
     echo " ** Warning: Found a previous epic_default.conf, saved as epic_default-previous.conf"
