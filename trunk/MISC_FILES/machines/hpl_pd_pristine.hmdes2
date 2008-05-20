@@ -145,8 +145,8 @@ SECTION Register
   'GPR_0_12'  (macro || (INT_PARAM_2));	
   'GPR_0_13'  (macro || (INT_PARAM_3));	
   'GPR_0_14'  (macro || (INT_PARAM_4));	
-  'GPR_0_16'  (macro || (INT_RETURN));	
-//  'GPR_0_15'  (macro || (INT_RETURN));	Use this for 16-element RF
+//  'GPR_0_16'  (macro || (INT_RETURN));	
+  'GPR_0_15'  (macro || (INT_RETURN));	Use this for 16-element RF
   
   'CR_0_0' (macro || (LC_REG));
   'CR_0_1' (macro || (ESC_REG));
@@ -175,22 +175,23 @@ SECTION Register
 	 	
   'BTR_0_1'  (macro || (RETURN_ADDR));
 	
-  'FPR_0_20' (macro || (DBL_ZERO));	
-  'FPR_0_21' (macro || (DBL_PARAM_1));	
-  'FPR_0_22' (macro || (DBL_PARAM_2));		
-  'FPR_0_23' (macro || (DBL_PARAM_3));	
-  'FPR_0_24' (macro || (DBL_PARAM_4));		
-  'FPR_0_25' (macro || (DBL_RETURN));	
-  'FPR_0_26'  (macro || (DBL_ONE));
+// 'FPR_0_20' (macro || (DBL_ZERO));	
+// 'FPR_0_21' (macro || (DBL_PARAM_1));	
+// 'FPR_0_22' (macro || (DBL_PARAM_2));		
+// 'FPR_0_23' (macro || (DBL_PARAM_3));	
+// 'FPR_0_24' (macro || (DBL_PARAM_4));		
+// 'FPR_0_25' (macro || (DBL_RETURN));	
+// 'FPR_0_26'  (macro || (DBL_ONE));
+//
 
-//  use the ones below for 16-element RF
-//  'FPR_0_9' (macro || (DBL_ZERO));	
-//  'FPR_0_10' (macro || (DBL_PARAM_1));	
-//  'FPR_0_11' (macro || (DBL_PARAM_2));		
-//  'FPR_0_12' (macro || (DBL_PARAM_3));	
-//  'FPR_0_13' (macro || (DBL_PARAM_4));		
-//  'FPR_0_14' (macro || (DBL_RETURN));	
-//  'FPR_0_15'  (macro || (DBL_ONE));
+  use the ones below for 16-element RF
+  'FPR_0_9' (macro || (DBL_ZERO));	
+  'FPR_0_10' (macro || (DBL_PARAM_1));	
+  'FPR_0_11' (macro || (DBL_PARAM_2));		
+  'FPR_0_12' (macro || (DBL_PARAM_3));	
+  'FPR_0_13' (macro || (DBL_PARAM_4));		
+  'FPR_0_14' (macro || (DBL_RETURN));	
+  'FPR_0_15'  (macro || (DBL_ONE));
 
 
 
