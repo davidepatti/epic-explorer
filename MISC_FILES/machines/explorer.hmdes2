@@ -17,7 +17,7 @@ $def !cr_rotating_size	128
 
 $def !btr_static_size	16
 
-// Per-cluster functional fnits 
+// Functional fnits 
 
 $def !integer_units	6
 $def !float_units	2
