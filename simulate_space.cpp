@@ -183,7 +183,7 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
     //  main exploration loop
     // ********************************************************
 
-    int communicator[27]; //db
+    int communicator[N_PARAMS]; //db
     int counter = 0;
     int counter2 = 0;
 
@@ -248,7 +248,7 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
 	    communicator[24] = space2[s].do_postpass_scalar_scheduling;	//db
 	    communicator[25] = space2[s].do_modulo_scheduling;	//db
 	    communicator[26] = space2[s].memvr_profiled;	//db
-	    MPI_Send(communicator, 27, MPI_INT, p, 99, MPI_COMM_WORLD);
+	    MPI_Send(communicator, N_PARAMS, MPI_INT, p, 99, MPI_COMM_WORLD);
 	}
 	space2.clear();
 	counter2 += counter;
@@ -328,7 +328,7 @@ int Explorer::simulate_space()
     vector<Simulation> simulations;
     vector<Configuration> space;
     
-    int communicator[27];  //db
+    int communicator[N_PARAMS];  //db
     Configuration tmp;
     MPI_Status status;
     int counter = 0;
@@ -349,7 +349,7 @@ int Explorer::simulate_space()
     trimaran_interface->set_benchmark(Options.benchmark);
 
     for(int i = 0; i<counter; i++) {
-    	MPI_Recv(communicator,27,MPI_INT,0,99,MPI_COMM_WORLD,&status); //db
+    	MPI_Recv(communicator,N_PARAMS,MPI_INT,0,99,MPI_COMM_WORLD,&status); //db
         tmp.L1D_block = communicator[0];
 	tmp.L1D_size = communicator[1];
 	tmp.L1D_assoc = communicator[2];
