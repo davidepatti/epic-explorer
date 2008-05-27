@@ -301,8 +301,7 @@ double Estimator::get_processor_energy(const Dynamic_stats& dyn_stats,
 
 int Estimator::max_reg_size(const Processor& p) {
 
-    // NOTE:
-    // register rotating size assumed = static size
+    // NOTE: register rotating size assumed = static size
 
     int max_size = 0;
 
@@ -322,14 +321,12 @@ int Estimator::max_reg_size(const Processor& p) {
     
 double Estimator::get_processor_area(const Processor& processor) 
 {
-    // TODO: should be syncronized with energy model 0.13 technology,
-    // but it's still usable for relative comparison of configurations
-
     // ----------------------------------------------------------
     //     Processor Area
     // ----------------------------------------------------------
     //  all values are expressed in um^2
     //  0.35um technology
+    //  before returning value is scaled by 0.35/TECHNOLOGY
     //  
     //  adapted from model presented in [1]
     // ***********************************************************
@@ -379,21 +376,19 @@ double Estimator::get_processor_area(const Processor& processor)
     // ***********************************************************
 
     // cr(32,nr,4) = 67184*nr + 5521
-    //
- 
 
     /////////////////////////////////////////////////////////////////
     // NOTE:
     // register size = static + rotating , but rotating is assumed
     // equal to static portion
-    int n_regs_32bit =processor.gpr_static_size.get_val()+
-   		      processor.gpr_static_size.get_val()+
-		      processor.cr_static_size.get_val()+
-		      processor.cr_static_size.get_val();
+    int n_regs_32bit =num_clusters*processor.gpr_static_size.get_val()+
+   		      num_clusters*processor.gpr_static_size.get_val()+
+		      num_clusters*processor.cr_static_size.get_val()+
+		      num_clusters*processor.cr_static_size.get_val();
 
-    int n_regs_64bit = processor.fpr_static_size.get_val() + 
-	               processor.fpr_static_size.get_val()+
-		       processor.btr_static_size.get_val();
+    int n_regs_64bit = num_clusters*processor.fpr_static_size.get_val() + 
+	               num_clusters*processor.fpr_static_size.get_val()+
+		       num_clusters*processor.btr_static_size.get_val();
 
 
     // missing pr , only 1 bit width 
@@ -419,7 +414,9 @@ double Estimator::get_processor_area(const Processor& processor)
     // value is converted from um^2 to cm^2
     double total_area  = (kernel_area + reg_area + units_area)/100000000;
 
-    return total_area;
+    double scaling_factor = 0.35/TECHNOLOGY;
+
+    return total_area/scaling_factor;
 }
 
 
@@ -435,7 +432,14 @@ void Estimator::set_autoclock(bool enabled)
     }
 }
 
-double Estimator::get_access_time(const Mem_hierarchy::Cache& cache)
+// Register file access time - tech_size TECHNOLOGY assumed
+double Estimator::get_registerfile_access_time(int words,int size,int write_ports,int read_ports)
+{
+
+}
+
+// Cache access time - Based on Cacti models
+double Estimator::get_cache_access_time(const Mem_hierarchy::Cache& cache)
 {
     parameter_type  parameters;
     area_type  arearesult_subbanked;
@@ -445,11 +449,9 @@ double Estimator::get_access_time(const Mem_hierarchy::Cache& cache)
     double area ;
     double NSubbanks = 1;
 
-    /* Cacti parameters
-     * Assuming  : 
-     RWP = 1; ERP = 0; EWP = 0; NSER = 0; Ndbl = 1; Ndwl = 1; Nspd = 1; Ntbl = 1; Ntwl = 1; Ntspd = 1;
-    NSubbanks = 1; 
-      */
+    /* Cacti parameters, asssuming  : 
+     RWP = 1; ERP = 2; EWP = 1; NSER = 0; Ndbl = 1; Ndwl = 1; Nspd = 1; Ntbl = 1; Ntwl = 1; Ntspd = 1;
+    NSubbanks = 1; */
 
     int A = cache.associativity.get_val();
     int B = cache.block_size.get_val();
@@ -562,16 +564,16 @@ double Estimator::get_cache_area(const Mem_hierarchy::Cache& cache)
     parameters.cache_size= C;
     parameters.block_size= B;
     parameters.associativity = A;
-    parameters.num_readwrite_ports = 1; //RWP
-    parameters.num_read_ports = 0;  // ERP
-    parameters.num_write_ports = 0; // EWR
+    parameters.num_readwrite_ports = 0; //RWP
+    parameters.num_read_ports = 2;  // ERP
+    parameters.num_write_ports = 1; // EWR
     parameters.num_single_ended_read_ports = 0; // NSER
     parameters.number_of_sets = C/(B*A);
     parameters.fudgefactor = 0.8/TECHNOLOGY;
     parameters.tech_size = TECHNOLOGY;
     parameters.VddPow = VDD;
 
-    area_subbanked(baddr, b0,0,ISSUE_WIDTH*2,ISSUE_WIDTH,1,1,1,1,1,1,1,&parameters,&result_subbanked, &result);
+    area_subbanked(baddr, b0,0,2,1,1,1,1,1,1,1,NSubbanks,&parameters,&result_subbanked, &result);
 
     // expressed in cm^2
     
@@ -695,8 +697,8 @@ Estimate Estimator::get_estimate(const Dynamic_stats& dyn_stats,
     string tmp;
     Estimate estimate;
 
-    estimate.L1D_access_time = get_access_time(mem.L1D);
-    estimate.L1I_access_time = get_access_time(mem.L1I);
+    estimate.L1D_access_time = get_cache_access_time(mem.L1D);
+    estimate.L1I_access_time = get_cache_access_time(mem.L1I);
 
     // If auto clock option is enabled, CLOCK_FREQ and current_clock_T are recalibrated
     // to allow L1 access time

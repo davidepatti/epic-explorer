@@ -94,15 +94,17 @@ vector<Simulation> Explorer::simulate_loop(const vector<Configuration>& space)
 
 	}
 
+	/* TODO: re-enable
 	else   // NOT do simulation...
 	{   // using pproximation instead of simulation
-	    assert(approx_settings.enabled);
+	    assert(Options.approx_settings.enabled);
 
 	    current_sim = function_approx->Estimate1(space[i],processor,mem_hierarchy);
 	    current_sim.simulated = false;
 	    current_sim.area = estimator.get_processor_area(processor);
 	    
 	}
+	*/
 	
 	simulations.push_back(current_sim);
 
@@ -268,13 +270,17 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
 
     double comms[4];
     counter2 = to_sim[0];
+    Simulation current_sim;
 
-    for(int p = 1; p<mysize; p++) {
-	for (int s = counter2; s < counter2+to_sim[p]; s++) {
-	    space2.push_back(space[s]);
-	}
-	if (space2.size() > 0) MPI_Recv(&counter, 1, MPI_INT, p, 97, MPI_COMM_WORLD, &status);
+    for(int p = 1; p<mysize; p++) 
+    {
+	for (int s = counter2; s < counter2+to_sim[p]; s++) 
+	    space2.push_back(space[s]); 
+
+	if (space2.size() > 0) 
+	    MPI_Recv(&counter, 1, MPI_INT, p, 97, MPI_COMM_WORLD, &status);
 	else counter = 0;
+
 	for(int s = 0; s < counter; s++) {
 	    MPI_Recv(comms, 4, MPI_DOUBLE, p, 99, MPI_COMM_WORLD, &status); 
 	    current_sim.config = space2[s];
@@ -285,12 +291,16 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
 	    current_sim.simulated = true;//do_simulation;
 
 	    simulations.push_back(current_sim);
-	    if (Options.approx_settings.enabled>0) {
+
+	    /* TODO: re-enable
+	    if (Options.approx_settings.enabled>0) 
+	    {
 		processor.set_config(space2[s]);
 		mem_hierarchy.set_config(space2[s]); 
 		compiler.set_config(space2[s]);	//db
 		function_approx->Learn(space2[s],current_sim,processor,mem_hierarchy);
 	    }
+	    */
 	}
 	space2.clear();
 	counter2 += counter;
@@ -314,7 +324,6 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
 int Explorer::simulate_space()
 {
     // questo medoto viene lanciato sugli altri processori e si interfaccia con la simulate space classica 
-
 
     vector<Simulation> simulations;
     vector<Configuration> space;

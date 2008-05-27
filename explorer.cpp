@@ -678,10 +678,6 @@ void Explorer::save_configurations(const vector<Configuration>& space, const str
 ////////////////////////////////////////////////////////////////////////////
 void Explorer::save_simulations(const vector<Simulation>& simulations, const string& filename)
 {
-    // TODO: fix this mess
-    // - clean and single output, no formats
-    // - add clock
-    // - show compiler command line args
     double area,energy;
     double energydelay;
     double exec_time;
@@ -698,7 +694,7 @@ void Explorer::save_simulations(const vector<Simulation>& simulations, const str
     if(current_algo=="REP")
         pretitle += "\n%% REP source file: " + REP_source_file;
 
-    string pretitle2 ="\n%% Enabled minimization objectives: ";
+    string pretitle2 ="\n%% Objectives: ";
     //G
 
     if (Options.objective_area) pretitle2+="Area, ";
@@ -720,9 +716,9 @@ void Explorer::save_simulations(const vector<Simulation>& simulations, const str
     // currently, energy and power are mutually exclusive objectives
     if (Options.objective_energy) title+="Area(cm^2)\tEnergy(J)\tTime(ms)";
     else
-	title+="Area(cm^2)\tPower(W)\tTime(ms)";
+	title+="Area(cm^2)  Power(W)     Time(ms)   / MHz";
 
-    title+=" clust/ I F B M / gpr fpr pr cr btr / L1D(CBA) / L1I(CBA) / L2U(CBA) / Compiler";
+    title+=" / cl / I F B M / gpr fpr pr cr btr / L1D(CBA) / L1I(CBA) / L2U(CBA) / Compiler";
 
     fp=fopen(file_path.c_str(),"w");
     
@@ -747,7 +743,7 @@ void Explorer::save_simulations(const vector<Simulation>& simulations, const str
 	char ch = ' ';
 	if (!simulations[i].simulated) ch = '*';
 
-	fprintf(fp,"\n%.10f  %.10f  %.10f %s %c",area,energy,exec_time,conf_string.c_str(),ch);
+	fprintf(fp,"\n%.9f  %.9f  %.9f %/ %d / %s %c",area,energy,exec_time,mhz,conf_string.c_str(),ch);
     }
     fclose(fp);
 }
@@ -1401,22 +1397,8 @@ vector<Configuration> Explorer::build_space(const Space_mask& mask,Configuration
 														//  inner loop
 
 														// if all cache parameters are valid
+														if (base_conf.is_feasible()) space.push_back(base_conf);
 
-														if ((mem_hierarchy.test_valid_cache(base_conf.L1D_size,base_conf.L1D_block,base_conf.L1D_assoc)) &&
-															(mem_hierarchy.test_valid_cache(base_conf.L1I_size,base_conf.L1I_block,base_conf.L1I_assoc)) &&
-															(mem_hierarchy.test_valid_cache(base_conf.L2U_size,base_conf.L2U_block,base_conf.L2U_assoc)) )
-														{
-														    // admit or not all cache size combinations
-														    if (opt==NO_L2_CHECK) space.push_back(base_conf);
-														    else 
-														    {// admit only configs with L2 size and block size >= L1 caches
-															if ((base_conf.L2U_size >= base_conf.L1D_size + base_conf.L1I_size) &&
-																(base_conf.L2U_block >= base_conf.L1I_block) &&
-																(base_conf.L2U_block >= base_conf.L1D_block))
-
-															    space.push_back(base_conf);
-														    }
-														}
 														//////////////////////////////////////////////////////////////////////////////////
 													    }while ( (mask.L2U_assoc)&&(mem_hierarchy.L2U.associativity.increase()));
 													}while ( (mask.L2U_block)&&(mem_hierarchy.L2U.block_size.increase() ));
@@ -1580,13 +1562,8 @@ vector<Configuration> Explorer::build_space_cross_merge(const vector<Configurati
 	    // resulting combination of two configurations may result
 	    // in not feasible config
 
-    if ((mem_hierarchy.test_valid_cache(base_conf.L1D_size,base_conf.L1D_block,base_conf.L1D_assoc)) &&
-	(mem_hierarchy.test_valid_cache(base_conf.L1I_size,base_conf.L1I_block,base_conf.L1I_assoc)) &&
-	(mem_hierarchy.test_valid_cache(base_conf.L2U_size,base_conf.L2U_block,base_conf.L2U_assoc)) && 
-	(base_conf.L2U_size>=base_conf.L1D_size+base_conf.L1I_size) &&
-	(base_conf.L2U_block >= base_conf.L1I_block) &&
-	(base_conf.L2U_block >= base_conf.L1D_block) &&
-	!(configuration_present(base_conf,merged_space)) ) merged_space.push_back(base_conf);
+    if ( base_conf.is_feasible() && !configuration_present(base_conf,merged_space) ) 
+	merged_space.push_back(base_conf);
 
 	}
     }

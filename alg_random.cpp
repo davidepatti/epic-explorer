@@ -47,7 +47,7 @@ void Explorer::start_RAND(int n)
 
 	Configuration temp_conf = create_configuration(processor,mem_hierarchy,compiler);
 
-	if (mem_hierarchy.test_valid_config())
+	if (temp_conf.is_feasible())
 	{
 	    valid++;
 	    random_space.push_back(temp_conf);

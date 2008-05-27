@@ -32,33 +32,20 @@ enum cache_type { L1D_CACHE,L1I_CACHE,L2U_CACHE };
 class Mem_hierarchy {
     public: 
 	Mem_hierarchy();
-	~Mem_hierarchy();
- 
 
 	struct Cache  
 	{
 	    string label;
-
 	    cache_type type;
-
 	    Parameter block_size;
 	    Parameter size;
 	    Parameter associativity;
-
 	    int latency;
 	    int bus_width;
-	};
-
-	Cache L1D;
-	Cache L1I;
-	Cache L2U;
+	} L1D,L1I,L2U;
 
 	void set_to_default();
 	void set_config(const Configuration&);
-
-	bool test_valid_cache(const Cache& cache) const ;
-	bool test_valid_cache(int C, int B, int A) const ;
-	bool test_valid_config() const;
 };
 
 #endif
