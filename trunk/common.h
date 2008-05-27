@@ -24,6 +24,7 @@
 #define EXPLORER_HMDES2 "explorer.hmdes2"
 #define COMPILER_PARAM "compiler_param" //db
 #define EE_TAG "\n    >> EE: "
+#define N_PARAMS 27
 
 // ---------------------------------------------------------------------------
 
@@ -96,6 +97,7 @@ struct Space_mask
   bool cr_static_size;
   bool pr_static_size;
   bool btr_static_size;
+
   bool tcc_region;	//db
   bool max_unroll_allowed;	//db
   bool regroup_only;	//db

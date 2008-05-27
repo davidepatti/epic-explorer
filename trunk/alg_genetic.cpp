@@ -10,7 +10,7 @@
 #include "variator.h"
 #include "selector.h"
 #include <values.h>
-#define CHROMOSOME_DIM 19 // TO_CHECK
+#define CHROMOSOME_DIM N_PARAMS // TO_CHECK
 #define DEF_TOURNAMENT 2
 #define DEF_HASH_TABLE_SIZE   128
 
@@ -155,8 +155,17 @@ void Explorer::init_GA()
   alleles.push_back((mem_hierarchy.L2U.block_size.get_values()));
   alleles.push_back((mem_hierarchy.L2U.associativity.get_values()));
 
-  // TO_CHECK
-  alleles.push_back((processor.num_clusters.get_values()));
+  alleles.push_back(processor.num_clusters.get_values());
+
+  alleles.push_back(compiler.tcc_region.get_values());
+  alleles.push_back(compiler.max_unroll_allowed.get_values());
+  alleles.push_back(compiler.regroup_only.get_values());
+  alleles.push_back(compiler.do_classic_opti.get_values());
+  alleles.push_back(compiler.do_prepass_scalar_scheduling.get_values());
+  alleles.push_back(compiler.do_postpass_scalar_scheduling.get_values());
+  alleles.push_back(compiler.do_modulo_scheduling.get_values());
+  alleles.push_back(compiler.memvr_profiled.get_values());
+
 
   individual::setAllelesets(alleles); // set static allele sets genome for individuals
 }
@@ -191,146 +200,90 @@ Configuration Explorer::ind2conf(const individual& ind){
 
     conf.num_clusters = ind.phenotype(18);
 
+    conf.tcc_region = ind.phenotype(19);
+    conf.max_unroll_allowed = ind.phenotype(20);
+    conf.regroup_only = ind.phenotype(21);
+    conf.do_classic_opti = ind.phenotype(22);
+    conf.do_prepass_scalar_scheduling = ind.phenotype(23);
+    conf.do_postpass_scalar_scheduling = ind.phenotype(24);
+    conf.do_modulo_scheduling = ind.phenotype(25);
+    conf.memvr_profiled = ind.phenotype(26);
     return conf;
 }
 
 /*************************************************************************/
 
-void Explorer::GA_evaluate(population* pop){
-/*
-	vector<Configuration> vconf;
-	vector<Simulation> vsim(pop->size());
-	vector<int> indexes;
-	vconf.reserve(pop->size());
-//	vsim.reserve(pop->size());
-	indexes.reserve(pop->size());
-
-	// extract configurations from population
-	int index = 0;
-	for(population::iterator it=pop->begin(); it!=pop->end(); it++,index++){
-		Configuration conf = ind2conf(*it);
-
-		if(!conf.is_feasible()) {
-			cout << "configuration " << index << " not feasible" << endl;
-			Simulation sim;
-			sim.exec_time = BIG_CYCLES;
-	        sim.energy = BIG_ENERGY;
-	        sim.area = BIG_AREA;
-			sim.config = conf;
-			vsim.at(index) = sim;
-		} else {
-			//TODO cache search code
-			indexes.push_back(index); // save index for later use
-			vconf.push_back(conf); // schedule configuration for simulation
-		}
-	}
-
-	// simulate the configurations for every benchmark
-	int bench = 0;
-	do{
-		cout << "Simulating " << vconf.size() << " configurations" << endl;
-		vector<Simulation> results = simulate_space(vconf);
-		//const int SCALE = 1; // seconds
-		const int SCALE = 1000; // milliseconds
-
-		// integrate simulation results into vsim //TODO use add_Simulation() in Configuration
-		for(int i=0; i<results.size(); i++){
-			//TODO cache update code
-			vsim.at(indexes[i]) = results[i];
-		}
-
-		//TODO cleanup code, separate simulation unrolling from population updating
-		assert(vsim.size() == pop->size());
-		int disp = bench * n_obj;
-		for(int i=0; i<pop->size(); i++){
-		(*pop)[i].objectives[0+disp] = vsim[i].exec_time * SCALE;
-			if( (*pop)[i].objectives_dim() > 1*n_bench )
-				(*pop)[i].objectives[1+disp] = vsim[i].energy;
-			if( (*pop)[i].objectives_dim() > 2*n_bench )
-				(*pop)[i].objectives[2+disp] = vsim[i].area;
-		}
-		// swap benchmark
-		string tmp_bench = Options.benchmark;
-		Options.benchmark = previous_benchmark;
-		previous_benchmark = tmp_bench;
-		this->trimaran_interface->set_benchmark(Options.benchmark); //FIXME funziona solo sul processore 0
-
-	} while(++bench<n_bench); // do-while bench
-
-}
-*/
-///////////////////////////////////////////////////////////////////////////
-
+void Explorer::GA_evaluate(population* pop)
+{
     vector<Configuration> vconf;
     vector<int> indexes;
     vector<Simulation> vsim(pop->size());
     vconf.reserve(pop->size());
     indexes.reserve(pop->size());
 
-    for(int index=0; index < pop->size(); index++){
+    for(int index=0; index < pop->size(); index++)
+    {
 	Configuration conf = ind2conf(pop->at(index));	
 	Simulation sim;
 	sim.config = conf;    
+
 	if(!conf.is_feasible()){
-		cout << EE_TAG << "configuration " << index << " not feasible" << endl;
-		sim.exec_time = BIG_CYCLES;
-		sim.energy = BIG_ENERGY;
-		sim.area = BIG_AREA;
-		vsim[index] = sim;
-	} else {
-		Simulation *psim = eud.ht_ga->searchT(sim);
-		if(psim != NULL) { // present in cache
-//			sim.energy = psim->energy;
-//			sim.area = psim->area;
-//			sim.exec_time = psim->exec_time;
-//			sim.clock_freq = psim->clock_freq;
-//			sim.simulated = psim->simulated;
-			vsim[index] = *psim;
-		} else { // not present in cache
-			indexes.push_back(index); // save index for later use
-			vconf.push_back(conf); // schedule configuration for simulation
-		}
-    	}
+	    cout << EE_TAG << "configuration " << index << " not feasible" << endl;
+	    sim.exec_time = BIG_CYCLES;
+	    sim.energy = BIG_ENERGY;
+	    sim.area = BIG_AREA;
+	    vsim[index] = sim;
+	} 
+	else {
+	    Simulation *psim = eud.ht_ga->searchT(sim);
+	    if(psim != NULL) { // present in cache
+		vsim[index] = *psim;
+	    } else { // not present in cache
+		indexes.push_back(index); // save index for later use
+		vconf.push_back(conf); // schedule configuration for simulation
+	    }
+	}
     } // for pop
 
 
-// simulate the configurations for every benchmark
-int bench = 0;
-vector<Simulation> results;
-for(int bench=0; bench<benchmarks.size(); bench++ ){
-    Options.benchmark = benchmarks.at(bench);
-    this->trimaran_interface->set_benchmark(Options.benchmark);
+    // simulate the configurations for every benchmark
+    int bench = 0;
+    vector<Simulation> results;
 
-    cout << EE_TAG << "Simulating " << vconf.size() << " configurations" << endl;
-    if(bench == 0) { // first benchmark
-        results = simulate_space(vconf);
-    } else { // other benchmarks, merge simulations into older results
-        vector<Simulation> tmp = simulate_space(vconf);
-        for(vector<Simulation>::iterator it1=tmp.begin(),it2=results.begin(); 
-            it1!=tmp.end() && it2!=results.end(); it1++,it2++)
-            it2->add_simulation(*it1);
-    }
-} // for bench
+    for(int bench=0; bench<benchmarks.size(); bench++ ){
+	Options.benchmark = benchmarks.at(bench);
+	this->trimaran_interface->set_benchmark(Options.benchmark);
+
+	cout << EE_TAG << "Simulating " << vconf.size() << " configurations" << endl;
+	if(bench == 0) { // first benchmark
+	    results = simulate_space(vconf);
+	} else { // other benchmarks, merge simulations into older results
+	    vector<Simulation> tmp = simulate_space(vconf);
+	    for(vector<Simulation>::iterator it1=tmp.begin(),it2=results.begin(); 
+		    it1!=tmp.end() && it2!=results.end(); it1++,it2++)
+		it2->add_simulation(*it1);
+	}
+    } // for bench
 
 
-// cache results
+    // cache results
     for(int i=0; i<results.size(); i++){
 	Simulation sim = results[i];
 	eud.history.push_back(sim);
 	bool cacheable = sim.simulated;
 	if(cacheable){
-		eud.ht_ga->addT(sim);
-		eud.pareto.push_back(sim);
-		eud.pareto = get_pareto(eud.pareto); //FIXME TODO perche lo fa ogni volta invece di farlo solo alla fine?
+	    eud.ht_ga->addT(sim);
+	    eud.pareto.push_back(sim);
+	    eud.pareto = get_pareto(eud.pareto); //FIXME TODO perche lo fa ogni volta invece di farlo solo alla fine?
 	} else if (!isDominated(sim, eud.pareto)){ //if it could be a pareto solution, the configuration is simulated
-//FIXME
-//		explorer->set_force_simulation(true);
-//		sim = explorer->simulate_space(vconf)[0];
-//		explorer->set_force_simulation(false);
-		eud.history[eud.history.size() - 1] = sim; // updates history with new simulated values
-		eud.ht_ga->addT(sim);
-		eud.pareto.push_back(sim);
-		eud.pareto = get_pareto(eud.pareto); // funziona solo con multibench con la media
+	    //FIXME
+	    //		explorer->set_force_simulation(true);
+	    //		sim = explorer->simulate_space(vconf)[0];
+	    //		explorer->set_force_simulation(false);
+	    eud.history[eud.history.size() - 1] = sim; // updates history with new simulated values
+	    eud.ht_ga->addT(sim);
+	    eud.pareto.push_back(sim);
+	    eud.pareto = get_pareto(eud.pareto); // funziona solo con multibench con la media
 	}
 
 	//G
@@ -338,23 +291,18 @@ for(int bench=0; bench<benchmarks.size(); bench++ ){
     } // for results
 
 
-// reinsert simulation values into GA
+    // reinsert simulation values into GA
 
-//    const int SCALE = 1; // seconds
+    //    const int SCALE = 1; // seconds
     const int SCALE = 1000; // milliseconds
     assert(vsim.size() == pop->size());
-//    int disp = bench * n_obj;
+    //    int disp = bench * n_obj;
     for(int i=0; i<pop->size(); i++){
 	(*pop)[i].objectives[0] = vsim[i].exec_time * SCALE;
 	if( (*pop)[i].objectives_dim() > 1)
-		(*pop)[i].objectives[1] = vsim[i].energy;
+	    (*pop)[i].objectives[1] = vsim[i].energy;
 	if( (*pop)[i].objectives_dim() > 2)
-		(*pop)[i].objectives[2] = vsim[i].area;
-//	(*pop)[i].objectives[0+disp] = vsim[i].exec_time * SCALE;
-//	if( (*pop)[i].objectives_dim() > 1*n_bench )
-//		(*pop)[i].objectives[1+disp] = vsim[i].energy;
-//	if( (*pop)[i].objectives_dim() > 2*n_bench )
-//		(*pop)[i].objectives[2+disp] = vsim[i].area;
+	    (*pop)[i].objectives[2] = vsim[i].area;
     }
 
 }
@@ -385,6 +333,14 @@ void Explorer::SimulateBestWorst()
   cnf_best.L2U_block = minmax[16].second;
   cnf_best.L2U_assoc = minmax[17].second;
   cnf_best.num_clusters = minmax[18].second;
+  cnf_best.tcc_region = minmax[19].second;
+  cnf_best.max_unroll_allowed = minmax[20].second;
+  cnf_best.regroup_only = minmax[21].second;
+  cnf_best.do_classic_opti = minmax[22].second;
+  cnf_best.do_prepass_scalar_scheduling = minmax[23].second;
+  cnf_best.do_postpass_scalar_scheduling = minmax[24].second;
+  cnf_best.do_modulo_scheduling = minmax[25].second;
+  cnf_best.memvr_profiled = minmax[26].second;
 
   Configuration cnf_worst;
   cnf_worst.integer_units = minmax[0].first;
@@ -407,6 +363,14 @@ void Explorer::SimulateBestWorst()
   cnf_worst.L2U_assoc = minmax[17].first;
   cnf_worst.num_clusters = minmax[18].first;
 
+  cnf_best.tcc_region = minmax[19].first;
+  cnf_best.max_unroll_allowed = minmax[20].first;
+  cnf_best.regroup_only = minmax[21].first;
+  cnf_best.do_classic_opti = minmax[22].first;
+  cnf_best.do_prepass_scalar_scheduling = minmax[23].first;
+  cnf_best.do_postpass_scalar_scheduling = minmax[24].first;
+  cnf_best.do_modulo_scheduling = minmax[25].first;
+  cnf_best.memvr_profiled = minmax[26].first;
 
   vector<Configuration> cnf_best_worst;
   cnf_best_worst.push_back(cnf_best);
