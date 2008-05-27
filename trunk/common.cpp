@@ -8,7 +8,9 @@ bool Configuration::is_feasible()
   return ( (L1D_size + L1I_size <= L2U_size) &&
 	   (L1D_size >= L1D_block * L1D_assoc) &&
 	   (L1I_size >= L1I_block * L1I_assoc) &&
-	   (L2U_size >= L2U_block * L2U_assoc) );
+	   (L2U_size >= L2U_block * L2U_assoc) &&
+	   (L1I_block <= L2U_block) &&
+	   (L1D_block <= L2U_block) );
 }
 
 void Configuration::invalidate()
@@ -85,7 +87,7 @@ bool Configuration::check_difference(const Configuration& conf, Space_mask mask)
 string Configuration::get_header() const
 {
     char s[100];
-    sprintf(s,"%% %u / %u %u %u %u / %u %u %u %u %u / %u %u %u / %u %u %u / %u %u %u / %u %u %u %u %u %u %u %u",
+    sprintf(s,"%u / %u %u %u %u / %u %u %u %u %u / %u %u %u / %u %u %u / %u %u %u / %u %u %u %u %u %u %u %u",
 	    num_clusters, integer_units, float_units, branch_units,memory_units, 
 	    gpr_static_size, fpr_static_size, pr_static_size, cr_static_size, btr_static_size, 
 	    L1D_size, L1D_block, L1D_assoc, L1I_size, L1I_block, L1I_assoc, L2U_size, L2U_block, L2U_assoc, 

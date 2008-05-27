@@ -88,46 +88,48 @@ int User_interface::show_menu()
     struct GA_parameters ga_parameters;
 
     if (myrank == 0) {
-    system("clear");
+	system("clear");
 
-    //cout << "\n _______________________________________________________" << endl;
-    cout << "\n =====================================================";
-    cout << "\n   e p i c   e x p l o r e r   [release "<< VERSION<<"]";
-    cout << "\n _____________________________________________________";
-    cout << "\n ______m a i n________________________________________" << endl;
+	cout << "\n =====================================================";
+	cout << "\n   e p i c   e x p l o r e r   [release "<< VERSION<<"]";
+	cout << "\n _____________________________________________________";
+	cout << "\n ______m a i n________________________________________" << endl;
 
-    cout << "\n [b] - General Settings ";
-    cout << "\n [c] - Design Space ";
-    cout << "\n [h] - About ";
-    cout << "\n [q] - Quit ";
-    cout << "\n _____________________________________________________";
-    cout << "\n ______s p a c e___e x p l o r a t i o n______________" << endl;
-                
-    cout << "\n [g] - Genetic based (GA)";
-    cout << "\n [d] - Dependency-graph based (DEP)";
-    cout << "\n [s] - Sensivity analysis (SAP)";
-    cout << "\n [p] - Pareto-based sensitivity (PBSA)";
-    cout << "\n [e] - Exhaustive (EXHA)";
-    cout << "\n [r] - Random (RANDOM)";
-    cout << "\n [x] - Schedule multiple explorations";
-    cout << "\n [v] - Re-evaluate pareto";
-    cout << "\n [t] - run Explorer::test() code";
+	cout << "\n [b] - General Settings ";
+	cout << "\n [c] - Design Space ";
+	cout << "\n [h] - About ";
+	cout << "\n [q] - Quit ";
+	cout << "\n _____________________________________________________";
+	cout << "\n ______s p a c e___e x p l o r a t i o n______________" << endl;
 
-    cout << "\n _____________________________________________________";
-    cout << "\n _______m a n u a l___t e s t ________________________" << endl;
-    cout << "\n [1] - Compile hmdes file";
-    cout << "\n [2] - Compile benchmark";
-    cout << "\n [3] - Execute benchmark";
-    cout << "\n [4] - View execution statistics";
-    cout << "\n [5] - Estimate objectives";
-    cout << "\n [6] - Show system config";
-    cout << "\n [7] - Reload system config" << endl;
-    cout << "\n Make your choice >";
- 
-//G    ch = 'r';
-    cin >> ch;
+	cout << "\n [g] - Genetic based (GA)";
+	cout << "\n [d] - Dependency-graph based (DEP)";
+	cout << "\n [s] - Sensivity analysis (SAP)";
+	cout << "\n [p] - Pareto-based sensitivity (PBSA)";
+	cout << "\n [e] - Exhaustive (EXHA)";
+	cout << "\n [r] - Random (RANDOM)";
+	cout << "\n [x] - Schedule multiple explorations";
+	cout << "\n [v] - Re-evaluate pareto";
+	cout << "\n [t] - run Explorer::test() code";
+
+	cout << "\n _____________________________________________________";
+	cout << "\n _______m a n u a l___t e s t ________________________" << endl;
+	cout << "\n [1] - Compile hmdes file";
+	cout << "\n [2] - Compile benchmark";
+	cout << "\n [3] - Execute benchmark";
+	cout << "\n [4] - View execution statistics";
+	cout << "\n [5] - Estimate objectives";
+	cout << "\n [6] - Show system config";
+	cout << "\n [7] - Reload system config" << endl;
+	cout << "\n Make your choice >";
+
+	//G    ch = 'r';
+	cin >> ch;
     }    
     string start;
+
+    if ( ch=='g' || ch=='d' || ch=='s' || ch=='w' || ch=='p' || ch=='e' || ch =='r' || ch=='v')
+	    my_explorer->init_approximation();
 
     switch (ch)
     {
@@ -146,37 +148,35 @@ int User_interface::show_menu()
 
 	case 'g': // mau
 
-	    my_explorer->init_approximation();
 	    if (myrank == 0) {
-	    	cout << "\n\n GA based approach ";
-	    	cout << "\n-------------------------------";
-	    	cout << "\n\n Enter random seed (0 = auto): ";
-	    	cin >> ga_parameters.random_seed;
+		cout << "\n\n GA based approach ";
+		cout << "\n-------------------------------";
+		cout << "\n\n Enter random seed (0 = auto): ";
+		cin >> ga_parameters.random_seed;
 		if (ga_parameters.random_seed == 0)
-			ga_parameters.random_seed = rand()*rand(); //G this is not random
+		    ga_parameters.random_seed = rand()*rand(); //G this is not random
 		else
-	                srand(ga_parameters.random_seed);
-	    	cout << "\n\n Population size: ";
-	    	cin >> ga_parameters.population_size;
-	    	cout << " Crossover prob: ";
-	    	cin >> ga_parameters.pcrossover;
-	    	cout << " Mutation prob: ";
-	    	cin >> ga_parameters.pmutation;
-	    	cout << " Max Generations: ";
-	    	cin >> ga_parameters.max_generations;
-	    	cout << " Report pareto step: ";
-	    	cin >> ga_parameters.report_pareto_step;
-	    
-	    	start_exploration_message();
-	    	cout << "\n\n Start exploration (y/n) ? ";
-	    	cin >> ch;
-	    	if (ch=='y')
-	    	my_explorer->start_GA(ga_parameters);
+		    srand(ga_parameters.random_seed);
+		cout << "\n\n Population size: ";
+		cin >> ga_parameters.population_size;
+		cout << " Crossover prob: ";
+		cin >> ga_parameters.pcrossover;
+		cout << " Mutation prob: ";
+		cin >> ga_parameters.pmutation;
+		cout << " Max Generations: ";
+		cin >> ga_parameters.max_generations;
+		cout << " Report pareto step: ";
+		cin >> ga_parameters.report_pareto_step;
+
+		start_exploration_message();
+		cout << "\n\n Start exploration (y/n) ? ";
+		cin >> ch;
+		if (ch=='y')
+		    my_explorer->start_GA(ga_parameters);
 	    }
 	    break;
 
 	case 'd':
-	    my_explorer->init_approximation();
 	    if (myrank == 0) {
 		int graph;
 		cout << "\n Dependency-Graph based approach ";
@@ -189,121 +189,115 @@ int User_interface::show_menu()
 		cin >> graph;
 
 		if (graph==1) 
-		     my_explorer->start_DEP();
+		    my_explorer->start_DEP();
 		else if (graph==2) 
-		     my_explorer->start_DEP2();
+		    my_explorer->start_DEP2();
 		else if (graph==3)
-		     my_explorer->start_DEPMOD();
+		    my_explorer->start_DEPMOD();
 		else
 		    cout << "\n Choice '"<< graph << "' not valid!";
 	    }
 	    break;
 
 	case 's':
-	    my_explorer->init_approximation();
 	    if (myrank == 0) {
-	    	start_exploration_message();
-	    	cout << "\n\n Start exploration (y/n) ? ";
-	    	cin >> ch;
-	    	if (ch=='y') my_explorer->start_SAP();
+		start_exploration_message();
+		cout << "\n\n Start exploration (y/n) ? ";
+		cin >> ch;
+		if (ch=='y') my_explorer->start_SAP();
 	    }
 	    break;
 
 	case 'w':
-	    my_explorer->init_approximation();
 	    if (myrank == 0) {
-	    	start_exploration_message();
-	    	cout << "\n\n Start exploration (y/n) ? ";
-	    	cin >> ch;
-	    	if (ch=='y') my_explorer->start_SAPMOD();
+		start_exploration_message();
+		cout << "\n\n Start exploration (y/n) ? ";
+		cin >> ch;
+		if (ch=='y') my_explorer->start_SAPMOD();
 	    }
 	    break;
 	case 'p':
-	    my_explorer->init_approximation();
 	    if (myrank == 0) {
-	    start_exploration_message();
-	    cout << "\n\n Start exploration (y/n) ? ";
-	    cin >> ch;
-	    if (ch=='y') my_explorer->start_PBSA();
+		start_exploration_message();
+		cout << "\n\n Start exploration (y/n) ? ";
+		cin >> ch;
+		if (ch=='y') my_explorer->start_PBSA();
 	    }
 	    break;
 	case 'x':
 	    if (myrank == 0) {
-	        schedule_explorations();
+		schedule_explorations();
 	    }
 	    break;
 
 	case 'e':
 
-	    my_explorer->init_approximation();
 	    if (myrank == 0) {
-	    start_exploration_message();
+		start_exploration_message();
 
-	    cout << "\n\n WARNING: You are going to start an exhaustive exploration of all parameters .";
-	    cout << "\n Depending on range variation of space parameters simulation might take";
-	    cout << "\n too much time to be completed. ";
-	    space_size = my_explorer->get_space_size();
-	    cout << "\n Number of simulations to be performed: " << space_size;
+		cout << "\n\n WARNING: You are going to start an exhaustive exploration of all parameters .";
+		cout << "\n Depending on range variation of space parameters simulation might take";
+		cout << "\n too much time to be completed. ";
+		space_size = my_explorer->get_space_size();
+		cout << "\n Number of simulations to be performed: " << space_size;
 
-	    cout << "\n\n Proceed ? (y/n) ";
+		cout << "\n\n Proceed ? (y/n) ";
 
-	    cin >> c;
+		cin >> c;
 
-	    if (c=='y') my_explorer->start_EXHA();
-	    wait_key();
+		if (c=='y') my_explorer->start_EXHA();
+		wait_key();
 	    }
 	    break;
 
 	case 'r':
-	    my_explorer->init_approximation();
 	    if (myrank == 0) {
-	    start_exploration_message();
-	    int n;
-	    unsigned int seed;
-	    cout << "\n Number of  random simulations:";
-//G	    n = 10000;
-	    cin >> n;
-	    cout << "\n Enter random seed (0 = auto):";
-//G	    seed = 1962;
-	    cin >> seed;
-	    if (seed==0)
-		srand((unsigned int)time((time_t*)NULL));
-	    else
-		srand(seed);
-	    my_explorer->start_RAND(n);
-	    wait_key();
+		start_exploration_message();
+		int n;
+		unsigned int seed;
+		cout << "\n Number of  random simulations:";
+		//G	    n = 10000;
+		cin >> n;
+		cout << "\n Enter random seed (0 = auto):";
+		//G	    seed = 1962;
+		cin >> seed;
+		if (seed==0)
+		    srand((unsigned int)time((time_t*)NULL));
+		else
+		    srand(seed);
+		my_explorer->start_RAND(n);
+		wait_key();
 	    }
 	    break;
 
 	case 'v':
-            my_explorer->init_approximation();
-            if (myrank == 0) {
-	    string command = "ls ";
-	    string pareto_path = base_path + "/trimaran-workspace/epic-explorer/";
-	    command+= pareto_path;
-	    command+= " | grep -e pareto -e history";
-	    bool done = false;
-	    string fpath;
-	    while(!done){
-	        system(command.c_str());
-	        cout << "\n\n Choose a pareto or history file: ";
-	        string b;
-	        cin >> b;
-	        fpath = pareto_path + b;
-	        ifstream infile(fpath.c_str());
-	        done = infile.good();
-	        if(!done)
-	            cout << "\n Could non open file " << fpath;
-		else
-		    cout << "\n Using file " << fpath;
-		infile.close();
-	    }
-            start_exploration_message();
-            cout << "\n\n Start exploration (y/n) ? ";
-	    cin >> ch;
-            if (ch=='y')
-	    my_explorer->start_REP(fpath);
-            wait_key();
+	    if (myrank == 0) {
+		string command = "ls ";
+		string pareto_path = base_path + "/trimaran-workspace/epic-explorer/";
+		command+= pareto_path;
+		command+= " | grep -e pareto -e history";
+		bool done = false;
+		string fpath;
+		while(!done){
+		    system(command.c_str());
+		    cout << "\n\n Choose a pareto or history file: ";
+		    string b;
+		    cin >> b;
+		    fpath = pareto_path + b;
+		    ifstream infile(fpath.c_str());
+		    done = infile.good();
+		    if(!done)
+			cout << "\n Could non open file " << fpath;
+		    else
+			cout << "\n Using file " << fpath;
+		    infile.close();
+		}
+		start_exploration_message();
+		cout << "\n\n Start exploration (y/n) ? ";
+		cin >> ch;
+		if (ch=='y')
+		    my_explorer->start_REP(fpath);
+		wait_key();
 	    }
 	    break;
 
@@ -348,7 +342,6 @@ int User_interface::show_menu()
 	    if (myrank == 0) reload_system_config();
 	    if (myrank == 0) wait_key();
 	    break;
-
     }
 
     return ch;
@@ -572,8 +565,6 @@ void User_interface::edit_exploration_space()
 	my_explorer->compiler.do_postpass_scalar_scheduling.set_to_first();	//db
 	my_explorer->compiler.do_modulo_scheduling.set_to_first();	//db
 	my_explorer->compiler.memvr_profiled.set_to_first();	//db
-
-	cout << "\n --------- Cache ------------------------------- ";
 	cout << "\n [1]           L1D size: " ;
 	do { cout << my_explorer->mem_hierarchy.L1D.size.get_val() << ","; } while (my_explorer->mem_hierarchy.L1D.size.increase()); 
 	cout << "\n [2]     L1D block_size: " ;
@@ -592,7 +583,6 @@ void User_interface::edit_exploration_space()
 	do { cout << my_explorer->mem_hierarchy.L2U.block_size.get_val() << ","; } while (my_explorer->mem_hierarchy.L2U.block_size.increase());
 	cout << "\n [9]  L2U associativity: " ;
 	do { cout << my_explorer->mem_hierarchy.L2U.associativity.get_val() << ","; } while (my_explorer->mem_hierarchy.L2U.associativity.increase());
-	cout << "\n\n ------ Processor ---------------------------- ";
 	cout << "\n [10]     integer_units: ";
 	do { cout << my_explorer->processor.integer_units.get_val() << ","; } while (my_explorer->processor.integer_units.increase());
 	cout << "\n [11]       float_units: ";
@@ -613,8 +603,6 @@ void User_interface::edit_exploration_space()
 	do { cout << my_explorer->processor.btr_static_size.get_val() << ","; } while (my_explorer->processor.btr_static_size.increase());
 	cout << "\n [19]   num_clusters: ";
 	do { cout << my_explorer->processor.num_clusters.get_val() << ","; } while (my_explorer->processor.num_clusters.increase());
-
-	cout << "\n ------- Compiler ------------------------------ ";	//db
 	cout << "\n [20]  tcc_region (1=b 2=h 3=s): ";	//db
 	do { cout << my_explorer->compiler.tcc_region.get_val() << ","; } while (my_explorer->compiler.tcc_region.increase());	//db
 	cout << "\n [21]  max_unroll_allowed: ";	//db

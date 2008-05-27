@@ -56,8 +56,6 @@ int main(int argc, char *argv[])
 	setenv(BASE_DIR, base_path_cstr, 1);
 	//cerr << "DEBUG " << rank << " getenv(BASE_DIR) is: " << getenv(BASE_DIR) << endl;
 	//cerr << "DEBUG " << rank << " get_base_dir is: " << get_base_dir() << endl;
-	//MPI_Finalize();
-	//MPI::Finalize();
 #else
     string base_path = string(getenv(BASE_DIR));
     //cout <<  "DEBUG BASEDIR " << BASE_DIR;

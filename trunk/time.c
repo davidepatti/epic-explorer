@@ -413,8 +413,6 @@ void subbank_dim(int C,int B,int A,char fullyassoc, int Ndbl, int Ndwl,int Nspd,
 		inter_v=sub_v;
 		inter_h=sub_h;
 
-		printf("\n sto fando %d / (%d*%d*%d*%d)",C,B,A,Ntbl,Ntspd);
-		fflush(stdout);
 		rows_tag_subarray = C/(B*A*Ntbl*Ntspd);
 
 		tagbits = ADDRESS_BITS+2-(int)logtwo((double)C)+(int)logtwo((double)A)-(int)(logtwo(NSubbanks));
@@ -2133,7 +2131,7 @@ double *power;*/
 
    Ceq = draincap(Woutdrvseln,NCH,1)+draincap(Woutdrvselp,PCH,1)+
          gatecap(Woutdrvnandn+Woutdrvnandp,10.0);
-   tf = Ceq*transreson(Woutdrvseln,NCH,1);
+
    Tst1 = horowitz(inrisetime,tf,VTHOUTDRINV,VTHOUTDRNAND,RISE);
    *outrisetime = Tst1/(1.0-VTHOUTDRNAND);
    *power+=Ceq*VddPow*VddPow;

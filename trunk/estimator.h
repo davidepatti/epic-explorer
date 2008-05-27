@@ -98,7 +98,8 @@ private:
 	double get_registerfile_dynamic_power(int words,int size);
 	double get_registerfile_active_power(int words,int size);
 
-	double get_access_time(const Mem_hierarchy::Cache& cache);
+	double get_cache_access_time(const Mem_hierarchy::Cache& cache);
+	double get_registerfile_access_time(int words,int size,int read_ports,int write_ports);
 
 #ifdef OLD_STYLE_STALLS
 	// performance estimation models /////////////////////////////
