@@ -19,8 +19,8 @@
 /*---------------------------| constants |-------------------------------*/
 #define FILE_NAME_LENGTH 128 /* maximal length of filenames */
 #define CFG_ENTRY_LENGTH 128 /* maximal length of entries in cfg file */
-#define PISA_MAXDOUBLE 1E99  /* Internal maximal value for double */
-#define PISA_MINDOUBLE 1E-99  /* Internal minimal value for double */
+#define PISA_MAXDOUBLE 1E30  /* Internal maximal value for double */
+#define PISA_MINDOUBLE 1E-30  /* Internal minimal value for double */
 
 /*----------------------------| structs |--------------------------------*/
 
