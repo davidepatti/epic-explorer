@@ -754,9 +754,12 @@ void selector::write_arc(){
 int selector::read_pop(population *origin, pop *pp, int size, int dim){
 	assert(dim >= 0);
 	assert(pp != NULL);
+
 	
 	for (int j = 0; j < size; j++){
 		pp->ind_array[j]->index = (*origin)[j].index();
+		// DAV
+	 cout << "\n DIM = " << dim << " (*origin)["<< j << "].objectives_dim() = " << (*origin)[j].objectives_dim() << endl;
 		assert(dim == (*origin)[j].objectives_dim());
 		for (int i = 0; i < dim; i++){
 			pp->ind_array[j]->f[i] = (*origin)[j].objectives[i];
