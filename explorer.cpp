@@ -788,13 +788,11 @@ void Explorer::save_stats(const Exploration_stats& stats,const string& file)
 
     int elapsed_time = (int)difftime(stats.end_time,stats.start_time)/60;
 
-    fprintf(fp,"\n Space size: %lf ",stats.space_size);
-    fprintf(fp,"\n Feasible configurations: %lf ",stats.feasible_size);
-    fprintf(fp,"\n n. simulations: %d ",stats.n_sim);
+    fprintf(fp,"\n Space size: %g",stats.space_size);
+    fprintf(fp,"\n simulations: %d ",stats.n_sim);
     fprintf(fp,"\n total exploration time: %d minutes ",elapsed_time);
     fprintf(fp,"\n simulation start: %s ",asctime(localtime(&stats.start_time)));
     fprintf(fp,"\n simulation end: %s ",asctime(localtime(&stats.end_time)));
-    //fprintf(" needed recompilations: %d ( %d% )",stats.recompilations,stats.recompilations/stats.total_explorations);
 
     fclose(fp);
 }
