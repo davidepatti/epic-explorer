@@ -1,0 +1,25 @@
+
+$def !num_clusters	1
+
+// Register file sizes 
+
+$def !gpr_static_size	32
+$def !gpr_rotating_size	32
+
+$def !fpr_static_size	32
+$def !fpr_rotating_size	32
+
+$def !pr_static_size	64
+$def !pr_rotating_size	64
+
+$def !cr_static_size	128
+$def !cr_rotating_size	128
+
+$def !btr_static_size	16
+
+// Functional fnits 
+
+$def !integer_units	6
+$def !float_units	2
+$def !memory_units	3
+$def !branch_units	3

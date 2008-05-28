@@ -1,0 +1,59 @@
+
+ [BEGIN_SPACE]
+L1D_size 65536 0
+ DEFAULT 65536
+L1D_block_size 16 0
+ DEFAULT 16
+L1D_associativity 1 0
+ DEFAULT 1
+L1I_size 65536 0
+ DEFAULT 65536
+L1I_block_size 16 0
+ DEFAULT 16
+L1I_associativity 1 0
+ DEFAULT 1
+L2U_size 262144 0
+ DEFAULT 262144
+L2U_block_size 64 0
+ DEFAULT 64
+L2U_associativity 4 0
+ DEFAULT 4
+integer_units 2 0
+ DEFAULT 2
+float_units 1 0
+ DEFAULT 1
+memory_units 2 0
+ DEFAULT 2
+branch_units 1 0
+ DEFAULT 1
+gpr_static_size 32 40 64 128 0
+ DEFAULT 64
+fpr_static_size 64 0
+ DEFAULT 64
+pr_static_size 64 0
+ DEFAULT 64
+cr_static_size 64 0
+ DEFAULT 64
+btr_static_size 16 0
+ DEFAULT 16 
+num_clusters 1 0
+ DEFAULT 1
+tcc_region 1 0
+ DEFAULT 1
+max_unroll_allowed 32 0
+ DEFAULT 32
+regroup_only 2 0
+ DEFAULT 2
+do_classic_opti 1 0
+ DEFAULT 1
+do_prepass_scalar_scheduling 1 0
+ DEFAULT 1
+do_postpass_scalar_scheduling 1 0
+ DEFAULT 1 
+do_modulo_scheduling 2 0
+ DEFAULT 2
+memvr_profiled 1 0
+ DEFAULT 1
+
+ [END_SPACE]
+

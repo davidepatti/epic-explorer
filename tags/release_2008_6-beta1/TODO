@@ -1,0 +1,57 @@
+TODO :
+
+META-TODO: Translate this TODO in english !
+------------------------
+
+current version:
+- add new mem parameters allowed by m5
+- use directly the envrc script of trimaran instead of environment.h
+- il fuzzy_approx funziona correttamente solo con GA...
+- aggiungere popolazione 2 tra i parametri del GA
+- Logging of epic explorer activities, e.g. which exploration started
+  and when 
+
+
+DONE :
+
+- add compiler space exploration
+- add multicluster support
+- Eliminazione(opzionale) della creazione del file di log di trimaran
+- Causalità GA
+- Uniformare il percorso base tramite chiamata a get_base_dir()
+- Fissare il consumo medio dell'accesso alla main memory ( L2 Misses *
+  Emm)
+- svincolare il nome del file hmdes2
+- segnale (*) per le configurazioni che sono state stimate funziona in
+  modo casuale
+- aggiungere scelta del profilo di compilazione
+- sistemare opzione fuzzy, scrive enabled anzichè 0,1,2
+- Scalare Vdd a 1.3
+- 10% sull'access time
+- Salvare informazioni sul sottospazio considerato direttamente nel
+   file info di ogni esplorazione ;
+- append_simulations(...), non dovrebbe aggiungere simulazioni
+  ripetute
+- get_pareto3d(...) , il for piu' esterno arriva fino a size-1,
+  probabilmente perche' nella versione originare si confrontava solo
+  ognuno con i prossimi;
+- get_pareto3d(...) , le simulazioni ripetute identiche si dominano a
+  vicenda e dunque scompaiono !
+
+- Intercettare la risimulazione dello stesso sottospazio (es.
+   crossmerging con un cluster i cui parametri sono tutti fermi)
+- Batch di esplorazioni consecutive prefissate
+- Modifica via software dello spazio di esplorazione
+- Eliminazione dell'output di trimaran durante l'esplorazione ,
+   velocita' maggiore ??
+- Sistemare in modo che si salvino ogni tot invece di stare sempre in
+   memoria fino al termine della simulazione -> problemi con benchmark
+   piu' complessi.
+  
+
+DEPRECATED
+
+- Settare la creazione dei riferimenti in memoria via software.
+- Usare campi energy e power separati nella classe Simulation
+- Permettere l'uso di epic da remoto !
+- Resume delle esplorazioni
