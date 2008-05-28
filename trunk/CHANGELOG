@@ -1,5 +1,13 @@
 current
 --------------------------------------
+- added compiler parameters to space exploration
+- fixed genetic approach
+- improved mpi support for parallel execution
+- misc bug fixes
+
+
+2008.4 beta1
+--------------------------------------
 - support for multi-cluster register files
 - new m5 memory simulator support
 - rewritten multi-objective genetic algorithm
