@@ -309,7 +309,7 @@ static float VbitprePow;
 #endif
 #define OK 1
 #define ERROR 0
-#define BIGNUM 1e30
+#define BIGNUM 1e30 
 #define DIVIDE(a,b) ((b)==0)? 0:(a)/(b)
 #define MAX(a,b) (((a)>(b))?(a):(b))
 

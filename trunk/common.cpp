@@ -1,6 +1,5 @@
 // common routines and functions
 //
-
 #include "common.h"
 
 bool Configuration::is_feasible()
