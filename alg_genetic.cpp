@@ -25,13 +25,9 @@ void Explorer::start_GA(const GA_parameters& parameters)
 {
     current_algo="GA";
     if (Options.approx_settings.enabled == 1)
-    {
 	current_algo+="_fuzzy";
-    } 
     if (Options.approx_settings.enabled == 2)
-    {
 	current_algo+="_ANN";
-    } 
 
     eud.ht_ga = new HashGA(DEF_HASH_TABLE_SIZE);
     eud.history.clear();
@@ -39,7 +35,6 @@ void Explorer::start_GA(const GA_parameters& parameters)
 
     Exploration_stats stats;
     stats.space_size = get_space_size();
-    stats.feasible_size = get_feasible_size();
     stats.start_time = time(NULL);
     reset_sim_counter();
 
@@ -54,6 +49,8 @@ void Explorer::start_GA(const GA_parameters& parameters)
         file_name = Options.benchmark+"_"+current_algo+"_"+current_space;
 
     SimulateBestWorst();
+
+
 
 	// GA init
    	init_GA(); // call it before creating anything GA related
@@ -293,12 +290,18 @@ void Explorer::GA_evaluate(population* pop)
 
     // reinsert simulation values into GA
 
-    //    const int SCALE = 1; // seconds
+        //const int SCALE = 1; // seconds
     const int SCALE = 1000; // milliseconds
     assert(vsim.size() == pop->size());
     //    int disp = bench * n_obj;
-    for(int i=0; i<pop->size(); i++){
+    for(int i=0; i<pop->size(); i++)
+    {
+	// avoid overflow for non-feasible configurations
+	if (vsim[i].exec_time != MAXDOUBLE)
 	(*pop)[i].objectives[0] = vsim[i].exec_time * SCALE;
+	else 
+	(*pop)[i].objectives[0] = vsim[i].exec_time;
+
 	if( (*pop)[i].objectives_dim() > 1)
 	    (*pop)[i].objectives[1] = vsim[i].energy;
 	if( (*pop)[i].objectives_dim() > 2)

@@ -20,7 +20,6 @@ void Explorer::start_DEP()
     reset_sim_counter();
     Exploration_stats stats;
 
-    stats.feasible_size = get_feasible_size();
     stats.space_size = get_space_size();
 
     stats.start_time = time(NULL);

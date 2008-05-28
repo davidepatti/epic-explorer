@@ -11,7 +11,6 @@ void Explorer::start_SAP()
     Exploration_stats stats;
     reset_sim_counter();
     stats.space_size = get_space_size();
-    stats.feasible_size = get_feasible_size();
     stats.start_time = time(NULL);
 
     int n_par = 18;
@@ -132,7 +131,6 @@ void Explorer::start_SAPMOD()
     Exploration_stats stats;
     reset_sim_counter();
     stats.space_size = get_space_size();
-    stats.feasible_size = get_feasible_size();
     stats.start_time = time(NULL);
 
     vector<Simulation> max_sens_sims;
@@ -217,7 +215,6 @@ void Explorer::start_PBSA()
     reset_sim_counter();
 
     stats.space_size = get_space_size();
-    stats.feasible_size = get_feasible_size();
 
     stats.start_time = time(NULL);
 
