@@ -157,8 +157,13 @@ int User_interface::show_menu()
 		    ga_parameters.random_seed = rand()*rand(); //G this is not random
 		else
 		    srand(ga_parameters.random_seed);
-		cout << "\n\n Population size: ";
-		cin >> ga_parameters.population_size;
+		do 
+		{
+		    cout << "\n Please enter a value (divisible by 2) for Population size: ";
+		    cin >> ga_parameters.population_size;
+		}
+		while (ga_parameters.population_size%2!=0);
+
 		cout << " Crossover prob: ";
 		cin >> ga_parameters.pcrossover;
 		cout << " Mutation prob: ";
