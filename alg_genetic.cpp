@@ -14,9 +14,9 @@
 #define DEF_TOURNAMENT 2
 #define DEF_HASH_TABLE_SIZE   128
 
-#define BIG_CYCLES      MAXDOUBLE
-#define BIG_ENERGY      MAXDOUBLE
-#define BIG_AREA        MAXDOUBLE
+#define BIG_CYCLES      1e30
+#define BIG_ENERGY      1e30
+#define BIG_AREA        1e30
 // static initializations for GA
 int individual::uid = 0;
 vector<alleleset> individual::als;
@@ -296,11 +296,7 @@ void Explorer::GA_evaluate(population* pop)
     //    int disp = bench * n_obj;
     for(int i=0; i<pop->size(); i++)
     {
-	// avoid overflow for non-feasible configurations
-	if (vsim[i].exec_time != MAXDOUBLE)
 	(*pop)[i].objectives[0] = vsim[i].exec_time * SCALE;
-	else 
-	(*pop)[i].objectives[0] = vsim[i].exec_time;
 
 	if( (*pop)[i].objectives_dim() > 1)
 	    (*pop)[i].objectives[1] = vsim[i].energy;

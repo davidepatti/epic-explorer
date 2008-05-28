@@ -38,7 +38,7 @@ void Explorer::start_DEP()
 
     write_log("  -> Starting DEP simulation ");
 
-    sprintf(mess,"Space size: %lf , feasible %lf",stats.space_size,stats.feasible_size);
+    sprintf(mess,"Space size: %g ",stats.space_size);
     write_log(mess);
 
     write_log("  -> Starting c1 exploration ");
@@ -480,7 +480,6 @@ void Explorer::start_DEP2()
     reset_sim_counter();
     Exploration_stats stats;
 
-    //stats.feasible_size = get_feasible_size();
     stats.space_size = get_space_size();
 
     stats.start_time = time(NULL);
@@ -494,7 +493,7 @@ void Explorer::start_DEP2()
 
     write_log("  -> Starting DEP2 simulation ");
 
-    sprintf(mess,"Space size: %lf , feasible %lf ",stats.space_size,stats.feasible_size);
+    sprintf(mess,"Space size: %g",stats.space_size);
     write_log(mess);
 
     write_log("  -> Starting c5 exploration ");
