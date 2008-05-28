@@ -258,7 +258,6 @@ void Explorer::start_EXHA()
     Exploration_stats stats;
     reset_sim_counter();
     stats.space_size = get_space_size();
-    stats.feasible_size = get_feasible_size();
     stats.start_time=time(NULL);
 
     Space_mask mask = get_space_mask(SET_ALL);
@@ -1720,18 +1719,6 @@ long double Explorer::get_space_size() const
     Space_mask all_parm = get_space_mask(SET_ALL);
     return get_space_size(all_parm);
 
-}
-
-////////////////////////////////////////////////////////////////////////////
-// WARNING: disabled ( returns 0)
-long double Explorer::get_feasible_size() const
-{
-    Space_mask mask = get_space_mask(SET_ALL);
-
-    //vector<Configuration> space = build_space(mask);
-
-    return 0;
-    //return space.size();
 }
 
 
