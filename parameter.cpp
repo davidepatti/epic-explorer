@@ -17,6 +17,7 @@
 
 #include "parameter.h"
 #include "common.h"
+#include <cstdlib>
 
 using namespace std;
 
