@@ -9,6 +9,7 @@
 #include <assert.h>
 #include <iostream>
 #include <iomanip>
+#include <cstring>
 #include "utility.h"
 #include "containers.h"
 
