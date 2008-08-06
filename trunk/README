@@ -2,7 +2,7 @@
 **************************************************************
 	EPIC Explorer - Installing instructions
 **************************************************************
-      				      Last update April 12, 2008
+      			         Last update August 6th, 2008
 		        by Davide Patti (dpatti@diit.unict.it)
 
 
@@ -17,7 +17,7 @@ previous versione of epic explorer (i.e.  20060312-r2 version works
 with trimaran 3.7)
 
 NOTE: if compiling for AMD64 architectures (e.g. Opteron) with a 64
-bit distribution, see also the specific notes at the appendix of this
+bit distribution, see also the specific notes at the Appendix of this
 document.
 
 
@@ -28,8 +28,7 @@ document.
 First of all, you have to install the Trimaran compiler framework.
 
                      *** IMPORTANT! ****
-
-Before reporting a bug see section V "COMMON PROBLEMS
+Before reporting any bug or problem see section V "COMMON PROBLEMS
 AND ERRORS" at the end of this document.
 
 Please follow carefully these steps:
@@ -201,7 +200,10 @@ me with problems that are strictly related to compiling trimaran.
   useful info.
 
 
+***********************************************************
 COMMONLY REPORTED ERRORS (and suggested solutions)
+***********************************************************
+
 
 ***  ERROR.1.a ********************************************
 Missing 'aclocal'
@@ -209,27 +211,34 @@ Missing 'aclocal'
 >>> SOLUTION:
 Install automake!!
 
-***  ERROR.1.b ********************************************
 
-When finishing the compilation of openimpact, the following error is
-encountered:
+***  ERROR.1.b ********************************************
+When compilating openimpact, the following error is encountered:
 ----------------------------------------------------------------
 "platform/x86lin_gcc/IPA_lib/__impact_lib.c", line 3244: error: 
 declaration is incompatible with "const char *poptStrerror(const int)" 
 (declared at line 463 of "/usr/include/popt.h")
   const char * const poptStrerror(const int error)
+----------------------------------------------------------------
+***********************************************************
 
 >>> SOLUTION: 
 
 change the declaration of poptStrerror in the file:
-platform/x86lin_gcc/IPA_lib/__impact_lib.c
+openimpact/platform/x86lin_gcc/IPA_lib/__impact_lib.c
 
-the correct declaration is : 
+As suggester, the correct declaration is : 
   const char * poptStrerror(const int error)
 
+IMPORTANT NOTE: 
 
-***  ERROR.2.a ****************************************
+Usage of gcc >=4.3 leads to some further errors. The solution is
+similar, simply change che declaration of the function in
+__impact_lib.c so that the type of each parameter is exactly the same
+of those declared in /usr/include/popt.h
 
+
+***  ERROR.2.a *******************************************
 While trying to compile M5 cache simulator,  the following error is
 encountered:
 ----------------------------------------------------------------
@@ -239,21 +248,25 @@ namespace enclosing ‘AlphaISA’
 scons: *** [ALPHA/arch/alpha/decoder.os] Error 1
 scons: building terminated because of errors.
 make: *** [install/m5/build/ALPHA/libm5shared.so] Error 2
+-----------------------------------------------------------
+***********************************************************
 
 >>> SOLUTION: 
 
 Switch to gcc 3.4 just to compile m5. Then you can continue
 compiling emulib files with gcc 4 without any problem.
 
-***  ERROR.2.b ****************************************
 
+***  ERROR.2.b ********************************************
 While trying to compile M5 cache simulator,  the following error is
 encountered:
-
+----------------------------------------------------------------
 /usr/bin/ld: libelf/lib/libelf.a(begin.o): relocation R_X86_64_32
 against `a local symbol' can not be used when making a shared object;
 rec ompile with -fPIC libelf/lib/libelf.a: could not read symbols: Bad
 value
+-----------------------------------------------------------
+***********************************************************
 
 >>> SOLUTION:
 
@@ -274,7 +287,6 @@ to the not-working machine. In my case it did work!
 
 
 ***  E.3 **********************************************
-
 When compiling/executing a benchmark, the following error is
 encountered:
 ----------------------------------------------------------------
@@ -286,6 +298,8 @@ Pcode error: main() not defined
 Exiting: non-zero exit code
 Exiting: non-zero exit code
 tcc: Error: compile_bench -nosync -p ~/trimaran/openimpact/parms/STD_PARMS.IMPACT unsuccessful, bailing out! 
+----------------------------------------------------------------
+***********************************************************
 
 >>> SOLUTION:
 
@@ -299,7 +313,7 @@ apply these changes:
 
 
 *******************************************************
-AMD64 - SPECIFIC
+AMD64 - SPECIFIC (skip this if using intel of 32 bit amd)
 *******************************************************
 In order to compile trimaran M5 cache simulator on AMD64 bit machines
 with a 64 bit linux distribution some tweaks were required, since all
