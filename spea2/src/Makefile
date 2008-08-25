@@ -5,13 +5,8 @@ AR = ar ruvs
 
 # compiler and flags
 # compile with pgi for MPI versione, gcc otherwise
-ifdef EPIC_MPI
-CXX = pgCC
-CFLAGS += -g -Minform=severe
-else
 CXX = g++
 CFLAGS += -g -Wall -pedantic
-endif
 
 # all object files
 SEL_OBJECTS = variator.o selector.o containers.o utility.o
