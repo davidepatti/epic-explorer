@@ -65,7 +65,9 @@ void Trimaran_interface::compile_hmdes_file(const string& machine_dir) const
     else
     {
 	cout << EE_TAG << " cannot find " << main_hmdes2 <<  " in " << machine_dir;
+#ifndef EPIC_MPI
 	wait_key();
+#endif
     }
 
     chdir(old_path);
@@ -168,11 +170,13 @@ void Trimaran_interface::execute_benchmark(Compiler* c,const string& path, const
 // read statistics from PD_STATS and m5stats.txt files
 Dynamic_stats Trimaran_interface::get_dynamic_stats(const string& path)
 {
+    int x;
     string pd_filename = path + "PD_STATS";
     string m5_filename = path + "m5stats.txt";
 
     std::ifstream pd_file(pd_filename.c_str());
     std::ifstream m5_file(m5_filename.c_str());
+
 
     string pippo;
     Dynamic_stats dynamic_stats;
@@ -180,12 +184,16 @@ Dynamic_stats Trimaran_interface::get_dynamic_stats(const string& path)
     if (!pd_file) 
     {
 	cout << "\nEPIC EXPLORER error opening file:" << pd_filename;
+#ifndef EPIC_MPI
 	wait_key();
+#endif
     }
     else if (!m5_file)
     {
 	cout << "\nEPIC EXPLORER error opening file:" << m5_filename;
+#ifndef EPIC_MPI
 	wait_key();
+#endif
     }
     else
     {
@@ -387,7 +395,9 @@ void Trimaran_interface::save_compiler_parameter(const Compiler& cmp, const stri
    if (!output_file)
     {
 	cout << "\nError opening compiler file :" << filename;
+#ifndef EPIC_MPI
 	wait_key();
+#endif
     }
     else
     {
@@ -479,7 +489,9 @@ void Trimaran_interface::save_processor_config(const Processor& p, const string&
     if (!output_file) 
     {
 	cout << "\nError opening hmdes file :" << filename;
+#ifndef EPIC_MPI
 	wait_key();
+#endif
     }
     else
     {
@@ -524,7 +536,9 @@ void Trimaran_interface::load_processor_config(Processor* p,const string& filena
 
     if (!input_file) {
 	cout << "\nError opening hmdes file :" << filename;
+#ifndef EPIC_MPI
 	wait_key();
+#endif
     }
     else
     {
@@ -659,7 +673,9 @@ void Trimaran_interface::load_mem_config(Mem_hierarchy* mem,const string& filena
     if (!input_file) 
     {
 	cout << "\nError opening cache config file :" << filename;
+#ifndef EPIC_MPI
 	wait_key();
+#endif
     }
     else
     {   // TODO: handling even the 'kB' notation would be nicer
@@ -679,7 +695,9 @@ void Trimaran_interface::load_mem_config(Mem_hierarchy* mem,const string& filena
 	    cout << "\n Error: the 'kB' postfix in " << filename;
 	    cout << "\n is currently not supported by epic explorer";
 	    cout << "\n You must express cache size in bytes using 'B' postfix";
+#ifndef EPIC_MPI
 	    wait_key();
+#endif
 	}
 	value = atoi(word.substr(1,pos));
 	mem->L1I.size.set_val(value);
@@ -707,7 +725,9 @@ void Trimaran_interface::load_mem_config(Mem_hierarchy* mem,const string& filena
 	    cout << "\n Error: the 'kB' postfix in " << filename;
 	    cout << "\n is currently not supported by epic explorer";
 	    cout << "\n You must express cache size in bytes using 'B' postfix";
+#ifndef EPIC_MPI
 	    wait_key();
+#endif
 	}
 	value = atoi(word.substr(1,pos));
 	mem->L1D.size.set_val(value);
@@ -735,7 +755,9 @@ void Trimaran_interface::load_mem_config(Mem_hierarchy* mem,const string& filena
 	    cout << "\n Error: the 'kB' postfix in " << filename;
 	    cout << "\n is currently not supported by epic explorer";
 	    cout << "\n You must express cache size in bytes using 'B' postfix";
+#ifndef EPIC_MPI
 	    wait_key();
+#endif
 	}
 	value = atoi(word.substr(1,pos));
 	mem->L2U.size.set_val(value);
