@@ -118,7 +118,7 @@ string Configuration::get_mem_dir() const
 //G
 void Simulation::add_simulation(const Simulation& other)
 {
-  assert(configuration == other.configuration); // same configuration
+  //assert(config == other.config); // same configuration
   if(energy_v.size() == 0 &&  area_v.size() == 0 && exec_time_v.size() == 0){ // single to multi-valued transform
     energy_v.push_back(energy);
     area_v.push_back(area);
