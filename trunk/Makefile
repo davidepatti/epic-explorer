@@ -4,16 +4,16 @@ GAINC_DIR = ./spea2/src
 GALIB_DIR = ./spea2/lib
 GASRC_DIR = ./spea2/src
 
-ifdef EPIC_MPI
-CC = pgcc
-CXX = pgCC
-MPICC = mpicxx
-#MPICC = mpiCC
-CFLAGS += -DEPIC_MPI -DMPICH_IGNORE_CXX_SEEK -DNDEBUG -Minform=severe
-#CFLAGS += -DEPIC_MPI -DMPICH_IGNORE_CXX_SEEK -DNDEBUG -Minform=warn
-else
 CC = gcc
 CXX = g++
+
+# Misc stuff for mpi environment support
+# if you want, adapt it and export EPIC_MPI=1 before compiling
+ifdef EPIC_MPI
+MPICC = mpicxx
+CFLAGS += -DEPIC_MPI -DMPICH_IGNORE_CXX_SEEK
+#CFLAGS += -DEPIC_MPI -DMPICH_IGNORE_CXX_SEEK -DNDEBUG -Minform=severe Ktrap=fp
+else
 MPICC = ${CXX}
 CFLAGS += -DNDEBUG 
 #CFLAGS += -DTEST -DNDEBUG 
