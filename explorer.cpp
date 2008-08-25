@@ -867,6 +867,7 @@ int Explorer::get_explorer_status() const
 
     if (file_exists(processor_dir))  
     {
+       cout << "\n Waiting for executable...";
 	while (!file_exists(processor_dir+"/simu_intermediate/"+bench_executable))
 	    sleep(EXPLORER_RETRY_TIME);
 	cout << "Ok!";
@@ -888,6 +889,8 @@ int Explorer::get_explorer_status() const
 
     if (file_exists(mem_hierarchy_dir)) 
     {
+
+       cout << "\n Waiting for " << pd_stats_file;
 	while (!file_exists(pd_stats_file))
 	    sleep(EXPLORER_RETRY_TIME);
 	cout << "Ok!";
