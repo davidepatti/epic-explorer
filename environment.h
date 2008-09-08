@@ -103,11 +103,14 @@
 //#benchmark related stuff
 #define  PGPPATH "./"
 //
-//export PATH=${PATH}:${IMPACT_REL_PATH}/bin:${IMPACT_REL_PATH}/scripts:${IMPACT_REL_PATH}/driver:${ELCOR_BIN}:${SIMU_BIN_PATH}:${TRIMARAN_ROOT}/scripts:${GUI_BIN}:${TAS_BIN}:${ARM_REL_PATH}
-//
 #define SUIFHOME "/trimaran/suif"
 #define MACHINE "x86-redhat-linux"
 #define COMPILER_NAME "gcc"
-//eval `$SUIFHOME/setup_suif -sh 2> /dev/null`
-//export SUIFPATH=$SUIFPATH:/usr/bin
+
+// MPI related stuff
+// when launching multiple epic instances using mpi, some further paths could be
+// necessary. i.e., slave processes should see the same gcc version of the master etc
+// Adapt to your system, if needed
+
+#define MPI_EXPORT_PATH "/home/dpatti/wrappers:/usr/bin:"
 

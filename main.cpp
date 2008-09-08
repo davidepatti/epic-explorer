@@ -28,10 +28,8 @@ int main(int argc, char *argv[])
 {
 #ifdef EPIC_MPI
 	MPI_Init(&argc,&argv);
-	//MPI::Init(argc,argv);
 	int rank;
 	MPI_Comm_rank(MPI_COMM_WORLD,&rank);
-	//rank = MPI::COMM_WORLD.Get_rank();
 	char* base_path_cstr;
 	int length;
 	//cerr << "DEBUG " << rank << " - base_path is: " << base_path << endl; 
@@ -41,7 +39,6 @@ int main(int argc, char *argv[])
 		//cerr << "DEBUG strlen : " << length << endl;
 	}
 	MPI_Bcast(&length,1,MPI_INT,0,MPI_COMM_WORLD);
-	//MPI::COMM_WORLD.Bcast(&length, 1, MPI_INT, 0);
 	//cerr << "DEBUG " << rank << " - length is: " << length << endl;
 
 	if(rank != 0){
@@ -49,11 +46,11 @@ int main(int argc, char *argv[])
 	}
 
 	MPI_Bcast(base_path_cstr, length, MPI_CHAR, 0, MPI_COMM_WORLD);
-	//MPI::COMM_WORLD.Bcast(base_path_cstr, length, MPI_CHAR, 0);
 	//cerr << "DEBUG " << rank << " - base_path_cstr is: " << base_path_cstr << endl;
 	string base_path = string(base_path_cstr);
 	cerr << "DEBUG " << rank << " - NEW base_path is: " << base_path << endl;
 	setenv(BASE_DIR, base_path_cstr, 1);
+
 	//cerr << "DEBUG " << rank << " getenv(BASE_DIR) is: " << getenv(BASE_DIR) << endl;
 	//cerr << "DEBUG " << rank << " get_base_dir is: " << get_base_dir() << endl;
 #else
