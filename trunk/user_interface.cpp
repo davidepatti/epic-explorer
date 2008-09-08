@@ -357,7 +357,21 @@ void User_interface::edit_user_settings()
     string ch;
     do {
 	system("clear");
-	cout << "\n  O p t i o n  ";
+
+#ifdef EPIC_MPI
+        cout << "\n WARNING!";
+	cout << "\n ----------------------------------------------------------";
+        cout << "\n You are running an MPI enabled binary of epic explorer.";
+        cout << "\n Current version does not support settings update to slaves precesses.";
+        cout << "\n This means that every change you make here will NOT be used by the other";
+        cout << "\n slave instancies of epic explorer.";
+        cout << "\n In order to set properly your preferences for each process you should ";
+        cout << "\n modify directly the file epic_default.conf and then relaunch the mpirun command";
+        wait_key();
+#endif
+
+
+	cout << "\n  S e t t i n g s  ";
 	cout << "\n ----------------------------------------------------------";
 	cout << "\n  (1) - Objective Area               --> " << status_string(user_settings.objective_area);
 	cout << "\n  (2) - Objective Execution Time     --> " << status_string(user_settings.objective_exec_time);
