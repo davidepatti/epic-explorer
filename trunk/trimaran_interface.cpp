@@ -361,6 +361,11 @@ void Trimaran_interface::set_environment(const string& base_dir) {
 	+base_dir+"/trimaran/scripts:"
         +base_dir+GUI_BIN+":"
         +base_dir+TAS_BIN;
+
+// when using mpi multiple processes, some addition paths can be added (see environment.h)
+#ifdef EPIC_MPI
+    path = MPI_EXPORT_PATH+path;
+#endif
     setenv("PATH",path.c_str(),1);
 
     // setting library path for m5
