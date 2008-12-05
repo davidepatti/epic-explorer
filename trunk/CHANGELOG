@@ -1,5 +1,12 @@
 current
 --------------------------------------
+- fixed MPI code
+
+
+
+
+2008.6 beta
+--------------------------------------
 - added compiler parameters to space exploration
 - fixed genetic approach
 - improved mpi support for parallel execution
