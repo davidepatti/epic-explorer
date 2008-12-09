@@ -1202,7 +1202,7 @@ void User_interface::reload_system_config()
     cout << "\n\n Loading memory configuration from m5 file: " << cache_config_file;
     trimaran_interface->load_mem_config(&(my_explorer->mem_hierarchy),cache_config_file);
 
-    string comp_filename = base_path+"/trimaran-workspace/epic-explorer/step-by_step/machines/compiler_param";	//db
+    string comp_filename = base_path+"/trimaran-workspace/epic-explorer/step_by_step/machines/compiler_param";	//db
     cout << "\n\n Loading compiler parameter from comp_file: " << comp_filename;	//db
     trimaran_interface->load_compiler_parameter(&(my_explorer->compiler),comp_filename);	//db
 }
