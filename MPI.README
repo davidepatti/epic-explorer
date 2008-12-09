@@ -1,0 +1,24 @@
+------------------------------------------------------
+MPI epic explorer how-to
+-------------------------------------------------------
+
+This instructions will allow Epic Explorer to spawn simulations among
+different execution units using Message Passing Interface library.
+
+I. Installing MPI library
+------------------------------------------------------
+First of all, you need an MPI-enabled machine. Please refer to the
+packages required to accomplish this.
+
+
+II. Compiling epic explorer with MPI library
+------------------------------------------------------
+Enter the epic source directory as usual. If you already compiled the
+source code, run "make cleanall" to remove all previously build files.
+
+Enable the mpi flag by running:
+
+export EPIC_MPI=1
+
+the you can compile by typing "make".
+
