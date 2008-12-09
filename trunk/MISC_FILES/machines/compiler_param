@@ -1,0 +1,22 @@
+//////////////////////////////////////////////////
+// Epic Explorer compiler configuration
+//////////////////////////////////////////////////
+
+// Compiler parameters 
+ ----------------------------------
+$def !tcc_region:	 2
+
+
+// Impact Parameters 
+ ----------------------------------
+$def !max_unroll_allowed:	8
+$def !regroup_only:		2
+
+
+// Elcor Parameters 
+ ----------------------------------
+$def !do_classic_opti:			1
+$def !do_prepass_scalar_scheduling:	1
+$def !do_postpass_scalar_scheduling:	2
+$def !do_modulo_scheduling:		2
+$def !memvr_profiled:			1
