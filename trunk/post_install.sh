@@ -27,29 +27,29 @@ fi
 echo "** Checking for necessary files in $WORKSPACE..."
 
 if [ -e $WORKSPACE/epic-explorer ]; then
-   echo "  ** Ok, found $WORKSPACE/epic-explorer directory"
+   echo "  ** WARNING: found a previous $WORKSPACE/epic-explorer directory"
+   echo "It's strongly suggested to move/rename it in order to avoid conflicts with "
+   echo "newer versions."
+   exit -1
 else # missing workspace
    echo " > Creating $WORKSPACE/epic-explorer directory"
     mkdir -p $WORKSPACE/epic-explorer
 fi
 
-echo " > Copying m5elements configuration files..."
-cp -Rf $EPIC_SOURCE/MISC_FILES/m5elements $WORKSPACE/epic-explorer/
 echo " > Copying SUBSPACES directory..."
 cp -Rf $EPIC_SOURCE/SUBSPACES $WORKSPACE/epic-explorer
+
+echo " > Copying m5elements configuration files..."
+cp -Rf $EPIC_SOURCE/MISC_FILES/m5elements $WORKSPACE/epic-explorer/
 
 echo " > Creating $WORKSPACE/epic-explorer/machines directory..."
 cp -Rf $EPIC_SOURCE/MISC_FILES/machines $WORKSPACE/epic-explorer/
 
 echo " > Creating $WORKSPACE/epic-explorer/step_by_step directory..."
+mkdir -p $WORKSPACE/epic-explorer/step_by_step
 
 cp -Rf $EPIC_SOURCE/MISC_FILES/machines $WORKSPACE/epic-explorer/step_by_step
 cp -Rf $EPIC_SOURCE/MISC_FILES/m5elements $WORKSPACE/epic-explorer/step_by_step 
-
-if [ -e "$WORKSPACE/epic-explorer/epic_default.conf" ]; then
-    echo " ** Warning: Found a previous epic_default.conf, saved as epic_default-previous.conf"
-    mv $WORKSPACE/epic-explorer/epic_default.conf $WORKSPACE/epic-explorer/epic_default-previous.conf
-fi
 
 echo " > Creating a new epic_default.conf"
 cp -f $EPIC_SOURCE/MISC_FILES/epic_default.conf $WORKSPACE/epic-explorer
