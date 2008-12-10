@@ -1,14 +1,28 @@
 ------------------------------------------------------
-MPI epic explorer how-to
+MPI Epic Explorer HOW-TO
 -------------------------------------------------------
+Last updated Dec 10th 2008 by Davide Patti (dpatti@diit.unict.it)
 
-This instructions will allow Epic Explorer to spawn simulations among
-different execution units using Message Passing Interface library.
+
+Intro
+------------------------------------------------------
+These instructions will allow an Epic Explorer user to spawn
+simulations among different execution units using Message Passing
+Interface library (MPI).
+
+The aim of the implementation is to be as trasparent as
+possible to the epic explorer user, so that she/he can see only the first
+instance of epic as a normal interactive epic explorer menu, while the
+remaining N-1 instances will wait as slave processes.
+Currently tested exploration algorithms: GA, RAND, EXHA.
 
 I. Installing MPI library
 ------------------------------------------------------
-First of all, you need an MPI-enabled machine. Please refer to the
-packages required to accomplish this.
+First of all, you need an MPI-enabled machine. Please refer to your
+distribution docs to accomplish this. In most cases, installing 
+packages named "mpi" should work.
+
+Note: if possible prefer mpich implementation over openmpi.
 
 
 II. Compiling epic explorer with MPI library
@@ -20,5 +34,60 @@ Enable the mpi flag by running:
 
 export EPIC_MPI=1
 
-the you can compile by typing "make".
+Now edit the "Makefile" just to check that the compiler/flags setting
+are good for your MPI installation. 
+The values currently present worked for an Ubuntu 8.04 installation.
+
+After this, you can compile as usual by typing "make" inside epic
+explorer source directory.
+
+IMPORTANT: the "make" command should be issued ALWAYS from the same
+shell where you previuously exported EPIC_MPI, since environment variables
+are not automatically updated in different shells.
+
+
+III. Running Epic Explorer with MPI parallell execution
+------------------------------------------------------
+
+Assuming you are inside epic source directory, just issuing the command:
+
+mpirun -np N ./epic
+
+will run N instances of epic, where N must be set depending on your
+number of core and/ore MPI configuration (e.g. you could spawn on multiple
+hosts by using machinefile). 
+
+Just select an exploration algorithm and wait for simulations to be
+finished. For the first tests we suggest to use RAND with a small
+number of configurtion, so that you can quickly check the results.
+
+
+IV. Technical Issues about current implementation
+-----------------------------------------------------
+Going more in deep in the parallel execution model described above we
+can say that, supposing to start an algorithm A, the parallelization
+is currently implemented as follows:
+
+1) start_A() wrapper (UserInterface.cpp) is invoked at master node
+(rank 0)
+
+2) start_A() (alg_A.cpp) is then invoked at master node.
+
+3) simulate_space(...) at master node subdivides the configuration
+space to be simulated in subsets and sends them to each slave node,
+includeding itself.
+
+4) the simulate_loop(...) is executed at each node with the assigned
+configurations. When each node complete its simulation, returns the
+simulations results to the master.
+
+5) The master simulated_space(...) collect the received data, save the
+results on file, and return control to the interactive menu.
+
+
+
+BUGS/NOTES
+------------------------------------------------------
+On ubuntu 8.04 it was needed to use "mpirun.mpich" command instead of
+simply mpirun due problems with openmpi implementation.
 
