@@ -338,7 +338,8 @@ void Trimaran_interface::set_environment(const string& base_dir) {
     setenv("DAVINCIEXE",DAVINCIEXE,1);
     setenv("M5_ROOT",(base_dir+M5_ROOT).c_str(),1);
     setenv("M5_OUTPUT_DIR",M5_OUTPUT_DIR,1);
-    setenv("M5_CONFIG_FILE",(base_dir+M5_CONFIG_FILE).c_str(),1);
+    // M5_CONFIG_FILE should be set depending on the config simulated
+    //setenv("M5_CONFIG_FILE",(base_dir+M5_CONFIG_FILE).c_str(),1);
     setenv("GUI_BIN",(base_dir+GUI_BIN).c_str(),1);
     setenv("PGPPATH",PGPPATH,1);
     setenv("SUIFHOME",(base_dir+SUIFHOME).c_str(),1);
