@@ -13,8 +13,6 @@ void Explorer::start_SAP()
     stats.space_size = get_space_size();
     stats.start_time = time(NULL);
 
-    int n_par = 18;
-
     string file_name = Options.benchmark+"_SAP_"+current_space;
     vector<double> sens;
     vector<int> sorted_index;
@@ -26,9 +24,9 @@ void Explorer::start_SAP()
     // for each parameter is created a mask with only one value set to
     // true. These masks will allow to explore all values of each
     // parameter without changing the other
-    for (int m=0;m<n_par;m++)
+    for (int m=0;m<N_PARAMS;m++)
     {
-	vector<bool> boolean_mask(n_par,false);
+	vector<bool> boolean_mask(N_PARAMS,false);
 	boolean_mask[m] = true;
 	Space_mask temp_mask = create_space_mask(boolean_mask);
 	parameter_masks.push_back(temp_mask);
@@ -144,14 +142,12 @@ void Explorer::start_SAPMOD()
 
     vector<Space_mask> parameter_masks;
 
-    int n_par = 19;
-
     // for each parameter is created a mask with only one value set to
     // true. These masks will allow to explore all values of each
     // parameter without changing the other
-    for (int m=0;m<n_par;m++)
+    for (int m=0;m<N_PARAMS;m++)
     {
-	vector<bool> boolean_mask(n_par,false);
+	vector<bool> boolean_mask(N_PARAMS,false);
 	boolean_mask[m] = true;
 	temp_mask = create_space_mask(boolean_mask);
 	parameter_masks.push_back(temp_mask);
@@ -218,8 +214,6 @@ void Explorer::start_PBSA()
 
     stats.start_time = time(NULL);
 
-    int n_par = 19;
-
     vector<double> sens;
 
     Configuration base_conf = create_configuration();
@@ -233,9 +227,9 @@ void Explorer::start_PBSA()
     // for each parameter is created a mask with only one value set to
     // true. These masks will allow to explore all values of each
     // parameter without changing the other
-    for (int m=0;m<n_par;m++)
+    for (int m=0;m<N_PARAMS;m++)
     {
-	vector<bool> boolean_mask(n_par,false);
+	vector<bool> boolean_mask(N_PARAMS,false);
 	boolean_mask[m] = true;
 	Space_mask temp_mask = create_space_mask(boolean_mask);
 	parameter_masks.push_back(temp_mask);
