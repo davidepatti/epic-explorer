@@ -1194,34 +1194,36 @@ void User_interface::schedule_explorations()
 void User_interface::reload_system_config() 
 {
     string filename = base_path+"/trimaran-workspace/epic-explorer/step_by_step/machines/"+EXPLORER_HMDES2;
-    cout << "\n\n Loading processor config from hmdes file: " << filename;
+    cout << "\n\n Loading processor configuration: " << filename;
     trimaran_interface->load_processor_config(&(my_explorer->processor),filename);
 
     string cache_config_file = base_path + "/trimaran-workspace/epic-explorer/step_by_step/m5elements/default.py";
 
-    cout << "\n\n Loading memory configuration from m5 file: " << cache_config_file;
+    cout << "\n\n Loading mem configuration: " << cache_config_file;
     trimaran_interface->load_mem_config(&(my_explorer->mem_hierarchy),cache_config_file);
 
     string comp_filename = base_path+"/trimaran-workspace/epic-explorer/step_by_step/machines/compiler_param";	//db
-    cout << "\n\n Loading compiler parameter from comp_file: " << comp_filename;	//db
+    cout << "\n\n Loading compiler configuration: " << comp_filename;	//db
     trimaran_interface->load_compiler_parameter(&(my_explorer->compiler),comp_filename);	//db
 }
 
 
 void User_interface::compile_hmdes_file() {
 
+    reload_system_config();
     string hmdes_dir = base_path + "/trimaran-workspace/epic-explorer/step_by_step/machines";
     trimaran_interface->compile_hmdes_file(hmdes_dir);
 }
 
 void User_interface::compile_benchmark() {
-
+    reload_system_config();
     string base_dir = base_path + "/trimaran-workspace/epic-explorer/step_by_step";
     trimaran_interface->compile_benchmark(&(my_explorer->compiler),base_dir);	//db
 }
 
 void User_interface::execute_benchmark() {
 
+    reload_system_config();
     string base_dir = base_path + "/trimaran-workspace/epic-explorer/step_by_step";
     trimaran_interface->execute_benchmark(&(my_explorer->compiler),base_dir,"simu_intermediate");
 }
