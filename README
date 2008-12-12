@@ -41,22 +41,19 @@ Now, please follow carefully these steps:
 STEP 1) Download Trimaran 4.0 from http://www.trimaran.org/download.shtml
 
 STEP 2) Unpack the trimaran archive. A good choice is usually to put it in your
-home directory. We will refer to the chosen dir as <TRDIR>.
+home directory:
 
-STEP 3) If not already done, download Epic Explorer source from
-http://epic-explorer.sourceforge.net and unpack the archive.
+tar xvfz trimaran.tgz
 
-Even in this case, a good choice is usually to put it your home
-directory.  If the name of the directory is not "epic", create a
-symbolik link so that an "epic" dir is present.
+We will refer to the chosen dir as <TRDIR>.
 
-For example: if you have unpacked epic explorer and you have a
-directory "/home/yourname/epic-explorer" you could use the command:
+STEP 3) Download Epic Explorer source from
+http://epic-explorer.sourceforge.net and unpack the archive:
 
-ln -s /home/yourname/epic /home/yourname/epic-explorer
+tar xvfz epic-VERSION.tar.gz 
 
-    Note: We will refer to the directory containing epic explorer source as
-    <EPIC_DIR>
+We will refer to the directory containing epic explorer source as
+<EPIC_DIR>
 
 STEP 4) Copy the file 'PD_m5e.c' from <EPIC_DIR>/MISC_FILES/ to
 <TRDIR>/simu/src/emulib/
@@ -64,7 +61,7 @@ STEP 4) Copy the file 'PD_m5e.c' from <EPIC_DIR>/MISC_FILES/ to
     Note: If both epic and trimaran sources have been unpacked inside your home
     directory as suggested, the following command will probably work:
 
-cp -f ~/epic/MISC_FILES/PD_m5e.c ~/trimaran/simu/src/emulib/
+    cp -f ~/epic/MISC_FILES/PD_m5e.c ~/trimaran/simu/src/emulib/
 
 STEP 5) Now you can proceed with the normal trimaran installation.  Follow the
 istructions of section 2 'Manual Installation' of the pdf manual found in the
@@ -103,10 +100,9 @@ explained in Section 7 of trimaran manual.
 SECTION III: INSTALLING EPIC EXPLORER 
 ==============================================================
 
-1) If not yet done, unpack epic explorer source (probably in your home
-directory)
+1) If not yet done, unpack epic explorer source
 
-2) Enter the 'epic' source directory
+2) Enter the epic explorer source directory
 
 3) Just type 'make' to compile the source 
 
