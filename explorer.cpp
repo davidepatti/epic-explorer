@@ -17,6 +17,9 @@
 
 #include "explorer.h"
 #include "common.h"
+#ifdef EPIC_MPI
+#include "mpi.h"
+#endif
 
 
 //********************************************************************
@@ -849,68 +852,102 @@ void Explorer::prepare_explorer(const string& application, const Configuration& 
 
 int Explorer::get_explorer_status() const
 {
+    int myrank,mysize;
+#ifdef EPIC_MPI
+    MPI_Status status;
+    MPI_Comm_rank(MPI_COMM_WORLD,&myrank);
+    MPI_Comm_size(MPI_COMM_WORLD,&mysize);
+#else
+    myrank = 0;
+    mysize = 1;
+#endif
+
+    string process_id;
+
+    if (mysize>1) 
+	process_id = "[Process " + to_string(myrank)+"] ";
+
     bool must_execute = false;
     bool must_compile = false;
     string cmd;
+    
+    mode_t mode = 0770;
 
     if (!file_exists(application_dir)) 
     {
-	cout << EE_TAG << "no application_dir " << application_dir << " found, creating it...";
-	cmd = "mkdir "+application_dir;
-	cout << EE_TAG << cmd;
-	system(cmd.c_str());
+	cout << EE_TAG << process_id << " no application_dir " << application_dir << " found, creating it...";
+	mkdir(application_dir.c_str(),mode);
     }
 
     // check compilation status 
 
-    cout << EE_TAG << "Checking for a bench exe in " << processor_dir << " ...";
+    cout << EE_TAG << process_id << " Checking for a bench exe in " << processor_dir << " ...";
 
     if (file_exists(processor_dir))  
     {
-       cout << "\n Waiting for executable...";
+	// another process created the processor directory, must wait
+	// for benchmark executable to be available
+       cout << "\n" << process_id << " Waiting for executable...";
 	while (!file_exists(processor_dir+"/simu_intermediate/"+bench_executable))
 	    sleep(EXPLORER_RETRY_TIME);
-	cout << "Ok!";
+	cout << process_id << "Ok!";
     }
     else
     {
-	cout << EE_TAG << "no processor_dir " << processor_dir << " found, creating it...";
-	cmd = "mkdir "+processor_dir;
-	cout << EE_TAG << cmd;
-	system(cmd.c_str());
-	must_compile = true; // this process is responsible for compiling!
+	// the processor directory must be created, but we should
+	// avoid race condition with other processes trying to create
+	// same directory
+	cout << EE_TAG << process_id << "no processor_dir " << processor_dir << " found, creating it...";
 
-	cmd = "cp -R "+get_base_dir()+"/trimaran-workspace/epic-explorer/machines/ "+processor_dir;
-	system(cmd.c_str());
+	if (mkdir(processor_dir.c_str(),mode)==0)
+	{   // dir successifully created 
+	    // this process is responsible for compiling!
+	    must_compile = true; 
+	    cmd = "cp -R "+get_base_dir()+"/trimaran-workspace/epic-explorer/machines/ "+processor_dir;
+	    system(cmd.c_str());
+	}
+	else
+	{
+	   cout << "\n" << process_id << " Warning: Could not create processor_dir, Waiting for executable...";
+	    while (!file_exists(processor_dir+"/simu_intermediate/"+bench_executable))
+		sleep(EXPLORER_RETRY_TIME);
+	    cout << process_id << " Ok!";
+	}
     }
 
     // check execution status 
-    cout << EE_TAG << "Checking for a PD_STATS file in " << mem_hierarchy_dir << "...";
+    cout << EE_TAG << process_id << "Checking for a PD_STATS file in " << mem_hierarchy_dir << "...";
 
     if (file_exists(mem_hierarchy_dir)) 
     {
 
-       cout << "\n Waiting for " << pd_stats_file;
+       cout << "\n" << process_id << " Waiting for " << pd_stats_file;
 	while (!file_exists(pd_stats_file))
 	    sleep(EXPLORER_RETRY_TIME);
-	cout << "Ok!";
+	cout << process_id << " Ok!";
     }
     else
     {
-	cout << EE_TAG << "no mem_hierarchy_dir " << mem_hierarchy_dir << " found, creating it...";
-	cmd = "mkdir "+mem_hierarchy_dir;
-	cout << EE_TAG << cmd;
-	system(cmd.c_str());
-	must_execute = true; // this process is responsible for executing!
-
-	cmd = "cp -R "+get_base_dir()+"/trimaran-workspace/epic-explorer/m5elements/ "+mem_hierarchy_dir;
-	system(cmd.c_str());
+	cout << EE_TAG << process_id << "no mem_hierarchy_dir " << mem_hierarchy_dir << " found, creating it...";
+	if (mkdir(mem_hierarchy_dir.c_str(),mode)==0)
+	{
+	    must_execute = true; // this process is responsible for executing!
+	    cmd = "cp -R "+get_base_dir()+"/trimaran-workspace/epic-explorer/m5elements/ "+mem_hierarchy_dir;
+	    system(cmd.c_str());
+	}
+	else
+	{
+	   cout << "\n" << process_id << " Warning: Could not create mem_hierarchy_dir, Waiting for " << pd_stats_file;
+	    while (!file_exists(pd_stats_file))
+		sleep(EXPLORER_RETRY_TIME);
+	    cout << process_id << " Ok!";
+	}
     }
 
     if (must_compile) return EXPLORER_NOTHING_DONE;
     if (must_execute) return EXPLORER_BINARY_DONE;
 
-    cout << EE_TAG << "Found " << pd_stats_file << ". Simulation steps already done";
+    cout << EE_TAG << process_id << " Found " << pd_stats_file << ". Simulation steps already done";
     return EXPLORER_ALL_DONE;
 }
 
