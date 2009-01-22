@@ -49,6 +49,7 @@ are not automatically updated in different shells.
 III. Running Epic Explorer with MPI parallell execution
 ------------------------------------------------------
 
+
 Assuming you are inside epic source directory, just issuing the command:
 
 mpirun -np N ./epic
@@ -60,6 +61,16 @@ hosts by using machinefile).
 Just select an exploration algorithm and wait for simulations to be
 finished. For the first tests we suggest to use RAND with a small
 number of configurtion, so that you can quickly check the results.
+
+TIPS
+
+If you want to un epic non-interactively, e.g. using a command file to
+feed the inputs:
+nohup mpirun -np N ./epic < cmd.txt &
+
+where cmd.txt is a file containing the commands, N the number of
+processors. Prepending the "nohup" command allows the user to
+disconnect without waiting for the explorations to be completed.
 
 
 IV. Technical Issues about current implementation
