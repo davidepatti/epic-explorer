@@ -44,7 +44,7 @@ estimator.o: estimator.cpp estimator.h processor.h mem_hierarchy.h \
 explorer.o: explorer.cpp explorer.h processor.h trimaran_interface.h \
 	mem_hierarchy.h estimator.h parameter.h common.h \
 	FunctionApprox.h FuzzyApprox.h FannApprox.h
-	${CXX} -I${GAINC_DIR} ${CFLAGS} -c explorer.cpp
+	${MPICC} -I${GAINC_DIR} ${CFLAGS} -c explorer.cpp
 
 simulate_space.o: simulate_space.cpp explorer.h 
 	${MPICC} -I${GAINC_DIR} ${CFLAGS} -c simulate_space.cpp
