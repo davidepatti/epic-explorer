@@ -120,7 +120,6 @@ int User_interface::show_menu()
 	cout << "\n [4] - View execution statistics";
 	cout << "\n [5] - Estimate objectives";
 	cout << "\n [6] - Show system config";
-	cout << "\n [7] - Reload system config" << endl;
 	cout << "\n Make your choice >";
 
 	//G    ch = 'r';
@@ -343,10 +342,13 @@ int User_interface::show_menu()
 	    if (myrank == 0) wait_key();
 	    break;
 
-	case '7':
-	    if (myrank == 0) reload_system_config();
-	    if (myrank == 0) wait_key();
+	case 'q':
+	    // will exit...
 	    break;
+	default:
+	    cout << endl << "Not valid choice";
+	    wait_key();
+
     }
 
     return ch;
@@ -792,7 +794,8 @@ void User_interface::info()
 void User_interface::show_system_config() {
 
     system("clear");
-    cout <<"\n -----------------------------------------" << endl;
+    reload_system_config();
+    cout << endl << " -----------------------------------------" << endl;
     cout << my_explorer->mem_hierarchy.L1I.label<< ": ";
     cout << my_explorer->mem_hierarchy.L1I.block_size.get_val() << "/";
     cout << my_explorer->mem_hierarchy.L1I.size.get_val() << "/";
