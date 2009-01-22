@@ -1,1 +1,1 @@
-#define VERSION "2008.6-beta1"
+#define VERSION "2009.01-rc1"
