@@ -7,7 +7,7 @@
 BASE_DIR=$HOME
 WORKSPACE=$BASE_DIR/trimaran-workspace
 TRIMARAN_ROOT=$BASE_DIR/trimaran
-EPIC_SOURCE=$BASE_DIR/epic-explorer
+EPIC_SOURCE=$BASE_DIR/epic
 
 # checking trimaran installation ###############################
 echo ""
