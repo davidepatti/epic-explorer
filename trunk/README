@@ -1,7 +1,7 @@
 r*************************************************************
 	EPIC Explorer - Installing instructions
 **************************************************************
-      			         Last update Dec 10th, 2008
+      			         Last update Nov 13, 2009
 		        by Davide Patti (dpatti@diit.unict.it)
 
 ==============================================================
@@ -18,6 +18,7 @@ If you need to use older versions of trimaran please download a
 previous versione of epic explorer (i.e.  20060312-r2 version works
 with trimaran 3.7)
 
+******** important !!! *****************************************
 If compiling for AMD64 architectures (e.g. Opteron) with a 64
 bit distribution, see also the specific notes at the Appendix of this
 document.
@@ -29,25 +30,32 @@ file provided in the source directory.
 ==============================================================
 SECTION II: INSTALLING TRIMARAN 
 ==============================================================
-First of all, you have to install the Trimaran compiler framework.
 
                      *** IMPORTANT! ****
 
 Before reporting ANY bug or problem see section V: "COMMON PROBLEMS
 AND ERRORS" at the end of this document.
+                        **********
 
+First of all, you have to install the Trimaran compiler framework.
 Now, please follow carefully these steps:
 
-STEP 1) Download Trimaran 4.0 from http://www.trimaran.org/download.shtml
+STEP 1:
 
-STEP 2) Unpack the trimaran archive. A good choice is usually to put it in your
+Download Trimaran 4.0 from http://www.trimaran.org/download.shtml
+
+STEP 2: 
+
+Unpack the trimaran archive. A good choice is usually to put it in your
 home directory:
 
 tar xvfz trimaran.tgz
 
 We will refer to the chosen dir as <TRDIR>.
 
-STEP 3) Download Epic Explorer source from
+STEP 3: 
+
+Download Epic Explorer source from
 http://epic-explorer.sourceforge.net and unpack the archive:
 
 tar xvfz epic-VERSION.tar.gz 
@@ -55,18 +63,22 @@ tar xvfz epic-VERSION.tar.gz
 We will refer to the directory containing epic explorer source as
 <EPIC_DIR>
 
-STEP 4) Copy the file 'PD_m5e.c' from <EPIC_DIR>/MISC_FILES/ to
+STEP 4: 
+
+Copy the file 'PD_m5e.c' from <EPIC_DIR>/MISC_FILES/ to
 <TRDIR>/simu/src/emulib/
 
-    Note: If both epic and trimaran sources have been unpacked inside your home
+    NOTE 4.1: If both epic and trimaran sources have been unpacked inside your home
     directory as suggested, the following command will probably work:
 
     cp -f ~/epic/MISC_FILES/PD_m5e.c ~/trimaran/simu/src/emulib/
 
-STEP 5) Now you can proceed with the normal trimaran installation.  Follow the
-istructions of section 2 'Manual Installation' of the pdf manual found in the
-trimaran/manual directory. Proceed to the next step of these instructions only
-after trimaran has been correctly installed.
+STEP 5: 
+
+Now you can proceed with the normal trimaran installation.  Follow the
+istructions of section 2 'Manual Installation' of the pdf manual found
+in the trimaran/manual directory. Proceed to the next step only after
+trimaran has been correctly installed.
 
     NOTE 5.1: you should start from point 4 of  subsection 2.2, in other
     words, you should NOT unpack *again* the source, because this would
@@ -79,20 +91,34 @@ after trimaran has been correctly installed.
     In any case, a GOOD choice to avoid problems in the future is to
     add the 'source...' command to the .bashrc, as suggested in the
     same section of the manual. 
-    In most cases, if you installed trimaran in you home directory,
-    simply add:
+    So, in most cases, if you installed trimaran in you home directory,
+    simply add the line:
 
     source ~/trimaran/scripts/envrc.bash
 
     at the end of your .bashrc file inside your home.
 
-STEP 6) If the above step was ok, install M5 memory simulator as
-explained in Section 7 of trimaran manual. 
+    IMPORTANT FOR UBUNTU USERS: 
+    
+    as described in the footnote 1 of subsection 2.2, you should avoid
+    using dash shell instead of bash.  To accomplish this, simply
+    type: 
+    sudo dpkg-reconfigure dash 
+    and then answer "NO" to the question prompted.
 
-    NOTE: you will probably encounter the errors E.2 described in
+STEP 6: 
+
+If the above step was ok, install M5 memory simulator as explained in
+Section 7 of trimaran manual. 
+ 
+    NOTE 1: when typing 'make' into m5 directory, a download of m5
+    tar.gz should start. If not, download it manually from:
+    http://sourceforge.net/projects/m5sim/files/m5sim/m5_1.1.tar.gz/
+
+    NOTE 2: you will probably encounter the errors E.2 described in
     Section V of this README.
 
-    NOTE: if compiling for AMD64 architectures (e.g. Opteron) with a 64
+    NOTE 3: if compiling for AMD64 architectures (e.g. Opteron) with a 64
     bit distribution, see also the specific notes at the appendix of this
     document.
 
@@ -219,17 +245,16 @@ me with problems that are strictly related to compiling trimaran.
   useful info.
 
 
-LIST OF COMMON ERRORS (and solutions)
+LIST OF TRIMARAN-RELATED PROBLEMS
 
-_____ ERROR.1.a _____________________________________
+_____ ERROR 1 _____________________________________
 
 Missing 'aclocal'
 
 >>> SOLUTION:
 Install automake !!
 
-
-____ ERROR.1.b _____________________________________
+____ ERROR 2 _____________________________________
 
 When compilating openimpact, the following error is encountered:
 
@@ -246,59 +271,12 @@ openimpact/platform/x86lin_gcc/IPA_lib/__impact_lib.c
 As suggested, the correct declaration is : 
   const char * poptStrerror(const int error)
 
-IMPORTANT NOTE: 
+Note:
 
 Usage of gcc >=4.3 leads to some further errors. The solution is
 similar, simply change che declaration of the function in
 __impact_lib.c so that the type of each parameter is exactly the same
 of those declared in /usr/include/popt.h
-
-
-____ ERROR.2.a __________________________________________
-
-While trying to compile M5 cache simulator,  the following error is
-encountered:
-
-ALPHA/arch/alpha/decoder.cc:5619: error: definition of 
-‘StaticInstPtr<AlphaISA> AlphaISA::decodeInst(uint32_t)’ is not in 
-namespace enclosing ‘AlphaISA’
-scons: *** [ALPHA/arch/alpha/decoder.os] Error 1
-scons: building terminated because of errors.
-make: *** [install/m5/build/ALPHA/libm5shared.so] Error 2
-
->>> SOLUTION: 
-
-Switch to gcc 3.4 just to compile m5. Then you can continue
-compiling emulib files with gcc 4 without any problem.
-
-
-____  ERROR.2.b _________________________________________
-
-While trying to compile M5 cache simulator,  the following error is
-encountered:
-
-/usr/bin/ld: libelf/lib/libelf.a(begin.o): relocation R_X86_64_32
-against `a local symbol' can not be used when making a shared object;
-rec ompile with -fPIC libelf/lib/libelf.a: could not read symbols: Bad
-value
-
->>> SOLUTION:
-
-You are probably using an AMD64 architecture.  In this case libelf.a is not
-properly linked and so libm5shared.so is NOT created.
-
-The problem is that the M5 used in trimaran is an old version that
-has some problems (see also E.2.a)
-I'm searching for old messages in http://osdir.com/ml/emulators.m5.users/ for a
-solution.
-
-In the meanwhile, you can try to compile trimaran and m5 in a
-different machine and then copy the file:
-
-trimaran/m5/install/m5/build/m5/build/ALPHA/libm5shared.so 
-
-to the not-working machine. In my case it did work!
-
 
 ____  ERROR 3 _____________________________________________
 
@@ -314,7 +292,7 @@ Exiting: non-zero exit code
 Exiting: non-zero exit code
 tcc: Error: compile_bench -nosync -p ~/trimaran/openimpact/parms/STD_PARMS.IMPACT unsuccessful, bailing out! 
 
->>> SOLUTION:
+--->SOLUTION:
 
 You should edit the file ~/trimaran/openimpact/scripts/gen_CtoP and
 apply these changes:
@@ -328,54 +306,84 @@ apply these changes:
 
 
 *******************************************************
-64 bit SPECIFIC PROBLEMS
-(skip this if using a 32 bit processor distribution)
+             M5 SPECIFIC PROBLEMS
 *******************************************************
+
+OK, WHAT'S THE QUICK SOLUTION ?
+-----------------------------------------------------
+Below you'll find different problems you may enconter while trying to
+compile m5. There are two main reason that causes M5 compilation to be
+sometimes very difficult:
+
+REASON 1) You CANNOT use gcc and g++ version 3.4, but only newer version
+(for example 4.x)
+
+REASON 2) You are using a 64bit distribution.
+
+If you match both cases, in other words if you cannot install gcc and g++
+3.4 and you have a 64 bit distribution, you should probably jump
+directly to the "DESPERATE SOLUTIONS" at the end of this section.
+
+
+PROBLEM 1) I have a 64 bit distribution
+===============================================================
+The problem is quite simple: on 64bit architectures, trimaran tries to
+compile everything with -m32 option passed to gcc.
+So, in order to compile, you should also install packages which
+provide 32bit libraries.
+This packages are (note that name may change):
+gcc-multilib, ia32-libs, libc6-dev-i386
 
 In order to compile trimaran M5 cache simulator on AMD64 bit machines
 with a 64 bit linux distribution some tweaks were required, since all
 the code needs to be compiled in 32 bit mode.
 
-PROBLEM 1) 
+PROBLEM 2) I have a normal 32bit distribution, but using gcc 4.x
 ===============================================================
-Install multilib and ia32libs. On ubuntu linux the packages name
-are 'multilib' and 'ia32libs'. 
+If is this the case, you'll probably encounter the following
+namespace error:
 
-NOTE: For unknown reasons, on my ubuntu linux the installation of
-these packages did not add the required lines on
-ld.so.conf, so the linker was not able to find the 32 bit version of
-the libraries. Referring to the 64bit Ubuntu, I had to create a file:
+ALPHA/arch/alpha/decoder.cc:5619: error: definition of 
+‘StaticInstPtr<AlphaISA> AlphaISA::decodeInst(uint32_t)’ is not in 
+namespace enclosing ‘AlphaISA’
+scons: *** [ALPHA/arch/alpha/decoder.os] Error 1
+scons: building terminated because of errors.
+make: *** [install/m5/build/ALPHA/libm5shared.so] Error 2
 
-/etc/ld.so.conf.d/x86_32-linux-gnu
+---> SOLUTION: 
+It's simple: gcc4.1 DOES NOT work for M5, you should use version 3.4.
 
-containing a single row that specifies the added path:
+Install gcc and g++ 3.4.  To be sure to compile with version 3.4
+instead of the usual /usr/bin/gcc it's HIGHLY recommended to use the
+two wrapper scripts provided in MISC_FILES/gcc_wrapper so that gcc and
+g++ 3.4 are used when compiling m5.
 
-/usr/lib32
-
-
-PROBLEM 2) 
-===============================================================
-gcc4.1 DOES NOT work (gives some namespace related errors)
-
-SOLUTION: 
-
-Compile using 3.4 version of gcc and g++
-
-It's HIGHLY recommended to use the two wrapper scripts provided in
-MISC_FILES/gcc_wrapper so that gcc and g++ 3.4 are used when compiling
-m5.
-
-To be sure to execute them instead of the usual /usr/bin/gcc you
-should, just for the M5 compilation, put this path BEFORE the standard
-path, for example:
+In other words, just for the M5 compilation, put this path BEFORE the standard
+path, for example type this before compiling:
 
 export PATH=<EPIC_DIR>/MISC_FILES/gcc_wrappers:$PATH
 
 Remember: this is needed ONLY for the M5 compilation to be sure that
-the 3.4 version of compiler is invoked with the argument -m32.
-After compiling m5, normal gcc 4 should be used (reopen a new shell).
+the 3.4 version of compiler is invoked.
+After compiling m5, normal gcc 4 should be used (reopen a new shell to
+use the usual PATH value).
 
 PROBLEM 3) 
+===============================================================
+While trying to compile M5 cache simulator,  the following error is
+encountered:
+
+/usr/bin/ld: libelf/lib/libelf.a(begin.o): relocation R_X86_64_32
+against `a local symbol' can not be used when making a shared object;
+rec ompile with -fPIC libelf/lib/libelf.a: could not read symbols: Bad
+value
+
+SOLUTION:
+
+Jump to DESPERATE SOLUTION below.
+
+
+PROBLEM 4) 
 ===============================================================
 If you get:
 
@@ -394,7 +402,7 @@ and launch again the make command inside the
 and then relaunch the 'ldconfig' command to regenerate the cache of
 library paths.
 
-PROBLEM 4) 
+PROBLEM 5) 
 ===============================================================
 If you get:
 m5/build/ext/libelf/po/de.msg:228: invalid character: message ignored
@@ -404,8 +412,25 @@ SOLUTION:
 Simply re-run the "make" command magically solves the issue.
 
 
+DESPERATE SOLUTION
+================================================================
+If the above solutions don't work you still try two solutions:
 
+1) 
+If you can have access to a standard 32bit machine with a 3.4 gcc and
+g++, you can try to compile m5 there, and then copy resulting file:
 
+trimaran/m5/install/m5/build/m5/build/ALPHA/libm5shared.so 
 
+to the same directory of the not-working machine. In my case it did work!
+Note that while trying to compile m5 on such a standard machine you
+can still have little issues (e.g. the PROBLEM 4 described above), but
+in that case all proposed solutions should work.
+
+2)
+If you are REALLY desperate, you can try to use the libm5shared file
+that you find in the "Extra" folder here:
+
+https://sourceforge.net/projects/epic-explorer/files/
 
 
