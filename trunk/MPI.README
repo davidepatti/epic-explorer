@@ -22,8 +22,9 @@ First of all, you need an MPI-enabled machine. Please refer to your
 distribution docs to accomplish this. In most cases, installing 
 packages named "mpi" should work.
 
-Note: if possible prefer mpich implementation over openmpi.
-
+Note: if possible prefer mpich implementation over openmpi. For
+example, on Ubuntu systems install 'mpich-bin' and 'libmpich1.0-dev'
+packages.
 
 II. Compiling epic explorer with MPI library
 ------------------------------------------------------
@@ -48,8 +49,6 @@ are not automatically updated in different shells.
 
 III. Running Epic Explorer with MPI parallell execution
 ------------------------------------------------------
-
-
 Assuming you are inside epic source directory, just issuing the command:
 
 mpirun -np N ./epic
@@ -64,6 +63,7 @@ number of configurtion, so that you can quickly check the results.
 
 TIPS
 
+--------
 If you want to un epic non-interactively, e.g. using a command file to
 feed the inputs:
 nohup mpirun -np N ./epic < cmd.txt &
@@ -72,6 +72,17 @@ where cmd.txt is a file containing the commands, N the number of
 processors. Prepending the "nohup" command allows the user to
 disconnect without waiting for the explorations to be completed.
 
+--------
+On some machines mpirun asks for ssh user passoword even if connecting to
+localhost. If running in non-interactive mode as showed in the
+previous tip, mpi processes will stop waiting the password and fail.
+To avoid this, enable ssh access to local host without passoword:
+
+$ ssh-keygen -t rsa
+  [when prompted, just press enter, i.e. use default values and empty passphrase]
+$ cd ~/.ssh
+$ cat id_rsa.pub >> authorized_keys
+$ chmod 600 authorized_keys
 
 IV. Technical Issues about current implementation
 -----------------------------------------------------
