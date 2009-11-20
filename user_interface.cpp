@@ -771,8 +771,14 @@ void User_interface::set_subspace_wrapper()
        cout << "\n Setting space " << filename << " as current subspace..." << endl;
        my_explorer->load_space_file(subspaces_dir+filename);
        my_explorer->set_space_name(filename);
-       command = "ln -sf "+subspaces_dir+filename+" "+subspaces_dir+"current.sub";
+       // A small workaround is required since 
+       // link current.sub must be created without full path
+       char old_path[200];
+       getcwd(old_path,200);
+       chdir(subspaces_dir.c_str());
+       command = "ln -sf "+filename+" current.sub";
        system(command.c_str());
+       chdir(old_path);
    }
 }
 
