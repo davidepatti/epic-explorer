@@ -89,6 +89,18 @@ void Explorer::set_options(const struct User_Settings& user_settings)
     if (Options.objective_area) n_obj++;
     if (Options.objective_energy) n_obj++;
 
+#ifdef EPIC_MPI
+    if (!Options.multidir)
+    {
+	cout << "\n WARNING !!!!";
+	cout << "\n****************";
+	cout << "\n EPIC_MPI compilation detected, save/restore simulations NOT enabled!";
+	cout << "\n Currently, MPI works ONLY if save/restore simulations (multidir) otion is enabled.";
+	cout << "\n SEE the VERY IMPORTANT NOTE on file MPI.README (section III).";
+	wait_key();
+    }
+#endif
+
 }
 
 ////////////////////////////////////////////////////////////////////////////

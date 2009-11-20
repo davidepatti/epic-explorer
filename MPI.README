@@ -1,7 +1,7 @@
 ------------------------------------------------------
 MPI Epic Explorer HOW-TO
 -------------------------------------------------------
-Last updated Dec 10th 2008 by Davide Patti (dpatti@diit.unict.it)
+Last updated Nov 20th 2009 by Davide Patti (dpatti@diit.unict.it)
 
 
 Intro
@@ -60,6 +60,19 @@ hosts by using machinefile).
 Just select an exploration algorithm and wait for simulations to be
 finished. For the first tests we suggest to use RAND with a small
 number of configurtion, so that you can quickly check the results.
+
+VERY IMPORTANT!
+---------
+When running epic with mpirun, it can happens that multiple processes
+will try to use the same paths. This is ok, but ONLY works if
+save/restore option (multidir) is enabled.
+Otherwise, the cleaning performed by a process at the end of a simulation could
+interfere with another process that previously found a directory.
+
+To enable the option, change the 'multidir' to ENABLED in
+trimaran-workspace/epic-explorer/epic_default.conf 
+In alternative, you can start 'epic', set the 'save/restore
+simulations' option, save the changes and restart epic.
 
 TIPS
 
