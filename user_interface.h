@@ -59,8 +59,7 @@ private:
 	void load_settings(string settings_file);
 	void load_settings_wrapper();
 
-	void save_subspace_wrapper();
-	void load_subspace_wrapper();
+	void set_subspace_wrapper();
 
 	void start_exploration_message();
 	void edit_exploration_space();
