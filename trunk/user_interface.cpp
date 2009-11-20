@@ -643,8 +643,6 @@ void User_interface::edit_exploration_space()
 		while (my_explorer->compiler.do_modulo_scheduling.increase());	//db
 	cout << "\n [27]  memvr_profiled: ";	//db
 	do { cout << noyes(my_explorer->compiler.memvr_profiled.get_val()) << ","; } while (my_explorer->compiler.memvr_profiled.increase());	//db
-	cout << "\n\n"; 
-
 	cout << "\n---------------------------------------------";
 	cout << "\n Current space: " << my_explorer->get_space_name() << " [ total Space size: " << my_explorer->get_space_size()<<"]";
 	cout << "\n (s) - Set space from file ";
