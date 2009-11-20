@@ -9,6 +9,7 @@
 #include <assert.h>
 #include <math.h>
 #include <iostream>
+#include <cstdio>
 #include "utility.h"
 #include "containers.h"
 #include "selector.h"
