@@ -52,27 +52,17 @@ Explorer::Explorer(Trimaran_interface * ti)
     string space_file = space_dir+"current.sub";
 
     char target_space_file[140];
-    char space_name[30];
     int l = readlink(space_file.c_str(),target_space_file,140);
     if (l!=-1)
     {
 	load_space_file(space_file);
-	// must extract real .sub filename from buffer ...
-	// there's probably a better way to get it
-	int prefix = strlen(space_dir.c_str());
 	target_space_file[l] = '\0';
-	//cout << "\n LEGGO " << target_space_file;
-	strncpy(space_name,target_space_file+prefix,l-prefix);
-	//cout << "\n ESTRAGGO " << space_name;
-
-	set_space_name(space_name);
-
+	set_space_name(target_space_file);
     }
     else
     {
-	cout << "\nError while setting subspace " << space_name << ". Check that symbolic link:";
-	cout << "\n"<< space_file;
-	cout << "\n it's properly set to point to a valid subspace file!";
+	cout << "\nError while setting subspace " << target_space_file << ". Check that symbolic link";
+	cout << "\n'current.sub' in " << space_dir << " it's properly set to point to a valid subspace file!";
     }
 }
 
