@@ -45,11 +45,35 @@ Explorer::Explorer(Trimaran_interface * ti)
     Options.save_objectives_details = false;
     force_simulation = false;
     function_approx = NULL;
-
-    current_space = "default_space.sub";
-
     base_dir = string(getenv(BASE_DIR));
-    load_space_file(get_base_dir()+"/trimaran-workspace/epic-explorer/SUBSPACES/"+current_space);
+
+    current_space = "NOT_SET";
+    string space_dir = get_base_dir()+"/trimaran-workspace/epic-explorer/SUBSPACES/";
+    string space_file = space_dir+"current.sub";
+
+    char target_space_file[140];
+    char space_name[30];
+    int l = readlink(space_file.c_str(),target_space_file,140);
+    if (l!=-1)
+    {
+	load_space_file(space_file);
+	// must extract real .sub filename from buffer ...
+	// there's probably a better way to get it
+	int prefix = strlen(space_dir.c_str());
+	target_space_file[l] = '\0';
+	//cout << "\n LEGGO " << target_space_file;
+	strncpy(space_name,target_space_file+prefix,l-prefix);
+	//cout << "\n ESTRAGGO " << space_name;
+
+	set_space_name(space_name);
+
+    }
+    else
+    {
+	cout << "\nError while setting subspace " << space_name << ". Check that symbolic link:";
+	cout << "\n"<< space_file;
+	cout << "\n it's properly set to point to a valid subspace file!";
+    }
 }
 
 //********************************************************************
@@ -724,13 +748,13 @@ void Explorer::save_simulations(const vector<Simulation>& simulations, const str
 
     fp=fopen(file_path.c_str(),"w");
     
-    fprintf(fp,"\n% ----------------------------------------------");
+    fprintf(fp,"\n%% ----------------------------------------------");
     fprintf(fp,pretitle.c_str());
     fprintf(fp,pretitle2.c_str());
     fprintf(fp,pretitle3.c_str());
     fprintf(fp,pretitle4.c_str());
     fprintf(fp,title.c_str());
-    fprintf(fp,"\n% ----------------------------------------------");
+    fprintf(fp,"\n%% ----------------------------------------------");
 
     for (unsigned int i =0;i<simulations.size();i++)
     {
@@ -745,7 +769,7 @@ void Explorer::save_simulations(const vector<Simulation>& simulations, const str
 	char ch = ' ';
 	if (!simulations[i].simulated) ch = '*';
 
-	fprintf(fp,"\n%.9f  %.9f  %.9f %/ %d / %s %c",area,energy,exec_time,mhz,conf_string.c_str(),ch);
+	fprintf(fp,"\n%.9f  %.9f  %.9f %%/ %d / %s %c",area,energy,exec_time,mhz,conf_string.c_str(),ch);
     }
     fclose(fp);
 }
@@ -1889,6 +1913,10 @@ void Explorer::set_space_name(const string& spacename)
     current_space = spacename;
 }
 
+string Explorer::get_space_name() const
+{
+    return current_space;
+}
 void Explorer::load_space_file(const string& filename)
 {
    std::ifstream input_file (filename.c_str());

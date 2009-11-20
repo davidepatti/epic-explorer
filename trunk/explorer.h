@@ -153,6 +153,7 @@ public:
   void init_approximation();
   void set_force_simulation(bool);
   void set_space_name(const string& space_name);
+  string get_space_name() const;
   void load_space_file(const string& space_name);
   void save_space_file(const string& space_name);
 
