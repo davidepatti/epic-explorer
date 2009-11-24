@@ -288,10 +288,6 @@ Dynamic_stats Trimaran_interface::get_dynamic_stats(const string& path)
 	m5_file.close();
     }
 
-    // TODO: read the file e compute transitions, it's worth?
-    string trace_filename = path + "PD_TRACE";
-    std::ifstream trace_file(trace_filename.c_str());
-
     dynamic_stats.L1D_transition_p = 0.20;
     dynamic_stats.L1I_transition_p = 0.20;
     // unlike L1 caches, L2 is considered to have little locality 

@@ -66,6 +66,7 @@ struct User_Settings
     bool objective_energy;
     bool save_spaces;
     bool save_PD_STATS;
+    bool save_PD_TRACE;
     bool save_estimation;
     bool auto_clock;
     bool save_objectives_details;
