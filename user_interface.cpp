@@ -380,9 +380,8 @@ void User_interface::edit_user_settings()
 	cout << "\n  (3) - Objective Energy             --> " << status_string(user_settings.objective_energy);
 	cout << "\n  (4) - Objective Average Power      --> " << status_string(user_settings.objective_power);
 	cout << "\n  (5) - save simulated spaces        --> " << status_string(user_settings.save_spaces);
-	cout << "\n  (6) - save Trimaran PD_STATS files --> " << status_string(user_settings.save_PD_STATS);
 	cout << "\n  (7) - save Trimaran PD_TRACE files --> " << status_string(user_settings.save_PD_TRACE);
-	cout << "\n  (8) - Save trimaran compilation.log--> " << status_string(user_settings.save_tcclog);
+	cout << "\n  (8) - Save Trimaran tcc logs       --> " << status_string(user_settings.save_tcclog);
 	cout << "\n  (9) - save estimation detail files --> " << status_string(user_settings.save_estimation);
 	cout << "\n (10) - Benchmark                    --> " << trimaran_interface->get_benchmark_name();
 	cout << "\n (11) - Automatic clock freq         --> " << status_string(user_settings.auto_clock);
@@ -417,7 +416,6 @@ void User_interface::edit_user_settings()
 	if (ch=="3") user_settings.objective_energy = !user_settings.objective_energy;
 	if (ch=="4") user_settings.objective_power =  !user_settings.objective_power;
 	if (ch=="5") user_settings.save_spaces = !user_settings.save_spaces;
-	if (ch=="6") user_settings.save_PD_STATS = !user_settings.save_PD_STATS;
 	if (ch=="7") user_settings.save_PD_TRACE = !user_settings.save_PD_TRACE;
 	if (ch=="8") 
 	{
@@ -802,7 +800,6 @@ void User_interface::load_settings(string settings_file)
        user_settings.objective_energy = false;
        user_settings.objective_power = true;
        user_settings.save_spaces = false;
-       user_settings.save_PD_STATS = false;
        user_settings.save_PD_TRACE = false;
        user_settings.save_estimation = false;
        user_settings.auto_clock = false;
@@ -834,7 +831,6 @@ void User_interface::load_settings(string settings_file)
 	user_settings.objective_energy = false;
 	user_settings.objective_power = false;
 	user_settings.save_spaces = false;
-	user_settings.save_PD_STATS = false;
 	user_settings.save_estimation = false;
 	user_settings.auto_clock = false;
 	user_settings.save_tcclog = false;
@@ -863,10 +859,6 @@ void User_interface::load_settings(string settings_file)
 	go_until("save_spaces",input_file);
 	input_file >> word;
 	if (word=="ENABLED") user_settings.save_spaces = true;
-
-	go_until("save_PD_STATS",input_file);
-	input_file >> word;
-	if (word=="ENABLED") user_settings.save_PD_STATS = true;
 
 	go_until("save_PD_TRACE",input_file);
 	input_file >> word;
@@ -952,7 +944,6 @@ void User_interface::save_settings(string settings_file)
 	output_file << "\nenergy " << status_string(user_settings.objective_energy);
 	output_file << "\npower " << status_string(user_settings.objective_power);
 	output_file << "\nsave_spaces " << status_string(user_settings.save_spaces);
-	output_file << "\nsave_PD_STATS " << status_string(user_settings.save_PD_STATS);
 	output_file << "\nsave_PD_TRACE " << status_string(user_settings.save_PD_TRACE);
 	output_file << "\nsave_estimation " << status_string(user_settings.save_estimation);
 	output_file << "\nAUTO_CLOCK " << status_string(user_settings.auto_clock);
