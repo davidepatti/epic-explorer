@@ -949,6 +949,8 @@ if [ $VALID_ARGS -eq 1 ]; then
 	   cd ../$cache_option
 	   echo "ln -s ../simu_intermediate/$OUT_FILE"
 	   ln -s ../simu_intermediate/$OUT_FILE
+	   echo `read_exec_info ${BENCHMARK} $BENCHMARK_PATH -setup`
+	   `read_exec_info ${BENCHMARK} $BENCHMARK_PATH -setup`
 
 ######### RUN
 	  echo " "
