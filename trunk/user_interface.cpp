@@ -381,10 +381,12 @@ void User_interface::edit_user_settings()
 	cout << "\n  (4) - Objective Average Power      --> " << status_string(user_settings.objective_power);
 	cout << "\n  (5) - save simulated spaces        --> " << status_string(user_settings.save_spaces);
 	cout << "\n  (6) - save Trimaran PD_STATS files --> " << status_string(user_settings.save_PD_STATS);
-	cout << "\n  (7) - save estimation detail files --> " << status_string(user_settings.save_estimation);
-	cout << "\n  (8) - Benchmark                    --> " << trimaran_interface->get_benchmark_name();
-	cout << "\n  (9) - Automatic clock freq         --> " << status_string(user_settings.auto_clock);
-	cout << "\n (10) - Approximation                --> " << user_settings.approx_settings.enabled;
+	cout << "\n  (7) - save Trimaran PD_TRACE files --> " << status_string(user_settings.save_PD_TRACE);
+	cout << "\n  (8) - Save trimaran compilation.log--> " << status_string(user_settings.save_tcclog);
+	cout << "\n  (9) - save estimation detail files --> " << status_string(user_settings.save_estimation);
+	cout << "\n (10) - Benchmark                    --> " << trimaran_interface->get_benchmark_name();
+	cout << "\n (11) - Automatic clock freq         --> " << status_string(user_settings.auto_clock);
+	cout << "\n (12) - Approximation                --> " << user_settings.approx_settings.enabled;
 	if (user_settings.approx_settings.enabled>0)
 	{
 	    cout << " ( " << user_settings.approx_settings.threshold << 
@@ -392,15 +394,14 @@ void User_interface::edit_user_settings()
             " - " << user_settings.approx_settings.max << " )";
 	}
 
-	cout << "\n (11) - save/restore simulations     --> " << status_string(user_settings.multidir);
-	cout << "\n (12) - Multi benchmark simulation   --> " << status_string(user_settings.multibench);
+	cout << "\n (13) - Save/Restore simulations     --> " << status_string(user_settings.multidir);
+	cout << "\n (14) - Multi benchmark simulation   --> " << status_string(user_settings.multibench);
 	if(user_settings.multibench){
 	    cout << "\n Additional benchmarks:" << endl;
 	    for(vector<string>::iterator it = user_settings.bench_v.begin(); it != user_settings.bench_v.end(); it++)
 	        cout << " " << *it;
 	    cout << endl;
 	}
-	cout << "\n (13) - Save trimaran compilation log  --> " << status_string(user_settings.save_tcclog);
 	cout << "\n" ;
 	cout << "\n ----------------------------------------------------------";
 	cout << "\n (s) - Save current settings to file";
@@ -417,10 +418,16 @@ void User_interface::edit_user_settings()
 	if (ch=="4") user_settings.objective_power =  !user_settings.objective_power;
 	if (ch=="5") user_settings.save_spaces = !user_settings.save_spaces;
 	if (ch=="6") user_settings.save_PD_STATS = !user_settings.save_PD_STATS;
-	if (ch=="7") user_settings.save_estimation = !user_settings.save_estimation;
-	if (ch=="8") choose_benchmark();
-	if (ch=="9") user_settings.auto_clock = !user_settings.auto_clock;
-	if (ch=="10") 
+	if (ch=="7") user_settings.save_PD_TRACE = !user_settings.save_PD_TRACE;
+	if (ch=="8") 
+	{
+	    user_settings.save_tcclog = !user_settings.save_tcclog;
+	    trimaran_interface->set_save_tcclog(user_settings.save_tcclog);
+	}
+	if (ch=="9") user_settings.save_estimation = !user_settings.save_estimation;
+	if (ch=="10") choose_benchmark();
+	if (ch=="11") user_settings.auto_clock = !user_settings.auto_clock;
+	if (ch=="12") 
 	{
 	    cout << "\n Select Approximation method:";
 	    cout << "\n (0) None";
@@ -440,21 +447,24 @@ void User_interface::edit_user_settings()
 	    }
 
 	}
-	if (ch=="11")
+	if (ch=="13")
 	{
 	    cout << "\n--------------------------------------------------------------------";
-	    cout << "\n NOTE: enabling save/restore simulations support will save the binary";
+	    cout << "\n IMPORTAT NOTE:";
+	    cout << "\n Enabling save/restore simulations support will save the binary";
 	    cout << "\n and statistics of each simulation in a different folder, under";
 	    cout << "\n the trimaran-workspace/<benchmark name> directory." << endl;
-	    cout << "\n This allows the avoidance of unnecessary compilations/simulation";
-	    cout << "\n potentially increasing the speed of the exploration.";
+	    cout << "\n This allows the avoidance of unnecessary compilations/simulations";
+	    cout << "\n potentially increasing the speed of the exploration." << endl;
 	    cout << "\n Althought useful, this could be very disk-space consuming, so";
-	    cout << "\n be aware of this before performing your exploration";
+	    cout << "\n be aware of this before performing your exploration." << endl;
+	    cout << "\n A common way to reduce disk-space usage is to disable the saving of";
+	    cout << "\n PD_TRACE files generated during simulation.";
 	    cout << "\n--------------------------------------------------------------------";
 
 	    int pippo;
-	    cout << "\n (0) Disable save/restore simulations support";
-	    cout << "\n (1) Enable save/restore simulations support";
+	    cout << "\n (0) Disable Save/Restore simulations support";
+	    cout << "\n (1) Enable Save/Restore simulations support";
 	    cout << "\n make your choice: ";
 	    cin >> pippo;
 
@@ -463,12 +473,12 @@ void User_interface::edit_user_settings()
 		user_settings.multidir = false;
 	}
 
-	if (ch=="12")
+	if (ch=="14")
 	{
             cout << "\n IMPORTANT: multi-benchmark support is EXPERIMENTAL ";
             cout << "\n this setting is not saved in the config file! \n\n";
 	    int mbenable;
-            cout << "\n (0) Disable multi-benchmark simuluation";
+            cout << "\n (0) Disable multi-benchmark simulation";
             cout << "\n (1) Enable multi-benchmark simulation";
 	    cout << "\n make your choice: ";
 	    cin >> mbenable;
@@ -498,11 +508,6 @@ void User_interface::edit_user_settings()
 	    my_explorer->set_options(user_settings);
 	}
 
-	if (ch=="13") 
-	{
-	    user_settings.save_tcclog = !user_settings.save_tcclog;
-	    trimaran_interface->set_save_tcclog(user_settings.save_tcclog);
-	}
 
 	if (ch=="s") save_settings_wrapper();
 	if (ch=="l") load_settings_wrapper();
@@ -798,6 +803,7 @@ void User_interface::load_settings(string settings_file)
        user_settings.objective_power = true;
        user_settings.save_spaces = false;
        user_settings.save_PD_STATS = false;
+       user_settings.save_PD_TRACE = false;
        user_settings.save_estimation = false;
        user_settings.auto_clock = false;
        user_settings.approx_settings.enabled = 0;
@@ -832,6 +838,7 @@ void User_interface::load_settings(string settings_file)
 	user_settings.save_estimation = false;
 	user_settings.auto_clock = false;
 	user_settings.save_tcclog = false;
+	user_settings.save_PD_TRACE = false;
 
 	go_until("benchmark",input_file);
 	input_file >> word;
@@ -860,6 +867,10 @@ void User_interface::load_settings(string settings_file)
 	go_until("save_PD_STATS",input_file);
 	input_file >> word;
 	if (word=="ENABLED") user_settings.save_PD_STATS = true;
+
+	go_until("save_PD_TRACE",input_file);
+	input_file >> word;
+	if (word=="ENABLED") user_settings.save_PD_TRACE = true;
 
 	go_until("save_estimation",input_file);
 	input_file >> word;
@@ -942,6 +953,7 @@ void User_interface::save_settings(string settings_file)
 	output_file << "\npower " << status_string(user_settings.objective_power);
 	output_file << "\nsave_spaces " << status_string(user_settings.save_spaces);
 	output_file << "\nsave_PD_STATS " << status_string(user_settings.save_PD_STATS);
+	output_file << "\nsave_PD_TRACE " << status_string(user_settings.save_PD_TRACE);
 	output_file << "\nsave_estimation " << status_string(user_settings.save_estimation);
 	output_file << "\nAUTO_CLOCK " << status_string(user_settings.auto_clock);
 	output_file << "\nfuzzy_enabled " << user_settings.approx_settings.enabled;
