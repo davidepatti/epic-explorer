@@ -93,7 +93,7 @@ vector<Simulation> Explorer::simulate_loop(const vector<Configuration>& space)
 	    }
 	    else if (!Options.save_PD_TRACE)
 	    {
-		string cmd = "rm -f "+processor_dir+"/"+cache_dir_name+"PD_TRACE";
+		string cmd = "rm -f "+processor_dir+"/"+cache_dir_name+"/PD_TRACE";
 		cout << EE_TAG << "Cleaning PD_TRACE in " << processor_dir << "/" << cache_dir_name;
 		system(cmd.c_str());
 	    }
