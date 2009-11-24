@@ -134,18 +134,6 @@ vector<Simulation> Explorer::simulate_loop(const vector<Configuration>& space)
 		string filename = Options.benchmark+"_"+current_algo+"_"+current_space+string(name);
 		save_configurations(space,filename);
 	    } 
-	    if (Options.save_PD_STATS)  // trimaran PD_STATS file report
-	    {
-		// TODO: fix this 
-		assert(false);
-		string command;
-		char temp[10];
-		sprintf(temp,"%d",i);
-
-		command = "cp "+mem_hierarchy_dir+"/PD_STATS* "+mem_hierarchy_dir+"/PD_STATS_"+string(temp);
-
-		system(command.c_str());
-	    }
 
 	    if (Options.save_estimation) // detailed and verbose estimator report
 	    {

@@ -39,7 +39,6 @@ Explorer::Explorer(Trimaran_interface * ti)
     Options.objective_exec_time = true;
 
     Options.save_spaces = false;
-    Options.save_PD_STATS = false;
     Options.save_estimation = false;
 
     Options.save_objectives_details = false;
