@@ -11,8 +11,12 @@ void Explorer::start_RAND(int n)
 
     int valid = 0;
     reset_sim_counter();
+    int my_id = get_mpi_rank();
 
-    cout << "\n Building random space for " << n << " simulations...";
+    string header = "["+Options.benchmark+"_"+current_algo+"] ";
+    string logfile = get_base_dir()+string(EE_LOG_PATH);
+    string message = header+"Building random space for " + to_string(n) + " simulations...";
+    write_to_log(my_id,logfile,message);
 
     for(int i=0;i<n;i++)
     {
@@ -54,9 +58,8 @@ void Explorer::start_RAND(int n)
 	}
     }
 
-    cout << "\n Ok, created random space " ;
-    cout << "\n\n Valid configurations:" << valid << " of " << n << " requested";
-
+    message = header+ "Valid configurations:" + to_string(valid) + " of "+to_string(n)+" requested";
+    write_to_log(my_id,logfile,message);
 
     vector<Simulation> rand_sims = simulate_space(random_space);
     vector<Simulation> pareto_set = get_pareto(rand_sims);

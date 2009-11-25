@@ -88,7 +88,7 @@ parameter.o: parameter.cpp parameter.h
 	${CXX} ${CFLAGS} -c parameter.cpp
 
 common.o: common.cpp common.h 
-	${CXX} ${CFLAGS} -c common.cpp
+	${MPICC} ${CFLAGS} -c common.cpp
 
 FuzzyApprox.o: FuzzyApprox.cpp FuzzyApprox.h common.h RuleList.h FunctionApprox.h
 	${CXX} ${CFLAGS} -c FuzzyApprox.cpp

@@ -7,22 +7,6 @@
 
 #include <ctime>
 #include <values.h>
-/*
-{
-if (myrank == 0) {
-strcpy(message,"Hello, there");
-MPI_Send(message, strlen(message), MPI_CHAR, 1, 99, MPI_COMM_WORLD);
-}
-else
-{
-MPI_Recv(message, 20, MPI_CHAR, 0, 99, MPI_COMM_WORLD, &status);
-printf("received :%s:\n", message);
-}
-MPI_Finalize();
-}
-*/
-//extern int global_argc;
-//extern char** global_argv;
  
 ////////////////////////////////////////////////////////////////////////////
 
@@ -39,6 +23,11 @@ vector<Simulation> Explorer::simulate_loop(const vector<Configuration>& space)
     // enabled
     bool do_simulation = (force_simulation || 
 	                 !(Options.approx_settings.enabled && function_approx->Reliable()));
+
+    string logfile = get_base_dir()+string(EE_LOG_PATH);
+    int myid = get_mpi_rank();
+
+    write_to_log(myid,logfile,"Starting simulate_loop for " + Options.benchmark + " (space size: "+to_string(space.size())+")");
 
     for (unsigned int i = 0;i< space.size();i++)
     {
@@ -153,6 +142,7 @@ vector<Simulation> Explorer::simulate_loop(const vector<Configuration>& space)
 
     } // end for loop
 
+    write_to_log(myid,logfile,"Finished simulate_loop for " + Options.benchmark + " (space size: "+to_string(space.size())+")");
     return simulations;
 }
 
@@ -160,21 +150,17 @@ vector<Simulation> Explorer::simulate_loop(const vector<Configuration>& space)
 vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
 {
 
-    int myrank;
-    int mysize;
+    int myrank = get_mpi_rank(); // id of the current epic process
+    int mysize = get_mpi_size(); // # of epic processes running
 
-    vector<Simulation> simulations;
-    vector<Configuration> space2;
+    string logfile = get_base_dir()+string(EE_LOG_PATH);
 
 #ifdef EPIC_MPI
     MPI_Status status;
-    MPI_Comm_rank(MPI_COMM_WORLD,&myrank);
-    MPI_Comm_size(MPI_COMM_WORLD,&mysize);
-#else
-    myrank = 0;
-    mysize = 1;
 #endif
 
+    vector<Simulation> simulations;
+    vector<Configuration> space2;
 
     //  main exploration loop
     // ********************************************************
@@ -262,7 +248,7 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
     space2.clear();
 
 #ifdef EPIC_MPI
-    cout<<"\nParallel Execution of "<<counter<<" simulations was completed by processor "<<myrank<<endl;
+    write_to_log(myrank,logfile,"Parallel Execution of "+to_string(counter)+" simulations completed");
 
     double comms[4];
     counter2 = to_sim[0];
@@ -302,7 +288,7 @@ vector<Simulation> Explorer::simulate_space(const vector<Configuration>& space)
 	counter2 += counter;
     }
 #else
-    cout<<"\nExecution of "<<counter<<" simulations was completed by processor "<<myrank<<endl;
+    write_to_log(myrank,logfile,"Execution of "+to_string(counter)+" simulations completed");
 #endif
 
     sim_counter+=simulations.size();
@@ -328,8 +314,8 @@ int Explorer::simulate_space()
     Configuration tmp;
     MPI_Status status;
     int counter = 0;
-    int myrank;
-    MPI_Comm_rank(MPI_COMM_WORLD,&myrank);
+    int myrank = get_mpi_rank();
+    string logfile = get_base_dir()+string(EE_LOG_PATH);
 
     MPI_Recv(&counter, 1, MPI_INT, 0, 98, MPI_COMM_WORLD, &status);
     
@@ -381,7 +367,7 @@ int Explorer::simulate_space()
 
     simulations = simulate_loop(space);
 
-    cout<<"\nParallel Execution of "<<counter<<" simulations was completed by processor "<<myrank<<endl;
+    write_to_log(myrank,logfile,"Parallel Execution of "+to_string(counter)+" simulations completed");
 	
     //MPI_Finalize();
     double comms[4];
