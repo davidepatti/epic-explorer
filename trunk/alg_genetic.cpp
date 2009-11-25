@@ -24,6 +24,10 @@ vector<alleleset> individual::als;
 void Explorer::start_GA(const GA_parameters& parameters)
 {
     current_algo="GA";
+    string logfile = get_base_dir()+string(EE_LOG_PATH);
+    int myrank = get_mpi_rank();
+
+
     if (Options.approx_settings.enabled == 1)
 	current_algo+="_fuzzy";
     if (Options.approx_settings.enabled == 2)
@@ -42,77 +46,76 @@ void Explorer::start_GA(const GA_parameters& parameters)
     benchmarks.insert(benchmarks.end(), Options.bench_v.begin(), Options.bench_v.end());
     string file_name;
     if(Options.multibench) {
-        for(vector<string>::iterator it=benchmarks.begin(); it!=benchmarks.end(); it++)
-            file_name += *it + "_";
-        file_name += current_algo + "_" + current_space;
+	for(vector<string>::iterator it=benchmarks.begin(); it!=benchmarks.end(); it++)
+	    file_name += *it + "_";
+	file_name += current_algo + "_" + current_space;
     } else
-        file_name = Options.benchmark+"_"+current_algo+"_"+current_space;
+	file_name = Options.benchmark+"_"+current_algo+"_"+current_space;
+
+    write_to_log(myrank,logfile,"Starting "+file_name);
 
     SimulateBestWorst();
 
+    // GA init
+    init_GA(); // call it before creating anything GA related
 
+    int pop_size = parameters.population_size;
+    common* comm = new common(pop_size, pop_size, pop_size, n_obj); // (alpha, mu, lambda, dim)
+    variator* var = new variator(parameters.pcrossover, parameters.pmutation, CHROMOSOME_DIM, comm); // (xover_p, mutation_p, chromo_dim)
+    selector* sel = new selector(DEF_TOURNAMENT, comm); // (tournament)
+    int generation = 0;
+    const int MAX_GENERATIONS = parameters.max_generations;
 
-	// GA init
-   	init_GA(); // call it before creating anything GA related
+    // GA start
+    GA_evaluate(var->get_offspring()); // evaluate initial population
 
-	int pop_size = parameters.population_size;
-	common* comm = new common(pop_size, pop_size, pop_size, n_obj); // (alpha, mu, lambda, dim)
-	variator* var = new variator(parameters.pcrossover, parameters.pmutation, CHROMOSOME_DIM, comm); // (xover_p, mutation_p, chromo_dim)
-	selector* sel = new selector(DEF_TOURNAMENT, comm); // (tournament)
-	int generation = 0;
-	const int MAX_GENERATIONS = parameters.max_generations;
+    var->write_ini();		// write ini population
+    write_to_log(myrank,logfile,"Initial population"+ to_string(var->get_ini()));
 
-	// GA start
-	GA_evaluate(var->get_offspring()); // evaluate initial population
-
-	var->write_ini();		// write ini population
-	cout << EE_TAG << "Initial population" << endl;
-	cout << EE_TAG << var->get_ini() << endl;
-
-	sel->read_ini();		// read ini population
-	sel->select_initial();		// do selection
-	sel->write_arc();		// write arc population (all individuals that could ever be used again)
-	sel->write_sel();		// write sel population
+    sel->read_ini();		// read ini population
+    sel->select_initial();		// do selection
+    sel->write_arc();		// write arc population (all individuals that could ever be used again)
+    sel->write_sel();		// write sel population
 
     while ( generation++ < MAX_GENERATIONS )
     {
-		cout << EE_TAG << "Iteration " << generation << endl;
+	write_to_log(myrank,logfile,"Iteration " + generation);
 
-		var->read_arc();
-		cout << EE_TAG << "Archive population" << endl;
-		cout << EE_TAG << var->get_arc() << endl;
+	var->read_arc();
+	write_to_log(myrank,logfile, "Archive population");
+	write_to_log(myrank,logfile, to_string(var->get_arc()));
 
-		var->read_sel();
-		cout << EE_TAG << "Selected population" << endl;
-		cout << EE_TAG << var->get_sel() << endl;
+	var->read_sel();
+	write_to_log(myrank,logfile,"Selected population");
+	write_to_log(myrank,logfile,to_string(var->get_sel()));
 
-		var->variate();			// create offspring
+	var->variate();			// create offspring
 
-		GA_evaluate(var->get_offspring()); // evaluate offspring population
+	GA_evaluate(var->get_offspring()); // evaluate offspring population
 
-		var->write_var();		// write var population
-		cout << EE_TAG << "Variated population" << endl;
-		cout << EE_TAG << var->get_var() << endl;
+	var->write_var();		// write var population
+	write_to_log(myrank,logfile,"Variated population");
+	write_to_log(myrank,logfile,to_string(var->get_var()));
 
-		sel->read_var();		// read var population
-		sel->select_normal();		// do selection
-		sel->write_arc();		// write arc population (all individuals that could ever be used again)
-		sel->write_sel();		// write sel population
+	sel->read_var();		// read var population
+	sel->select_normal();		// do selection
+	sel->write_arc();		// write arc population (all individuals that could ever be used again)
+	sel->write_sel();		// write sel population
 
-		// save pareto-set every report_pareto_step generations
-		if ( generation % parameters.report_pareto_step == 0)
-		{
-		    char temp[30];
-		    sprintf(temp, "_%d", generation);
-		    save_simulations(eud.pareto, file_name+string(temp)+".pareto.exp");
-		    save_simulations(eud.history, file_name+".history.stat");
-		}
+	// save pareto-set every report_pareto_step generations
+	if ( generation % parameters.report_pareto_step == 0)
+	{
+	    char temp[30];
+	    sprintf(temp, "_%d", generation);
+	    save_simulations(eud.pareto, file_name+string(temp)+".pareto.exp");
+	    save_simulations(eud.history, file_name+".history.stat");
+	}
     }
     var->read_arc();
-    cout << EE_TAG << "Final archive population" << endl;
-    cout << var->get_arc() << endl;
-    var->write_output();
+    write_to_log(myrank,logfile,"Final archive population");
+    write_to_log(myrank,logfile,to_string(var->get_arc()));
 
+    var->write_output();
     // save history
     save_simulations(eud.history, file_name+".history.stat");
 
@@ -218,6 +221,9 @@ void Explorer::GA_evaluate(population* pop)
     vconf.reserve(pop->size());
     indexes.reserve(pop->size());
 
+    string logfile = get_base_dir()+string(EE_LOG_PATH);
+    int myrank = get_mpi_rank();
+
     for(int index=0; index < pop->size(); index++)
     {
 	Configuration conf = ind2conf(pop->at(index));	
@@ -251,7 +257,7 @@ void Explorer::GA_evaluate(population* pop)
 	Options.benchmark = benchmarks.at(bench);
 	this->trimaran_interface->set_benchmark(Options.benchmark);
 
-	cout << EE_TAG << "Simulating " << vconf.size() << " configurations" << endl;
+	write_to_log(myrank,logfile,"Simulating " + to_string(vconf.size()) + " configurations");
 	if(bench == 0) { // first benchmark
 	    results = simulate_space(vconf);
 	} else { // other benchmarks, merge simulations into older results

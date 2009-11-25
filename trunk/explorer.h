@@ -145,8 +145,6 @@ public:
   int get_sim_counter() const;
   void reset_sim_counter();
     
-  void write_log(string mess);
-
   CFunctionApproximation *function_approx;
 
   void set_fuzzy(bool);

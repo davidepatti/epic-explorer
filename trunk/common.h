@@ -24,6 +24,7 @@
 #define EXPLORER_HMDES2 "explorer.hmdes2"
 #define COMPILER_PARAM "compiler_param" //db
 #define EE_TAG "\n    >> EE: "
+#define EE_LOG_PATH "/trimaran-workspace/epic-explorer/epic.log"
 #define N_PARAMS 27
 
 // ---------------------------------------------------------------------------
@@ -48,6 +49,9 @@ string get_base_dir();
 double max(const double& a,const double& b);
 string noyes(int x);
 bool file_exists(const string& filename);
+int get_mpi_rank();
+int get_mpi_size();
+void write_to_log(int id, const string& logfile,const string& message);
 
 typedef unsigned long long uint64;
 

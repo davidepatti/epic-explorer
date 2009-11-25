@@ -28,6 +28,8 @@ void Explorer::start_DEP()
     int t;
 
     string filename = Options.benchmark+"_DEP_"+current_space;
+    string logfile = get_base_dir()+string(EE_LOG_PATH);
+    int pid = 0; // mpi not yet supported on DEP
 
     // explore c1 and c2, separately .
     // all other parameters are set to arbitrary values because c1 and
@@ -36,12 +38,12 @@ void Explorer::start_DEP()
     //////////////////////////////////////////////////////////////////////
 
 
-    write_log("  -> Starting DEP simulation ");
+    write_to_log(pid,logfile,"  -> Starting DEP simulation ");
 
     sprintf(mess,"Space size: %g ",stats.space_size);
-    write_log(mess);
+    write_to_log(pid,logfile,mess);
 
-    write_log("  -> Starting c1 exploration ");
+    write_to_log(pid,logfile,"  -> Starting c1 exploration ");
 
     Space_mask c1_mask = get_space_mask(SET_L1D);
 
@@ -49,7 +51,7 @@ void Explorer::start_DEP()
     
     t = (c1_space.size() * average_exec_time)/60;
     sprintf(mess," c1: %d explorations, estimated time %d minutes ",c1_space.size(),t);
-    write_log(mess);
+    write_to_log(pid,logfile,mess);
 
     vector<Simulation> c1_sims = simulate_space(c1_space);
     vector<Simulation> c1_sims_pareto = get_pareto(c1_sims);
@@ -61,7 +63,7 @@ void Explorer::start_DEP()
     save_simulations(c1_sims_pareto,filename+"_c1.pareto.exp");
 
     //////////////////////////////////////////////////////////////////////
-    write_log("Starting c2 exploration ");
+    write_to_log(pid,logfile,"Starting c2 exploration ");
 
     Space_mask c2_mask = get_space_mask(SET_L1I);
 
@@ -69,7 +71,7 @@ void Explorer::start_DEP()
 
     t = (c2_space.size() * average_exec_time)/60;
     sprintf(mess," (%d explorations, estimated time %d minutes ",c2_space.size(),t);
-    write_log(mess);
+    write_to_log(pid,logfile,mess);
 
     vector<Simulation> c2_sims = simulate_space(c2_space);
     vector<Simulation> c2_sims_pareto = get_pareto(c2_sims);
@@ -92,7 +94,7 @@ void Explorer::start_DEP()
 
     sprintf(mess," Approx exploration time: (%d - %d) minutes ",min_estimated_time,max_estimated_time);
 
-    write_log(mess);
+    write_to_log(pid,logfile,mess);
 
     // now c3 and c4 must be explored, for each combination of c1 and
     // c2 pareto-optimal configs. All other parameters are set to
@@ -102,7 +104,7 @@ void Explorer::start_DEP()
     // algorithm time as soon as possible
     //////////////////////////////////////////////////////////////////
 
-    write_log("Starting c4 exploration ");
+    write_to_log(pid,logfile,"Starting c4 exploration ");
 
     // first of all, we cross merge c1 and c2
 
@@ -123,7 +125,7 @@ void Explorer::start_DEP()
 
     t = (c4_space.size() * (average_exec_time+average_compilation_time))/60;
     sprintf(mess," (%d explorations, estimated time %d minutes) ",c4_space.size(),t);
-    write_log(mess);
+    write_to_log(pid,logfile,mess);
 
     vector<Simulation> c4_sims = simulate_space(c4_space);
     vector<Simulation> c4_sims_pareto = get_pareto(c4_sims);
@@ -142,9 +144,9 @@ void Explorer::start_DEP()
     int estimated_time = DEP_phase1_time(n_ott_c1,n_ott_c2,n_ott_c4);
     sprintf(mess," Estimated Phase 1 time: %d minutes ...",estimated_time);
 
-    write_log(mess);
+    write_to_log(pid,logfile,mess);
     /////////////////////////////////////////////////////////////////
-    write_log("Starting c3 exploration ");
+    write_to_log(pid,logfile,"Starting c3 exploration ");
 
     Space_mask c3_mask = get_space_mask(SET_L2U);
 
@@ -157,7 +159,7 @@ void Explorer::start_DEP()
 
     t = (c3_space.size() * average_exec_time)/60;
     sprintf(mess," (%d explorations, estimated time %d minutes) ",c3_space.size(),t);
-    write_log(mess);
+    write_to_log(pid,logfile,mess);
 
     vector<Simulation> c3_sims = simulate_space(c3_space);
 
@@ -237,11 +239,11 @@ void Explorer::start_DEP()
     ///////////////////////////////////////////////////////////////////////
     // All c(i)_space are are ready to be explored 
     //////////////////////////////////////////////////////////////////////
-    write_log("  -> Started c5 exploration ");
+    write_to_log(pid,logfile,"  -> Started c5 exploration ");
 
     t = (c5_space.size() * average_exec_time + average_compilation_time)/60;
     sprintf(mess," (%d explorations, estimated time %d minutes) ",c5_space.size(),t);
-    write_log(mess);
+    write_to_log(pid,logfile,mess);
 
     vector<Simulation> c5_sims = simulate_space(c5_space);
     vector<Simulation> c5_sims_pareto = get_pareto(c5_sims);
@@ -249,11 +251,11 @@ void Explorer::start_DEP()
     save_simulations(c5_sims_pareto,filename+"_c5.pareto.exp");
 
     ///////////////////////////////////////////////////////////////
-    write_log("  -> Started c6 exploration ");
+    write_to_log(pid,logfile,"  -> Started c6 exploration ");
 
     t = (c6_space.size() * (average_exec_time + average_compilation_time))/60;
     sprintf(mess," (%d explorations, estimated time %d minutes) ",c6_space.size(),t);
-    write_log(mess);
+    write_to_log(pid,logfile,mess);
 
     vector<Simulation> c6_sims = simulate_space(c6_space);
     vector<Simulation> c6_sims_pareto = get_pareto(c6_sims);
@@ -261,11 +263,11 @@ void Explorer::start_DEP()
     save_simulations(c6_sims_pareto,filename+"_c6.pareto.exp");
 
     ///////////////////////////////////////////////////////////////
-    write_log("  -> Started c7 exploration ");
+    write_to_log(pid,logfile,"  -> Started c7 exploration ");
 
     t = (c7_space.size() * (average_exec_time + average_compilation_time))/60;
     sprintf(mess," (%d explorations, estimated time %d minutes) ",c7_space.size(),t);
-    write_log(mess);
+    write_to_log(pid,logfile,mess);
 
     vector<Simulation> c7_sims = simulate_space(c7_space);
     vector<Simulation> c7_sims_pareto = get_pareto(c7_sims);
@@ -273,11 +275,11 @@ void Explorer::start_DEP()
     save_simulations(c7_sims_pareto,filename+"_c7.pareto.exp");
 
     ///////////////////////////////////////////////////////////////
-    write_log("  -> Started c8 exploration ");
+    write_to_log(pid,logfile,"  -> Started c8 exploration ");
 
     t = (c8_space.size() * (average_exec_time + average_compilation_time))/60;
     sprintf(mess," (%d explorations, estimated time %d minutes) ",c8_space.size(),t);
-    write_log(mess);
+    write_to_log(pid,logfile,mess);
 
     vector<Simulation> c8_sims = simulate_space(c8_space);
     vector<Simulation> c8_sims_pareto = get_pareto(c8_sims);
@@ -285,11 +287,11 @@ void Explorer::start_DEP()
     save_simulations(c8_sims_pareto,filename+"_c8.pareto.exp");
 
     ///////////////////////////////////////////////////////////////
-    write_log("  -> Started c9 exploration ");
+    write_to_log(pid,logfile,"  -> Started c9 exploration ");
 
     t = (c9_space.size() * (average_exec_time + average_compilation_time))/60;
     sprintf(mess," (%d explorations, estimated time %d minutes) ",c9_space.size(),t);
-    write_log(mess);
+    write_to_log(pid,logfile,mess);
 
     vector<Simulation> c9_sims = simulate_space(c9_space);
     vector<Simulation> c9_sims_pareto = get_pareto(c9_sims);
@@ -316,7 +318,7 @@ void Explorer::start_DEP()
 
     save_simulations(all_sims,filename+"_phase1.pareto.exp");
 
-    write_log("DEP simulation Phase1 ended. ");
+    write_to_log(pid,logfile,"DEP simulation Phase1 ended. ");
 
     /////////////////////////////////////////////////////////////////////////////
     /// PHASE 2 - merging all clusters, couple by couple . 
@@ -324,7 +326,7 @@ void Explorer::start_DEP()
     // c1toN_space:
     // resulting space from cross merging c1toN-1_space and cN_space
 
-    write_log("Starting Phase 2 . ");
+    write_to_log(pid,logfile,"Starting Phase 2 . ");
 
     vector<Configuration> c5_space_pareto = extract_space(c5_sims_pareto);
     vector<Configuration> c6_space_pareto = extract_space(c6_sims_pareto);
@@ -338,7 +340,7 @@ void Explorer::start_DEP()
     append_simulations(pareto_set,c1_sims_pareto);
 
     ///////////////////////////////////////////////////////////////
-    write_log("Simulating merged c1 and c2 clusters... ");
+    write_to_log(pid,logfile,"Simulating merged c1 and c2 clusters... ");
 
     vector<Configuration> c1to2_space = build_space_cross_merge(c1_space_pareto,
 	                                                        c2_space_pareto,
@@ -352,7 +354,7 @@ void Explorer::start_DEP()
     save_simulations(c1to2_sims,filename+"_c1to2.exp");
     save_simulations(pareto_set,filename+"_c1to2.pareto.exp");
     ///////////////////////////////////////////////////////////////
-    write_log("Simulating merged (c1to2) and c3 clusters... ");
+    write_to_log(pid,logfile,"Simulating merged (c1to2) and c3 clusters... ");
 
     vector<Configuration> c1to3_space = build_space_cross_merge(c1to2_space_pareto,
 	                                                       c3_space_pareto,
@@ -366,7 +368,7 @@ void Explorer::start_DEP()
     save_simulations(c1to3_sims,filename+"_c1to3.exp");
     save_simulations(pareto_set,filename+"_c1to3.pareto.exp");
     ///////////////////////////////////////////////////////////////
-    write_log("Simulating merged (c1to3) and c4 clusters... ");
+    write_to_log(pid,logfile,"Simulating merged (c1to3) and c4 clusters... ");
 
     Space_mask c1to3_mask = mask_union(c1_c2_mask,c3_mask);
 
@@ -384,7 +386,7 @@ void Explorer::start_DEP()
 
     ///////////////////////////////////////////////////////////////
 
-    write_log("Simulating merged (c1to4) and c5 clusters... ");
+    write_to_log(pid,logfile,"Simulating merged (c1to4) and c5 clusters... ");
 
     Space_mask c1to4_mask = mask_union(c1to3_mask,c4_mask);
 
@@ -400,7 +402,7 @@ void Explorer::start_DEP()
     save_simulations(c1to5_sims,filename+"_c1to5.exp");
     save_simulations(pareto_set,filename+"_c1to5.pareto.exp");
     ///////////////////////////////////////////////////////////////
-    write_log("Simulating merged (c1to5) and c6 clusters... ");
+    write_to_log(pid,logfile,"Simulating merged (c1to5) and c6 clusters... ");
 
     Space_mask c1to5_mask = mask_union(c1to4_mask,c5_mask);
 
@@ -417,7 +419,7 @@ void Explorer::start_DEP()
     save_simulations(pareto_set,filename+"_c1to6.pareto.exp");
 
     ///////////////////////////////////////////////////////////////
-    write_log("Simulating merged (c1to6) and c7 clusters... ");
+    write_to_log(pid,logfile,"Simulating merged (c1to6) and c7 clusters... ");
 
     Space_mask c1to6_mask = mask_union(c1to5_mask,c6_mask);
 
@@ -434,7 +436,7 @@ void Explorer::start_DEP()
     save_simulations(pareto_set,filename+"_c1to7.pareto.exp");
 
     ///////////////////////////////////////////////////////////////
-    write_log("Simulating merged (c1to7) and c8 clusters... ");
+    write_to_log(pid,logfile,"Simulating merged (c1to7) and c8 clusters... ");
 
     Space_mask c1to7_mask = mask_union(c1to6_mask,c7_mask);
 
@@ -451,7 +453,7 @@ void Explorer::start_DEP()
     save_simulations(pareto_set,filename+"_c1to8.pareto.exp");
 
     ///////////////////////////////////////////////////////////////
-    write_log("Simulating merged (c1to8) and c9 clusters... ");
+    write_to_log(pid,logfile,"Simulating merged (c1to8) and c9 clusters... ");
 
     Space_mask c1to8_mask = mask_union(c1to7_mask,c8_mask);
 
@@ -470,8 +472,8 @@ void Explorer::start_DEP()
     stats.n_sim = get_sim_counter();
     save_stats(stats,filename+".stat");
 
-    write_log("End of Phase 2 ");
-    write_log("End of DEP simulation ");
+    write_to_log(pid,logfile,"End of Phase 2 ");
+    write_to_log(pid,logfile,"End of DEP simulation ");
 }
 
 void Explorer::start_DEP2()
@@ -489,14 +491,16 @@ void Explorer::start_DEP2()
 
     vector<Simulation> pareto_set;
 
-    string filename = Options.benchmark+"_DEP2_"+current_space;
+    string filename = Options.benchmark+"_DEP_"+current_space;
+    string logfile = get_base_dir()+string(EE_LOG_PATH);
+    int pid = 0; // mpi not yet supported on DEP
 
-    write_log("  -> Starting DEP2 simulation ");
+    write_to_log(pid,logfile,"  -> Starting DEP2 simulation ");
 
     sprintf(mess,"Space size: %g",stats.space_size);
-    write_log(mess);
+    write_to_log(pid,logfile,mess);
 
-    write_log("  -> Starting c5 exploration ");
+    write_to_log(pid,logfile,"  -> Starting c5 exploration ");
 
     vector<bool> boolean_mask(18,false);
     boolean_mask[13] = true; // GPR
@@ -537,7 +541,7 @@ void Explorer::start_DEP2()
 								c1_mask,
 								c2_mask);
     /////////////////////////////////////////////////////////////////
-    write_log("Starting c3 exploration ");
+    write_to_log(pid,logfile,"Starting c3 exploration ");
 
     Space_mask c3_mask = get_space_mask(SET_L2U);
     Space_mask c1_c2_mask = mask_union(c1_mask,c2_mask);
@@ -561,7 +565,7 @@ void Explorer::start_DEP2()
 
 
     ///////////////////////////////////////////////////////////////
-    write_log("Simulating merged c1 and c2 clusters... ");
+    write_to_log(pid,logfile,"Simulating merged c1 and c2 clusters... ");
 
     vector<Configuration> c1to2_space = build_space_cross_merge(c1_space_pareto,
 	                                                        c2_space_pareto,
@@ -576,7 +580,7 @@ void Explorer::start_DEP2()
     save_simulations(pareto_set,filename+"_c1to2.pareto.exp");
 
     ///////////////////////////////////////////////////////////////
-    write_log("Simulating merged c1to2 and c3 clusters... ");
+    write_to_log(pid,logfile,"Simulating merged c1to2 and c3 clusters... ");
 
     vector<Configuration> c1to3_space = build_space_cross_merge(c1to2_space_pareto,
 	                                                        c3_space_pareto,
@@ -593,7 +597,7 @@ void Explorer::start_DEP2()
     Space_mask c1to3_mask = mask_union(c1_c2_mask,c3_mask);
 
     ///////////////////////////////////////////////////////////////
-    write_log("Simulating merged c1to3 and c5 clusters... ");
+    write_to_log(pid,logfile,"Simulating merged c1to3 and c5 clusters... ");
 
     vector<Configuration> c1to5_space = build_space_cross_merge(c1to3_space_pareto,
 	                                                        c5_space_pareto,
@@ -630,6 +634,8 @@ void Explorer::start_DEPMOD()
     int t;
 
     string filename = Options.benchmark+"_DEPMOD_"+current_space;
+    string logfile = get_base_dir()+string(EE_LOG_PATH);
+    int pid = 0; // mpi not yet supported on DEP
 
     
     // explore c1 and c2, separately .
@@ -637,7 +643,7 @@ void Explorer::start_DEPMOD()
     // c2 pareto optimal values are assumed indipendent from them
     //
     //////////////////////////////////////////////////////////////////////
-    write_log("  -> Starting c1 exploration ");
+    write_to_log(pid,logfile,"  -> Starting c1 exploration ");
 
     Space_mask c1_mask = get_space_mask(SET_L1D);
 
@@ -645,7 +651,7 @@ void Explorer::start_DEPMOD()
     
     t = (c1_space.size() * average_exec_time)/60;
     sprintf(mess," c1: %d explorations, estimated time %d minutes ",c1_space.size(),t);
-    write_log(mess);
+    write_to_log(pid,logfile,mess);
 
     vector<Simulation> c1_sims = simulate_space(c1_space);
     vector<Simulation> c1_sims_pareto = get_pareto(c1_sims);
@@ -657,7 +663,7 @@ void Explorer::start_DEPMOD()
     save_simulations(c1_sims_pareto,filename+"_c1.pareto.exp");
 
     //////////////////////////////////////////////////////////////////////
-    write_log("Starting c2 exploration ");
+    write_to_log(pid,logfile,"Starting c2 exploration ");
 
     Space_mask c2_mask = get_space_mask(SET_L1I);
 
@@ -665,7 +671,7 @@ void Explorer::start_DEPMOD()
 
     t = (c2_space.size() * average_exec_time)/60;
     sprintf(mess," (%d explorations, estimated time %d minutes ",c2_space.size(),t);
-    write_log(mess);
+    write_to_log(pid,logfile,mess);
 
     vector<Simulation> c2_sims = simulate_space(c2_space);
     vector<Simulation> c2_sims_pareto = get_pareto(c2_sims);
@@ -676,7 +682,7 @@ void Explorer::start_DEPMOD()
     save_simulations(c2_sims,filename+"_c2.exp");
     save_simulations(c2_sims_pareto,filename+"_c2.pareto.exp");
 
-    write_log("Starting c4 exploration ");
+    write_to_log(pid,logfile,"Starting c4 exploration ");
 
     // first of all, we cross merge c1 and c2
 
@@ -686,7 +692,7 @@ void Explorer::start_DEPMOD()
 
     t = (c4_space.size() * (average_exec_time+average_compilation_time))/60;
     sprintf(mess," (%d explorations, estimated time %d minutes) ",c4_space.size(),t);
-    write_log(mess);
+    write_to_log(pid,logfile,mess);
 
     vector<Simulation> c4_sims = simulate_space(c4_space);
     vector<Simulation> c4_sims_pareto = get_pareto(c4_sims);
@@ -698,7 +704,7 @@ void Explorer::start_DEPMOD()
     int n_ott_c4 = c4_space_pareto.size();
 
     /////////////////////////////////////////////////////////////////
-    write_log("Starting c3 exploration ");
+    write_to_log(pid,logfile,"Starting c3 exploration ");
 
     Space_mask c3_mask = get_space_mask(SET_L2U);
 
@@ -706,7 +712,7 @@ void Explorer::start_DEPMOD()
 
     t = (c3_space.size() * average_exec_time)/60;
     sprintf(mess," (%d explorations, estimated time %d minutes) ",c3_space.size(),t);
-    write_log(mess);
+    write_to_log(pid,logfile,mess);
 
     vector<Simulation> c3_sims = simulate_space(c3_space);
 
@@ -755,11 +761,11 @@ void Explorer::start_DEPMOD()
     ///////////////////////////////////////////////////////////////////////
     // All c(i)_space are are ready to be explored 
     //////////////////////////////////////////////////////////////////////
-    write_log("  -> Started c5 exploration ");
+    write_to_log(pid,logfile,"  -> Started c5 exploration ");
 
     t = (c5_space.size() * average_exec_time + average_compilation_time)/60;
     sprintf(mess," (%d explorations, estimated time %d minutes) ",c5_space.size(),t);
-    write_log(mess);
+    write_to_log(pid,logfile,mess);
 
     vector<Simulation> c5_sims = simulate_space(c5_space);
     vector<Simulation> c5_sims_pareto = get_pareto(c5_sims);
@@ -767,11 +773,11 @@ void Explorer::start_DEPMOD()
     save_simulations(c5_sims_pareto,filename+"_c5.pareto.exp");
 
     ///////////////////////////////////////////////////////////////
-    write_log("  -> Started c6 exploration ");
+    write_to_log(pid,logfile,"  -> Started c6 exploration ");
 
     t = (c6_space.size() * (average_exec_time + average_compilation_time))/60;
     sprintf(mess," (%d explorations, estimated time %d minutes) ",c6_space.size(),t);
-    write_log(mess);
+    write_to_log(pid,logfile,mess);
 
     vector<Simulation> c6_sims = simulate_space(c6_space);
     vector<Simulation> c6_sims_pareto = get_pareto(c6_sims);
@@ -779,11 +785,11 @@ void Explorer::start_DEPMOD()
     save_simulations(c6_sims_pareto,filename+"_c6.pareto.exp");
 
     ///////////////////////////////////////////////////////////////
-    write_log("  -> Started c7 exploration ");
+    write_to_log(pid,logfile,"  -> Started c7 exploration ");
 
     t = (c7_space.size() * (average_exec_time + average_compilation_time))/60;
     sprintf(mess," (%d explorations, estimated time %d minutes) ",c7_space.size(),t);
-    write_log(mess);
+    write_to_log(pid,logfile,mess);
 
     vector<Simulation> c7_sims = simulate_space(c7_space);
     vector<Simulation> c7_sims_pareto = get_pareto(c7_sims);
@@ -791,11 +797,11 @@ void Explorer::start_DEPMOD()
     save_simulations(c7_sims_pareto,filename+"_c7.pareto.exp");
 
     ///////////////////////////////////////////////////////////////
-    write_log("  -> Started c8 exploration ");
+    write_to_log(pid,logfile,"  -> Started c8 exploration ");
 
     t = (c8_space.size() * (average_exec_time + average_compilation_time))/60;
     sprintf(mess," (%d explorations, estimated time %d minutes) ",c8_space.size(),t);
-    write_log(mess);
+    write_to_log(pid,logfile,mess);
 
     vector<Simulation> c8_sims = simulate_space(c8_space);
     vector<Simulation> c8_sims_pareto = get_pareto(c8_sims);
@@ -803,11 +809,11 @@ void Explorer::start_DEPMOD()
     save_simulations(c8_sims_pareto,filename+"_c8.pareto.exp");
 
     ///////////////////////////////////////////////////////////////
-    write_log("  -> Started c9 exploration ");
+    write_to_log(pid,logfile,"  -> Started c9 exploration ");
 
     t = (c9_space.size() * (average_exec_time + average_compilation_time))/60;
     sprintf(mess," (%d explorations, estimated time %d minutes) ",c9_space.size(),t);
-    write_log(mess);
+    write_to_log(pid,logfile,mess);
 
     vector<Simulation> c9_sims = simulate_space(c9_space);
     vector<Simulation> c9_sims_pareto = get_pareto(c9_sims);
@@ -834,7 +840,7 @@ void Explorer::start_DEPMOD()
 
     save_simulations(all_sims,filename+"_GLOBAL_no_merge.pareto.exp");
 
-    write_log("DEPMOD simulation Phase1 ended. ");
+    write_to_log(pid,logfile,"DEPMOD simulation Phase1 ended. ");
 
     /////////////////////////////////////////////////////////////////////////////
     /// PHASE 2 - merging all clusters, couple by couple . 
@@ -842,7 +848,7 @@ void Explorer::start_DEPMOD()
     // c1toN_space:
     // resulting space from cross merging c1toN-1_space and cN_space
 
-    write_log("Starting Phase 2 . ");
+    write_to_log(pid,logfile,"Starting Phase 2 . ");
 
     vector<Configuration> c5_space_pareto = extract_space(c5_sims_pareto);
     vector<Configuration> c6_space_pareto = extract_space(c6_sims_pareto);
@@ -856,7 +862,7 @@ void Explorer::start_DEPMOD()
     append_simulations(pareto_set,c1_sims_pareto);
 
     ///////////////////////////////////////////////////////////////
-    write_log("Simulating merged c1 and c2 clusters... ");
+    write_to_log(pid,logfile,"Simulating merged c1 and c2 clusters... ");
 
     vector<Configuration> c1to2_space = build_space_cross_merge(c1_space_pareto,
 	                                                        c2_space_pareto,
@@ -870,7 +876,7 @@ void Explorer::start_DEPMOD()
     save_simulations(c1to2_sims,filename+"_c1to2.exp");
     save_simulations(pareto_set,filename+"_c1to2.pareto.exp");
     ///////////////////////////////////////////////////////////////
-    write_log("Simulating merged (c1to2) and c3 clusters... ");
+    write_to_log(pid,logfile,"Simulating merged (c1to2) and c3 clusters... ");
 
     Space_mask c1_c2_mask = mask_union(c1_mask,c2_mask);
     vector<Configuration> c1to3_space = build_space_cross_merge(c1to2_space_pareto,
@@ -885,7 +891,7 @@ void Explorer::start_DEPMOD()
     save_simulations(c1to3_sims,filename+"_c1to3.exp");
     save_simulations(pareto_set,filename+"_c1to3.pareto.exp");
     ///////////////////////////////////////////////////////////////
-    write_log("Simulating merged (c1to3) and c4 clusters... ");
+    write_to_log(pid,logfile,"Simulating merged (c1to3) and c4 clusters... ");
 
     Space_mask c1to3_mask = mask_union(c1_c2_mask,c3_mask);
 
@@ -903,7 +909,7 @@ void Explorer::start_DEPMOD()
 
     ///////////////////////////////////////////////////////////////
 
-    write_log("Simulating merged (c1to4) and c5 clusters... ");
+    write_to_log(pid,logfile,"Simulating merged (c1to4) and c5 clusters... ");
 
     Space_mask c1to4_mask = mask_union(c1to3_mask,c4_mask);
 
@@ -919,7 +925,7 @@ void Explorer::start_DEPMOD()
     save_simulations(c1to5_sims,filename+"_c1to5.exp");
     save_simulations(pareto_set,filename+"_c1to5.pareto.exp");
     ///////////////////////////////////////////////////////////////
-    write_log("Simulating merged (c1to5) and c6 clusters... ");
+    write_to_log(pid,logfile,"Simulating merged (c1to5) and c6 clusters... ");
 
     Space_mask c1to5_mask = mask_union(c1to4_mask,c5_mask);
 
@@ -936,7 +942,7 @@ void Explorer::start_DEPMOD()
     save_simulations(pareto_set,filename+"_c1to6.pareto.exp");
 
     ///////////////////////////////////////////////////////////////
-    write_log("Simulating merged (c1to6) and c7 clusters... ");
+    write_to_log(pid,logfile,"Simulating merged (c1to6) and c7 clusters... ");
 
     Space_mask c1to6_mask = mask_union(c1to5_mask,c6_mask);
 
@@ -953,7 +959,7 @@ void Explorer::start_DEPMOD()
     save_simulations(pareto_set,filename+"_c1to7.pareto.exp");
 
     ///////////////////////////////////////////////////////////////
-    write_log("Simulating merged (c1to7) and c8 clusters... ");
+    write_to_log(pid,logfile,"Simulating merged (c1to7) and c8 clusters... ");
 
     Space_mask c1to7_mask = mask_union(c1to6_mask,c7_mask);
 
@@ -970,7 +976,7 @@ void Explorer::start_DEPMOD()
     save_simulations(pareto_set,filename+"_c1to8.pareto.exp");
 
     ///////////////////////////////////////////////////////////////
-    write_log("Simulating merged (c1to8) and c9 clusters... ");
+    write_to_log(pid,logfile,"Simulating merged (c1to8) and c9 clusters... ");
 
     Space_mask c1to8_mask = mask_union(c1to7_mask,c8_mask);
 
@@ -989,8 +995,8 @@ void Explorer::start_DEPMOD()
     stats.n_sim = get_sim_counter();
     save_stats(stats,filename+".stat");
 
-    write_log("End of Phase 2 ");
-    write_log("End of DEPMOD simulation ");
+    write_to_log(pid,logfile,"End of Phase 2 ");
+    write_to_log(pid,logfile,"End of DEPMOD simulation ");
 }
 
 ////////////////////////////////////////////////////////////////////////////

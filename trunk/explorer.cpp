@@ -69,7 +69,8 @@ Explorer::Explorer(Trimaran_interface * ti)
 
 Explorer::~Explorer()
 {
-    cout << EE_TAG<<"destroying explorer...";
+    string logfile = get_base_dir()+string(EE_LOG_PATH);
+    write_to_log(get_mpi_rank(),logfile,"Destroying explorer class");
 }
 
 
@@ -370,9 +371,15 @@ vector<Simulation> Explorer::sort_by_energydelay_product(vector<Simulation> sims
 // ********************************************************************
 void Explorer::start_REP(const string& file){
     current_algo="REP";
+
+
     REP_source_file = file.substr(file.find_last_of('/') + 1);
     vector<Configuration> vconf;
     ifstream in(file.c_str());
+
+    string logfile = get_base_dir()+string(EE_LOG_PATH);
+    write_to_log(get_mpi_rank(),logfile,"Starting Re-Evaluate pareto on file "+file);
+
     while(in.good()){
         string s;
         getline(in, s);
@@ -429,7 +436,8 @@ void Explorer::start_REP(const string& file){
         }
     }
     in.close();
-    cout << "\nRead " << vconf.size() << " pareto configurations into memory. Starting simulations!" << endl;
+    write_to_log(get_mpi_rank(),logfile,"Read "+to_string(vconf.size())+" pareto configurations into memory. Starting simulations!");
+
     vector<Simulation> vsim = simulate_space(vconf);
     string file_name = Options.benchmark+"_"+current_algo+"_"+current_space;
     vector<Simulation> pareto = get_pareto(vsim);
@@ -877,20 +885,9 @@ void Explorer::prepare_explorer(const string& application, const Configuration& 
 
 int Explorer::get_explorer_status() const
 {
-    int myrank,mysize;
-#ifdef EPIC_MPI
-    MPI_Status status;
-    MPI_Comm_rank(MPI_COMM_WORLD,&myrank);
-    MPI_Comm_size(MPI_COMM_WORLD,&mysize);
-#else
-    myrank = 0;
-    mysize = 1;
-#endif
-
-    string process_id;
-
-    if (mysize>1) 
-	process_id = "[Process " + to_string(myrank)+"] ";
+    int myrank = get_mpi_rank();
+    int mysize = get_mpi_size();
+    string logfile = get_base_dir()+string(EE_LOG_PATH);
 
     bool must_execute = false;
     bool must_compile = false;
@@ -900,60 +897,55 @@ int Explorer::get_explorer_status() const
 
     if (!file_exists(application_dir)) 
     {
-	cout << EE_TAG << process_id << " no application_dir " << application_dir << " found, creating it...";
+	write_to_log(myrank,logfile,"no application_dir " + application_dir + " found, creating it");
 	mkdir(application_dir.c_str(),mode);
     }
 
     // check compilation status 
 
-    cout << EE_TAG << process_id << " Checking for a bench exe in " << processor_dir << " ...";
-
     if (file_exists(processor_dir))  
     {
 	// another process created the processor directory, must wait
 	// for benchmark executable to be available
-       cout << "\n" << process_id << " Waiting for executable...";
+
+	write_to_log(myrank,logfile," Waiting for a benchmark exe in " + processor_dir + " ...");
 	while (!file_exists(processor_dir+"/simu_intermediate/"+bench_executable))
 	    sleep(EXPLORER_RETRY_TIME);
-	cout << process_id << "Ok!";
     }
     else
     {
 	// the processor directory must be created, but we should
 	// avoid race condition with other processes trying to create
 	// same directory
-	cout << EE_TAG << process_id << "no processor_dir " << processor_dir << " found, creating it...";
+	write_to_log(myrank,logfile," no processor_dir " + processor_dir + " found, creating it...");
 
 	if (mkdir(processor_dir.c_str(),mode)==0)
-	{   // dir successifully created 
-	    // this process is responsible for compiling!
+	{   // dir successifully created, this process is responsible for compiling!
 	    must_compile = true; 
 	    cmd = "cp -R "+get_base_dir()+"/trimaran-workspace/epic-explorer/machines/ "+processor_dir;
 	    system(cmd.c_str());
 	}
 	else
 	{
-	   cout << "\n" << process_id << " Warning: Could not create processor_dir, Waiting for executable...";
+	    write_to_log(myrank,logfile," Warning: Could not create processor_dir, waiting for exe in "+processor_dir+"...");
 	    while (!file_exists(processor_dir+"/simu_intermediate/"+bench_executable))
 		sleep(EXPLORER_RETRY_TIME);
-	    cout << process_id << " Ok!";
 	}
     }
 
     // check execution status 
-    cout << EE_TAG << process_id << "Checking for a PD_STATS file in " << mem_hierarchy_dir << "...";
 
     if (file_exists(mem_hierarchy_dir)) 
     {
 
-       cout << "\n" << process_id << " Waiting for " << pd_stats_file;
+	write_to_log(myrank,logfile," Mem dir found, waiting for " + pd_stats_file +"...") ;
 	while (!file_exists(pd_stats_file))
 	    sleep(EXPLORER_RETRY_TIME);
-	cout << process_id << " Ok!";
     }
     else
     {
-	cout << EE_TAG << process_id << "no mem_hierarchy_dir " << mem_hierarchy_dir << " found, creating it...";
+	write_to_log(myrank,logfile,"no mem_hierarchy_dir " + mem_hierarchy_dir + " found, creating it");
+
 	if (mkdir(mem_hierarchy_dir.c_str(),mode)==0)
 	{
 	    must_execute = true; // this process is responsible for executing!
@@ -962,17 +954,25 @@ int Explorer::get_explorer_status() const
 	}
 	else
 	{
-	   cout << "\n" << process_id << " Warning: Could not create mem_hierarchy_dir, Waiting for " << pd_stats_file;
+	   write_to_log(myrank,logfile," Warning: could not create mem_hierarchy_dir, Waiting for " + pd_stats_file +"...");
 	    while (!file_exists(pd_stats_file))
 		sleep(EXPLORER_RETRY_TIME);
-	    cout << process_id << " Ok!";
+	    write_to_log(myrank,logfile," OK, can proceed on PD_STATS file");
 	}
     }
 
-    if (must_compile) return EXPLORER_NOTHING_DONE;
-    if (must_execute) return EXPLORER_BINARY_DONE;
+    if (must_compile) 
+    {
+	return EXPLORER_NOTHING_DONE;
+    }
 
-    cout << EE_TAG << process_id << " Found " << pd_stats_file << ". Simulation steps already done";
+    if (must_execute) 
+    {
+	write_to_log(myrank,logfile," Found bench exe in " + processor_dir + ". Only execution required.");
+	return EXPLORER_BINARY_DONE;
+    }
+
+    write_to_log(myrank,logfile," Found " + pd_stats_file + ". All simulation steps already done");
     return EXPLORER_ALL_DONE;
 }
 
@@ -1796,26 +1796,6 @@ void Explorer::append_simulations(vector<Simulation>& dest,const vector<Simulati
     {
 	if (simulation_present(new_sims[i],dest) < 0) dest.push_back(new_sims[i]);
     }
-}
-
-////////////////////////////////////////////////////////////////////////////
-void Explorer::write_log(string mess)
-{
-    time_t t = time(NULL);
-    char * data;
-    FILE * fp;
-
-    string filename = get_base_dir()+"/trimaran-workspace/epic-explorer/";
-
-    filename +=current_algo+"_exploration.log";
-
-    fp=fopen(filename.c_str(),"a");
-
-    data = asctime(localtime(&t));
-
-    fprintf(fp,"\n %s ---> %s \n",data,mess.c_str());
-
-    fclose(fp);
 }
 
 ////////////////////////////////////////////////////////////////////////////

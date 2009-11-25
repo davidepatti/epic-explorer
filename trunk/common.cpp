@@ -1,7 +1,11 @@
 // common routines and functions
 //
 #include "common.h"
+#include <cstdlib>
 
+#ifdef EPIC_MPI
+#include "mpi.h"
+#endif
 bool Configuration::is_feasible()
 {
   return ( (L1D_size + L1I_size <= L2U_size) &&
@@ -233,4 +237,38 @@ string noyes(int x)
 
     return string("NOT_VALID noyes");
 }
+
+void write_to_log(int pid,const string& logfile,const string& message)
+{
+    time_t now = time(NULL);
+    string uora = string(asctime(localtime(&now)));
+    uora[24]=' '; // to avoid newline after date
+    string cmd = "echo \""+uora+" [P"+to_string(pid)+"]: "+message+"\" >> "+logfile;
+
+    system(cmd.c_str());
+}
+
+int get_mpi_rank()
+{
+#ifdef EPIC_MPI
+    int myrank;
+    MPI_Comm_rank(MPI_COMM_WORLD,&myrank);
+    return myrank;
+#else
+    return 0;
+#endif
+}
+
+int get_mpi_size()
+{
+#ifdef EPIC_MPI
+    int mysize;
+    MPI_Comm_size(MPI_COMM_WORLD,&mysize);
+    return mysize;
+#else
+    return 1;
+#endif
+}
+
+
 
