@@ -4,19 +4,19 @@ META-TODO: Translate this TODO in english !
 ------------------------
 
 current version:
+- clean code and make more modular
 - implement a MAX_RETRY mechanism in save/restore simulation to avoid
   undefined blocking of exploration process
-- move subspace to settings, remove edit
 - add new mem parameters allowed by m5
 - use directly the envrc script of trimaran instead of environment.h
 - il fuzzy_approx funziona correttamente solo con GA...
 - aggiungere popolazione 2 tra i parametri del GA
-- Logging of epic explorer activities, e.g. which exploration started
-  and when 
 
 
 DONE :
 
+- move subspace to settings, remove edit
+- Logging of epic explorer activities
 - add compiler space exploration
 - add multicluster support
 - Eliminazione(opzionale) della creazione del file di log di trimaran
