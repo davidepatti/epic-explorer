@@ -453,10 +453,18 @@ double Estimator::get_cache_access_time(const Mem_hierarchy::Cache& cache)
      RWP = 1; ERP = 2; EWP = 1; NSER = 0; Ndbl = 1; Ndwl = 1; Nspd = 1; Ntbl = 1; Ntwl = 1; Ntspd = 1;
     NSubbanks = 1; */
 
+    string logfile = getenv(BASE_DIR);
+    logfile = logfile+string(EE_LOG_PATH);
+    int myid = get_mpi_rank();
+
     int A = cache.associativity.get_val();
     int B = cache.block_size.get_val();
     int C = cache.size.get_val();
 
+    // backup of original values
+    int a = cache.associativity.get_val();
+    int b = cache.block_size.get_val();
+    int c = cache.size.get_val();
 
     if (A==C/B)  // associativity = total number of blocks
 	parameters.fully_assoc=1;
@@ -488,24 +496,11 @@ double Estimator::get_cache_access_time(const Mem_hierarchy::Cache& cache)
 	    }
 	    else // impossible to solve the problem , this should not happen
 	    {
-		cout << "\n ERROR :Impossible to find a valid alternative to cache config : ";
-		cout << "\n A = " << cache.associativity.get_val();
-		cout << "\n B = " << cache.block_size.get_val();
-		cout << "\n C = " << cache.size.get_val();
-		wait_key();
+		write_to_log(myid,logfile,"FATAL ERROR: invalid cache in get_access_time ("+to_string(a)+","+to_string(b)+","+to_string(c)+")");
+		exit(EXIT_FAILURE);
 	    };
 	}
-#ifdef VERBOSE
-	cout << "\n Cache config replaced for access time computing ";
-	cout << "\n Original config : ";
-	cout << "\n A = " << cache.associativity.get_val();
-	cout << "\n B = " << cache.block_size.get_val();
-	cout << "\n C = " << cache.size.get_val();
-	cout << "\n\n new config : ";
-	cout << "\n A = " << A;
-	cout << "\n B = " << B;
-	cout << "\n C = " << C;
-#endif
+	write_to_log(myid,logfile,"WARNING: Estimator::get_access_time() replaced cache ("+to_string(a)+","+to_string(b)+","+to_string(c)+") with ("+to_string(A)+","+to_string(B)+","+to_string(C)+")");
 	
     }
 
