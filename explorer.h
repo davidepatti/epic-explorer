@@ -185,7 +185,7 @@ private:
   string base_dir;
   string epic_dir;
   string application_dir;
-  string processor_dir;
+  string exe_dir;
   string mem_hierarchy_dir;
   string cache_dir_name;
   string machine_dir;
