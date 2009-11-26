@@ -26,36 +26,37 @@
 
 int main(int argc, char *argv[])
 {
+	int rank;
+	string logfile;
 #ifdef EPIC_MPI
 	MPI_Init(&argc,&argv);
-	int rank;
 	MPI_Comm_rank(MPI_COMM_WORLD,&rank);
 	char* base_path_cstr;
 	int length;
-	//cerr << "DEBUG " << rank << " - base_path is: " << base_path << endl; 
+
 	if(rank == 0) {
 		base_path_cstr = getenv(BASE_DIR);
 		length = strlen(base_path_cstr) + 1;
 		//cerr << "DEBUG strlen : " << length << endl;
 	}
 	MPI_Bcast(&length,1,MPI_INT,0,MPI_COMM_WORLD);
-	//cerr << "DEBUG " << rank << " - length is: " << length << endl;
 
 	if(rank != 0){
 		base_path_cstr = new char[length];
 	}
 
 	MPI_Bcast(base_path_cstr, length, MPI_CHAR, 0, MPI_COMM_WORLD);
-	//cerr << "DEBUG " << rank << " - base_path_cstr is: " << base_path_cstr << endl;
 	string base_path = string(base_path_cstr);
-	cerr << "DEBUG " << rank << " - NEW base_path is: " << base_path << endl;
 	setenv(BASE_DIR, base_path_cstr, 1);
 
-	//cerr << "DEBUG " << rank << " getenv(BASE_DIR) is: " << getenv(BASE_DIR) << endl;
-	//cerr << "DEBUG " << rank << " get_base_dir is: " << get_base_dir() << endl;
+	logfile = base_path + string(EE_LOG_PATH);
+	write_to_log(rank,logfile,"Starting MPI epic process with rank "+to_string(rank)+" on base path "+base_path);
+
 #else
-    string base_path = string(getenv(BASE_DIR));
-    //cout <<  "DEBUG BASEDIR " << BASE_DIR;
+	rank = 0;
+	string base_path = string(getenv(BASE_DIR));
+	logfile = base_path +string(EE_LOG_PATH);
+	write_to_log(rank,logfile,"Starting epic process on base path "+base_path);
 #endif
 
     User_interface *ui = new User_interface(base_path);
@@ -64,5 +65,6 @@ int main(int argc, char *argv[])
 #ifdef EPIC_MPI
     MPI_Finalize();
 #endif
+    write_to_log(rank,logfile,"Terminating epic process");
     return EXIT_SUCCESS;
 }
