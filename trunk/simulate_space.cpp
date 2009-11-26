@@ -53,10 +53,10 @@ vector<Simulation> Explorer::simulate_loop(const vector<Configuration>& space)
 		    trimaran_interface->save_processor_config(processor,hmdes_filename);
 		    trimaran_interface->save_compiler_parameter(compiler,comp_filename);  //db
 		    trimaran_interface->compile_hmdes_file(machine_dir);
-		    trimaran_interface->compile_benchmark(&compiler,processor_dir);	//db
+		    trimaran_interface->compile_benchmark(&compiler,exe_dir);	//db
 		}
 		trimaran_interface->save_mem_config(mem_hierarchy,mem_hierarchy_filename);
-		trimaran_interface->execute_benchmark(&compiler,processor_dir,cache_dir_name); //db
+		trimaran_interface->execute_benchmark(&compiler,exe_dir,cache_dir_name); //db
 	    }
 
 	    dyn_stats = trimaran_interface->get_dynamic_stats(mem_hierarchy_dir);
@@ -76,14 +76,14 @@ vector<Simulation> Explorer::simulate_loop(const vector<Configuration>& space)
 	    if (!Options.multidir)
 	    {
 		string cmd = "rm -rf ";
-		cmd += processor_dir;
-		cout << EE_TAG << "Cleaning " << processor_dir;
+		cmd += exe_dir;
+		cout << EE_TAG << "Cleaning " << exe_dir;
 		system(cmd.c_str());
 	    }
 	    else if (!Options.save_PD_TRACE)
 	    {
-		string cmd = "rm -f "+processor_dir+"/"+cache_dir_name+"/PD_TRACE";
-		cout << EE_TAG << "Cleaning PD_TRACE in " << processor_dir << "/" << cache_dir_name;
+		string cmd = "rm -f "+exe_dir+"/"+cache_dir_name+"/PD_TRACE";
+		cout << EE_TAG << "Cleaning PD_TRACE in " << exe_dir << "/" << cache_dir_name;
 		system(cmd.c_str());
 	    }
 

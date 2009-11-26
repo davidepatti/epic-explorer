@@ -840,10 +840,10 @@ void Explorer::prepare_explorer(const string& application, const Configuration& 
     // simply sets explorer class members according to the app and configuration
     epic_dir = get_base_dir()+"/trimaran-workspace/epic-explorer/";
     application_dir = epic_dir + Options.benchmark;
-    processor_dir = application_dir+"/"+config.get_executable_dir();
+    exe_dir = application_dir+"/"+config.get_executable_dir();
     cache_dir_name = config.get_mem_dir();
-    mem_hierarchy_dir = processor_dir+"/"+cache_dir_name+"/";
-    machine_dir = processor_dir+"/machines";
+    mem_hierarchy_dir = exe_dir+"/"+cache_dir_name+"/";
+    machine_dir = exe_dir+"/machines";
     m5_dir = mem_hierarchy_dir+"./m5elements";
 
     mem_hierarchy_filename = m5_dir+"/default.py";
@@ -860,7 +860,7 @@ void Explorer::prepare_explorer(const string& application, const Configuration& 
     cout <<  EE_TAG << " Assuming the following setup:";
     cout <<  EE_TAG << "epic_dir: " << epic_dir;
     cout <<  EE_TAG << "application_dir: " << application_dir;
-    cout <<  EE_TAG << "processor_dir: " << processor_dir;
+    cout <<  EE_TAG << "exe_dir: " << exe_dir;
     cout <<  EE_TAG << "mem_hierarchy_dir: " << mem_hierarchy_dir;
     cout <<  EE_TAG << "machine_dir: " << machine_dir;
     cout <<  EE_TAG << "m5_dir: " << m5_dir;
@@ -874,7 +874,7 @@ void Explorer::prepare_explorer(const string& application, const Configuration& 
 
 // --------------------------------------------------------------//
 // get_explorer_status 
-// if a processor/mem_hierarchy_dir is already present the are two
+// if a exe/mem_hierarchy_dir is already present the are two
 // possibilities:
 //  - the required bench exe and PD_STATS files have been previously created
 //  - another process is working on that dir
@@ -897,39 +897,45 @@ int Explorer::get_explorer_status() const
 
     if (!file_exists(application_dir)) 
     {
-	write_to_log(myrank,logfile,"no application_dir " + application_dir + " found, creating it");
+	write_to_log(myrank,logfile,"Creating application dir " + application_dir);
 	mkdir(application_dir.c_str(),mode);
     }
 
     // check compilation status 
 
-    if (file_exists(processor_dir))  
+    if (file_exists(exe_dir))  
     {
-	// another process created the processor directory, must wait
+	// another process created the exe directory, must wait
 	// for benchmark executable to be available
 
-	write_to_log(myrank,logfile," Waiting for a benchmark exe in " + processor_dir + " ...");
-	while (!file_exists(processor_dir+"/simu_intermediate/"+bench_executable))
+	write_to_log(myrank,logfile,"Found " + exe_dir + ", checking for executable...");
+
+	while (!file_exists(exe_dir+"/simu_intermediate/"+bench_executable))
 	    sleep(EXPLORER_RETRY_TIME);
+
+	write_to_log(myrank,logfile,"Ok, found " + bench_executable);
     }
     else
     {
-	// the processor directory must be created, but we should
+	// the exe directory must be created, but we should
 	// avoid race condition with other processes trying to create
 	// same directory
-	write_to_log(myrank,logfile," no processor_dir " + processor_dir + " found, creating it...");
 
-	if (mkdir(processor_dir.c_str(),mode)==0)
+	if (mkdir(exe_dir.c_str(),mode)==0)
 	{   // dir successifully created, this process is responsible for compiling!
+	    write_to_log(myrank,logfile,"Created " + exe_dir);
 	    must_compile = true; 
-	    cmd = "cp -R "+get_base_dir()+"/trimaran-workspace/epic-explorer/machines/ "+processor_dir;
+	    cmd = "cp -R "+get_base_dir()+"/trimaran-workspace/epic-explorer/machines/ "+exe_dir;
 	    system(cmd.c_str());
 	}
 	else
 	{
-	    write_to_log(myrank,logfile," Warning: Could not create processor_dir, waiting for exe in "+processor_dir+"...");
-	    while (!file_exists(processor_dir+"/simu_intermediate/"+bench_executable))
+	    write_to_log(myrank,logfile," Warning: Could not create exe dir, waiting for exe in "+exe_dir+"...");
+
+	    while (!file_exists(exe_dir+"/simu_intermediate/"+bench_executable))
 		sleep(EXPLORER_RETRY_TIME);
+
+	    write_to_log(myrank,logfile,"Ok, found " + bench_executable);
 	}
     }
 
@@ -938,23 +944,26 @@ int Explorer::get_explorer_status() const
     if (file_exists(mem_hierarchy_dir)) 
     {
 
-	write_to_log(myrank,logfile," Mem dir found, waiting for " + pd_stats_file +"...") ;
+	write_to_log(myrank,logfile,"Found mem dir " + mem_hierarchy_dir +", checking for PD_STATS...");
+
 	while (!file_exists(pd_stats_file))
 	    sleep(EXPLORER_RETRY_TIME);
+
+	write_to_log(myrank,logfile,"Ok, found "+pd_stats_file);
     }
     else
     {
-	write_to_log(myrank,logfile,"no mem_hierarchy_dir " + mem_hierarchy_dir + " found, creating it");
 
 	if (mkdir(mem_hierarchy_dir.c_str(),mode)==0)
 	{
+	    write_to_log(myrank,logfile,"Created " + mem_hierarchy_dir);
 	    must_execute = true; // this process is responsible for executing!
 	    cmd = "cp -R "+get_base_dir()+"/trimaran-workspace/epic-explorer/m5elements/ "+mem_hierarchy_dir;
 	    system(cmd.c_str());
 	}
 	else
 	{
-	   write_to_log(myrank,logfile," Warning: could not create mem_hierarchy_dir, Waiting for " + pd_stats_file +"...");
+	   write_to_log(myrank,logfile," Warning: could not create mem dir, Waiting for " + pd_stats_file +"...");
 	    while (!file_exists(pd_stats_file))
 		sleep(EXPLORER_RETRY_TIME);
 	    write_to_log(myrank,logfile," OK, can proceed on PD_STATS file");
@@ -963,16 +972,17 @@ int Explorer::get_explorer_status() const
 
     if (must_compile) 
     {
+	write_to_log(myrank,logfile,"Epic explorer status -> Required recompilation and execution");
 	return EXPLORER_NOTHING_DONE;
     }
 
     if (must_execute) 
     {
-	write_to_log(myrank,logfile," Found bench exe in " + processor_dir + ". Only execution required.");
+	write_to_log(myrank,logfile,"Epic explorer status -> Found application exe, only re-execution required!");
 	return EXPLORER_BINARY_DONE;
     }
 
-    write_to_log(myrank,logfile," Found " + pd_stats_file + ". All simulation steps already done");
+    write_to_log(myrank,logfile,"Epic explorer status -> Found PS_STATS file, all simulation steps already done!");
     return EXPLORER_ALL_DONE;
 }
 
