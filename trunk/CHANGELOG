@@ -2,6 +2,7 @@ current
 --------------------------------------
 - fixed MPI code on multiple directories
 - add a log system to monitor epic activity
+- added detection and logging of many warning/error condition
 - new subspace files management
 
 2008.6 beta

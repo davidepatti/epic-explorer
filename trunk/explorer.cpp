@@ -89,18 +89,6 @@ void Explorer::set_options(const struct User_Settings& user_settings)
     if (Options.objective_area) n_obj++;
     if (Options.objective_energy) n_obj++;
 
-#ifdef EPIC_MPI
-    if (!Options.multidir)
-    {
-	cout << "\n WARNING !!!!";
-	cout << "\n****************";
-	cout << "\n EPIC_MPI compilation detected, save/restore simulations NOT enabled!";
-	cout << "\n Currently, MPI works ONLY if save/restore simulations (multidir) otion is enabled.";
-	cout << "\n SEE the VERY IMPORTANT NOTE on file MPI.README (section III).";
-	wait_key();
-    }
-#endif
-
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -1002,8 +990,9 @@ void Explorer::save_estimation_file( const Dynamic_stats& dynamic_stats,
 
     if (!output_file)
     {
-	cout << "\n Error while saving " << file_path ;
-	wait_key();
+	string logfile = get_base_dir()+string(EE_LOG_PATH);
+	int myid = get_mpi_rank();
+	write_to_log(myid,logfile,"WARNING: Error while saving " + file_path);
     }
     else
     {
@@ -1915,8 +1904,11 @@ void Explorer::load_space_file(const string& filename)
 
    if (!input_file)
    {
-       cout << "\n Error while reading " << filename;
-       wait_key();
+	string logfile = get_base_dir()+string(EE_LOG_PATH);
+	int myid = get_mpi_rank();
+	write_to_log(myid,logfile,"ERROR: cannot load " + filename);
+	cout << "\n ERROR: cannot load " << filename;
+	sleep(2);
    }
    else
    {
@@ -2130,7 +2122,10 @@ void Explorer::save_space_file(const string& filename)
     if (!output_file)
     {
 	cout << "\n Error while saving " << filename ;
-	wait_key();
+	string logfile = get_base_dir()+string(EE_LOG_PATH);
+	int myid = get_mpi_rank();
+	write_to_log(myid,logfile,"ERROR: cannot save " + filename);
+	sleep(2);
     }
     else
     {

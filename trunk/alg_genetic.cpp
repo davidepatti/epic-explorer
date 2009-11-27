@@ -14,9 +14,6 @@
 #define DEF_TOURNAMENT 2
 #define DEF_HASH_TABLE_SIZE   128
 
-#define BIG_CYCLES      1e30
-#define BIG_ENERGY      1e30
-#define BIG_AREA        1e30
 // static initializations for GA
 int individual::uid = 0;
 vector<alleleset> individual::als;

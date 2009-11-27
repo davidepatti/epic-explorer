@@ -692,6 +692,21 @@ Estimate Estimator::get_estimate(const Dynamic_stats& dyn_stats,
     string tmp;
     Estimate estimate;
 
+    // if stats are marked as not valid, dummy values are immediately
+    // returned to allow continue_on_failure feature
+    if (!dyn_stats.valid)
+    {
+	estimate.total_system_energy = BIG_ENERGY;
+	estimate.execution_cycles = 0;
+	estimate.execution_time = BIG_CYCLES;
+	estimate.total_average_power = BIG_ENERGY;
+	estimate.total_area = BIG_AREA;
+
+	return estimate;
+    }
+
+    // ... only continue from here if valid dyn_stats are available
+
     estimate.L1D_access_time = get_cache_access_time(mem.L1D);
     estimate.L1I_access_time = get_cache_access_time(mem.L1I);
 

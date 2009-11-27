@@ -35,6 +35,10 @@
 #define TRIANGLE_SET 1
 #define GAUSSIAN_SET 2
 
+#define BIG_CYCLES      1e30
+#define BIG_ENERGY      1e30
+#define BIG_AREA        1e30
+
 using namespace std;
 
 void wait_key();
@@ -80,11 +84,12 @@ struct User_Settings
 	float threshold;
 	int min,max;
     } approx_settings;
-    bool multidir;
+    bool save_restore;
     //G
     bool multibench; //G enable multiple benchmarks
     vector<string> bench_v; //G additional benchmarks
     bool save_tcclog;
+    bool continue_on_failure;
 };
 
 struct Space_mask
@@ -185,6 +190,8 @@ struct Simulation
 
 struct Dynamic_stats
 {
+    bool valid; // if false, something weird happened while compiling/simulating
+
     uint64 total_cycles, stall_cycles,compute_cycles,total_dynamic_operations;
     uint64 ialu,falu,load,store,branch,cmp,pbr,icm;
     uint64 spills_restores;

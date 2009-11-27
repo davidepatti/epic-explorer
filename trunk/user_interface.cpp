@@ -370,6 +370,16 @@ void User_interface::edit_user_settings()
         cout << "\n In order to set properly your preferences for each process you should ";
         cout << "\n modify directly the file epic_default.conf and then relaunch the mpirun command";
         wait_key();
+
+    if (!user_settings.save_restore)
+    {
+	cout << "\n WARNING !!!!";
+	cout << "\n****************";
+	cout << "\n EPIC_MPI compilation detected, save/restore simulations NOT enabled!";
+	cout << "\n Currently, MPI works ONLY if save/restore simulations (multidir) otion is enabled.";
+	cout << "\n SEE the VERY IMPORTANT NOTE on file MPI.README (section III).";
+	wait_key();
+    }
 #endif
 
 
@@ -393,8 +403,9 @@ void User_interface::edit_user_settings()
             " - " << user_settings.approx_settings.max << " )";
 	}
 
-	cout << "\n (13) - Save/Restore simulations     --> " << status_string(user_settings.multidir);
+	cout << "\n (13) - Save/Restore simulations     --> " << status_string(user_settings.save_restore);
 	cout << "\n (14) - Multi benchmark simulation   --> " << status_string(user_settings.multibench);
+	cout << "\n (15) - Continue on Failure          --> " << status_string(user_settings.continue_on_failure);
 	if(user_settings.multibench){
 	    cout << "\n Additional benchmarks:" << endl;
 	    for(vector<string>::iterator it = user_settings.bench_v.begin(); it != user_settings.bench_v.end(); it++)
@@ -403,9 +414,8 @@ void User_interface::edit_user_settings()
 	}
 	cout << "\n" ;
 	cout << "\n ----------------------------------------------------------";
-	cout << "\n (s) - Save current settings to file";
-	cout << "\n (l) - Load settings from file";
-	cout << "\n (x) - Exit to main menu";
+	cout << "\n (s) - Save current settings";
+	cout << "\n (q) - Return to main menu";
 	cout << "\n ----------------------------------------------------------";
 	cout << "\n Make your choice:";
 
@@ -460,15 +470,9 @@ void User_interface::edit_user_settings()
 	    cout << "\n PD_TRACE files generated during simulation.";
 	    cout << "\n--------------------------------------------------------------------";
 
-	    int pippo;
-	    cout << "\n (0) Disable Save/Restore simulations support";
-	    cout << "\n (1) Enable Save/Restore simulations support";
-	    cout << "\n make your choice: ";
-	    cin >> pippo;
+	    wait_key();
 
-	    if (pippo) user_settings.multidir = true;
-	    else
-		user_settings.multidir = false;
+	    user_settings.save_restore = !user_settings.save_restore;
 	}
 
 	if (ch=="14")
@@ -487,11 +491,11 @@ void User_interface::edit_user_settings()
 	        cin >> nbench;
 
 	        cout << "\n You must choose one of the benchmark available in the " << endl;
-	        cout << " '" << base_path << "/trimaran/benchmarks' directory " << endl << endl;
+	        cout << " '" << base_path << "/trimaran/benchmarks/simple' directory " << endl << endl;
 	        cout << " \tCurrently available benchmarks:" << endl;
 	        cout << "-----------------------------------------------------------" << endl;
 	        string command = "ls ";
-	        command+= base_path + "/trimaran/benchmarks";
+	        command+= base_path + "/trimaran/benchmarks/simple";
 	        system(command.c_str());
 
 	        user_settings.bench_v.clear();
@@ -503,14 +507,23 @@ void User_interface::edit_user_settings()
                     user_settings.bench_v.push_back(s);
 	        }
 	    }
-	    my_explorer->set_options(user_settings);
 	}
 
+	if (ch=="15")
+	{
+	    cout << "\n When Enabled, continue on failure allows epic explorer to continue ";
+	    cout << "\n the design space exploration discarding configurations that caused ";
+	    cout << "\n problems in trimaran (e.g. segfaults, corrupted statistics).";
+	    cout << "\n When NOT enable, epic explorer will exit and exploration terminated.";
+	    cout << "\n In both cases, the incidents will be reported in epic.log";
+	    wait_key();
+	    user_settings.continue_on_failure = !user_settings.continue_on_failure;
+	    trimaran_interface->set_continue_on_failure(user_settings.continue_on_failure);
+	}
 
 	if (ch=="s") save_settings_wrapper();
-	if (ch=="l") load_settings_wrapper();
 
-    } while(ch!="x");
+    } while(ch!="q");
 
     my_explorer->set_options(user_settings);
 }
@@ -741,22 +754,6 @@ void User_interface::show_system_config() {
 
 }
 
-void User_interface::load_settings_wrapper()
-{
-   string base_dir = base_path + "/trimaran-workspace/epic-explorer/";
-   string filename;
-
-   cout << "\n\n Available configuration files: ";
-   cout << "\n";
-   string command = "ls ";
-   command+=base_dir+"*.conf";
-   system(command.c_str());
-   cout << "\n Enter file name without path (e.g. 'file.conf' or use 'x' to cancel): ";
-   cin >> filename;
-   if (filename!="x") load_settings(base_path+filename);
-
-}
-
 void User_interface::set_subspace_wrapper()
 {
    string subspaces_dir = base_path + "/trimaran-workspace/epic-explorer/SUBSPACES/";
@@ -807,8 +804,10 @@ void User_interface::load_settings(string settings_file)
        user_settings.approx_settings.threshold = 0;
        user_settings.approx_settings.min = 0;
        user_settings.approx_settings.max = 0;
-       user_settings.multidir = false;
+       user_settings.save_restore = false;
        user_settings.save_tcclog = false;
+       user_settings.continue_on_failure = false;
+       user_settings.multibench = false;
 
        fp= fopen(settings_file.c_str(),"w");
        fclose(fp);
@@ -835,6 +834,8 @@ void User_interface::load_settings(string settings_file)
 	user_settings.auto_clock = false;
 	user_settings.save_tcclog = false;
 	user_settings.save_PD_TRACE = false;
+	user_settings.continue_on_failure = false;
+	user_settings.save_restore = false;
 
 	go_until("benchmark",input_file);
 	input_file >> word;
@@ -884,16 +885,24 @@ void User_interface::load_settings(string settings_file)
 	go_until("fuzzy_max",input_file);
 	input_file >> user_settings.approx_settings.max;
 
-	go_until("multidir",input_file);
+	go_until("save_restore",input_file);
 	input_file >> word;
-	if (word=="ENABLED") user_settings.multidir = true;
+	if (word=="ENABLED") user_settings.save_restore = true;
 
 	go_until("save_tcclog",input_file);
 	input_file >> word;
 	if (word=="ENABLED") user_settings.save_tcclog= true;
 
+	go_until("continue_on_failure",input_file);
+	input_file >> word;
+	if (word=="ENABLED") user_settings.continue_on_failure= true;
+
+	// not saved - must be enabled at runtime
+        user_settings.multibench = false;
+        
 	trimaran_interface->set_benchmark(user_settings.benchmark);
 	trimaran_interface->set_save_tcclog(user_settings.save_tcclog);
+	trimaran_interface->set_continue_on_failure(user_settings.continue_on_failure);
 
 	my_explorer->set_options(user_settings);
    }
@@ -905,23 +914,8 @@ void User_interface::save_settings_wrapper()
 
    cout << "\n User settings file will be saved in: ";
    cout << "\n " << base_dir ; 
-   cout << "\n\n (1) - Save current settings as default";
-   cout << "\n (2) - Save using other filename ";
-   cout << "\n (q) - Exit to main menu' ";
-   cout << "\n\n Choose : ";
 
-   char ch;
-   cin >> ch;
-
-   if (ch=='1') save_settings(base_dir+"epic_default.conf");
-   else
-   if (ch=='2')
-   {
-       cout << "\n Enter filename (USE .conf extension): ";
-       string s;
-       cin >> s;
-       save_settings(base_dir+s);
-   }
+   save_settings(base_dir+"epic_default.conf");
 }
 
 
@@ -951,8 +945,9 @@ void User_interface::save_settings(string settings_file)
 	output_file << "\nfuzzy_threshold " << user_settings.approx_settings.threshold;
 	output_file << "\nfuzzy_min " << user_settings.approx_settings.min;
 	output_file << "\nfuzzy_max " << user_settings.approx_settings.max;
-	output_file << "\nmultidir " << status_string(user_settings.multidir);
+	output_file << "\nsave_restore " << status_string(user_settings.save_restore);
 	output_file << "\nsave_tcclog " << status_string(user_settings.save_tcclog);
+	output_file << "\ncontinue_on_failure " << status_string(user_settings.continue_on_failure);
 
 	cout << "\n Ok, saved current settings in " << settings_file;
     }
