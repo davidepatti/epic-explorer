@@ -95,11 +95,10 @@ void Parameter::set_val(int new_value)
 
     if (current==NOT_VALID)
     {
-	cout << "\n ERROR: not a valid value set for parameter '"<<label<<"' (new_value = " << new_value << ")";
-	cout << "\n List of available values: " << endl;
-	for (int i =0;i<values.size();i++) cout << values[i] << ",";
-	cout << "\n Please check your subspace file in trimaran-workspace/epic-explorer/SUBSPACES";
-	wait_key();
+	string logfile = string(getenv(BASE_DIR))+string(EE_LOG_PATH);
+	int myid = get_mpi_rank();
+	write_to_log(myid,logfile," ERROR: not valid valuet for parameter '"+label+" (value=" + to_string(new_value) + "). Check subspace file.");
+	exit(EXIT_FAILURE);
     }
 }
 
