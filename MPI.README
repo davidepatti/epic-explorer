@@ -65,11 +65,11 @@ VERY IMPORTANT!
 ---------
 When running epic with mpirun, it can happens that multiple processes
 will try to use the same paths. This is ok, but ONLY works if
-save/restore option (multidir) is enabled.
+save/restore option is enabled.
 Otherwise, the cleaning performed by a process at the end of a simulation could
 interfere with another process that previously found a directory.
 
-To enable the option, change the 'multidir' to ENABLED in
+To enable the option, change the 'save_restore' to ENABLED in
 trimaran-workspace/epic-explorer/epic_default.conf 
 In alternative, you can start 'epic', set the 'save/restore
 simulations' option, save the changes and restart epic.
