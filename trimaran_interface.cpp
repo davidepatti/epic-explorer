@@ -24,6 +24,7 @@ Trimaran_interface::Trimaran_interface(const string& base_dir)
     set_benchmark(string("BENCH_NOT_SET"));
     set_environment(base_dir);
     set_save_tcclog(false);
+    set_continue_on_failure(false);
 }
 
 Trimaran_interface::~Trimaran_interface()
@@ -42,6 +43,11 @@ void Trimaran_interface::set_save_tcclog(bool save_log)
     do_save_log = save_log;
 }
 
+void Trimaran_interface::set_continue_on_failure(bool value)
+{
+    continue_on_failure = value;
+}
+
 string Trimaran_interface::get_benchmark_name() const
 {
     return current_benchmark;
@@ -51,6 +57,9 @@ string Trimaran_interface::get_benchmark_name() const
 // TODO: pass hmdes file path, not machine dir
 void Trimaran_interface::compile_hmdes_file(const string& machine_dir) const
 {
+    string logfile = base_path+string(EE_LOG_PATH);
+    int myid = get_mpi_rank();
+
     char old_path[50];
     getcwd(old_path,50);
     chdir(machine_dir.c_str());
@@ -64,10 +73,8 @@ void Trimaran_interface::compile_hmdes_file(const string& machine_dir) const
     }
     else
     {
-	cout << EE_TAG << " cannot find " << main_hmdes2 <<  " in " << machine_dir;
-#ifndef EPIC_MPI
-	wait_key();
-#endif
+	write_to_log(myid,logfile,"FATAL ERROR: cannot find " + main_hmdes2 +  " in " + machine_dir);
+	exit(EXIT_FAILURE);
     }
 
     chdir(old_path);
@@ -114,8 +121,10 @@ void Trimaran_interface::compile_benchmark(Compiler* c,const string& path)
 
     command = "tcc "+tcc_args+tcc_impact_args+tcc_elcor_args+" -i2s -M"+path+"/machines/hpl_pd_elcor_std.lmdes2 -S\"-Fcontrol_flow_trace=yes -Faddress_trace=yes\" -project \"full\" -clean -gui "+redirection; //db
 
+#ifdef DEBUG
     cout << EE_TAG << "executing: " << command;
     //int c; cin>> c;
+#endif
     system(command.c_str());
 
     chdir(old_path);
@@ -161,8 +170,10 @@ void Trimaran_interface::execute_benchmark(Compiler* c,const string& path, const
 
     command = "tcc "+tcc_args+tcc_impact_args+tcc_elcor_args+" -m2m -M"+path+"/machines/hpl_pd_elcor_std.lmdes2 -S\"-Fcontrol_flow_trace=yes -Faddress_trace=yes\" -project \"full\" -gui -cache_dir "+cache_dir+redirection;
 
+#ifdef DEBUG
     cout << EE_TAG << "executing: " << command;
     //int c; cin>> c;
+#endif
     system(command.c_str());
     chdir(old_path);
 }
@@ -180,20 +191,36 @@ Dynamic_stats Trimaran_interface::get_dynamic_stats(const string& path)
 
     string pippo;
     Dynamic_stats dynamic_stats;
+    dynamic_stats.valid = true; // set on false if continue_on_failure occurs
+
+    string logfile = base_path+string(EE_LOG_PATH);
+    int myid = get_mpi_rank();
 
     if (!pd_file) 
     {
-	cout << "\nEPIC EXPLORER error opening file:" << pd_filename;
-#ifndef EPIC_MPI
-	wait_key();
-#endif
+	if (continue_on_failure)
+	{
+	    write_to_log(myid,logfile,"ERROR: get_dynamic_stats() cannot open file:" + pd_filename + ", continuing...");
+	    dynamic_stats.valid = false;
+	}
+	else
+	{
+	    write_to_log(myid,logfile,"FATAL ERROR: get_dynamic_stats() cannot open file:" + pd_filename+". Terminating epic, to change this beaviour see continue_on_failure setting");
+	    exit(EXIT_FAILURE);
+	}
     }
     else if (!m5_file)
     {
-	cout << "\nEPIC EXPLORER error opening file:" << m5_filename;
-#ifndef EPIC_MPI
-	wait_key();
-#endif
+	if (continue_on_failure)
+	{
+	    write_to_log(myid,logfile,"ERROR: get_dynamic_stats() cannot open file:" + m5_filename + ", continuing...");
+	    dynamic_stats.valid = false;
+	}
+	else
+	{
+	    write_to_log(myid,logfile,"FATAL ERROR: get_dynamic_stats() cannot open file:" + m5_filename+". Terminating epic, to change this beaviour see continue_on_failure setting");
+	    exit(EXIT_FAILURE);
+	}
     }
     else
     {
@@ -380,9 +407,12 @@ void Trimaran_interface::set_environment(const string& base_dir) {
 
     if (chdir(epic_dir.c_str())==-1)
     {
+	string logfile = base_path + string(EE_LOG_PATH);
+	int myid = get_mpi_rank();
+	write_to_log(myid,logfile,"FATAL ERROR: cannot find "+epic_dir);
 	cout << "Cannot find " << epic_dir << endl;
 	cout << "Please run ./post_install.sh script from epic explorer dir";
-	exit(-1);
+	exit(EXIT_FAILURE);
     }
 }
 
@@ -393,13 +423,13 @@ void Trimaran_interface::save_compiler_parameter(const Compiler& cmp, const stri
   string filename = path;
   std::ofstream output_file(filename.c_str());
 
+    string logfile = base_path + string(EE_LOG_PATH);
+    int myid = get_mpi_rank();
   
    if (!output_file)
     {
-	cout << "\nError opening compiler file :" << filename;
-#ifndef EPIC_MPI
-	wait_key();
-#endif
+	write_to_log(myid,logfile,"FATAL ERROR: cannot save compiler file " + filename);
+	exit(EXIT_FAILURE);
     }
     else
     {
@@ -443,8 +473,10 @@ void Trimaran_interface::load_compiler_parameter(Compiler* c, const string& file
 
     if (!input_file) 
     {
-	cout << "\nError opening compiler file : " << filename;
-	exit(-1);
+	string logfile = base_path + string(EE_LOG_PATH);
+	int myid = get_mpi_rank();
+	write_to_log(myid,logfile,"FATAL ERROR: cannot load compiler file " + filename);
+	exit(EXIT_FAILURE);
     }
     else
     {
@@ -490,10 +522,10 @@ void Trimaran_interface::save_processor_config(const Processor& p, const string&
 
     if (!output_file) 
     {
-	cout << "\nError opening hmdes file :" << filename;
-#ifndef EPIC_MPI
-	wait_key();
-#endif
+	string logfile = base_path + string(EE_LOG_PATH);
+	int myid = get_mpi_rank();
+	write_to_log(myid,logfile,"FATAL ERROR: cannot save hmdes file " + filename);
+	exit(EXIT_FAILURE);
     }
     else
     {
@@ -537,10 +569,10 @@ void Trimaran_interface::load_processor_config(Processor* p,const string& filena
     std::ifstream input_file(filename.c_str());
 
     if (!input_file) {
-	cout << "\nError opening hmdes file :" << filename;
-#ifndef EPIC_MPI
-	wait_key();
-#endif
+	string logfile = base_path + string(EE_LOG_PATH);
+	int myid = get_mpi_rank();
+	write_to_log(myid,logfile,"FATAL ERROR: cannot open hmdes file " + filename);
+	exit(EXIT_FAILURE);
     }
     else
     {
@@ -601,8 +633,10 @@ void Trimaran_interface::save_mem_config(const Mem_hierarchy& mem, const string&
 
     if (!output_file) 
     {
-	cout << "\nFatal: cannot write " << filename;
-	exit(-1);
+	string logfile = base_path + string(EE_LOG_PATH);
+	int myid = get_mpi_rank();
+	write_to_log(myid,logfile,"FATAL ERROR: cannot save mem config " + filename);
+	exit(EXIT_FAILURE);
     }
     else
     {
@@ -674,10 +708,10 @@ void Trimaran_interface::load_mem_config(Mem_hierarchy* mem,const string& filena
 
     if (!input_file) 
     {
-	cout << "\nError opening cache config file :" << filename;
-#ifndef EPIC_MPI
-	wait_key();
-#endif
+	string logfile = base_path + string(EE_LOG_PATH);
+	int myid = get_mpi_rank();
+	write_to_log(myid,logfile,"FATAL ERROR: cannot load mem config " + filename);
+	exit(EXIT_FAILURE);
     }
     else
     {   // TODO: handling even the 'kB' notation would be nicer
@@ -694,12 +728,13 @@ void Trimaran_interface::load_mem_config(Mem_hierarchy* mem,const string& filena
 	pos = word.find("B'")-1;
 	if (word.find("kB'")!=-1) 
 	{
+	    string logfile = base_path+string(EE_LOG_PATH);
+	    int myid = get_mpi_rank();
+	    write_to_log(myid,logfile,"FATAL ERROR: 'kB' postfix not supported in "+ filename+". Use only 'B'.");
 	    cout << "\n Error: the 'kB' postfix in " << filename;
 	    cout << "\n is currently not supported by epic explorer";
 	    cout << "\n You must express cache size in bytes using 'B' postfix";
-#ifndef EPIC_MPI
-	    wait_key();
-#endif
+	    exit(EXIT_FAILURE);
 	}
 	value = atoi(word.substr(1,pos));
 	mem->L1I.size.set_val(value);
@@ -724,12 +759,13 @@ void Trimaran_interface::load_mem_config(Mem_hierarchy* mem,const string& filena
 	pos = word.find("B'")-1;
 	if (word.find("kB'")!=-1) 
 	{
+	    string logfile = base_path+string(EE_LOG_PATH);
+	    int myid = get_mpi_rank();
+	    write_to_log(myid,logfile,"FATAL ERROR: 'kB' postfix not supported in "+ filename+". Use only 'B'.");
 	    cout << "\n Error: the 'kB' postfix in " << filename;
 	    cout << "\n is currently not supported by epic explorer";
 	    cout << "\n You must express cache size in bytes using 'B' postfix";
-#ifndef EPIC_MPI
-	    wait_key();
-#endif
+	    exit(EXIT_FAILURE);
 	}
 	value = atoi(word.substr(1,pos));
 	mem->L1D.size.set_val(value);
@@ -754,12 +790,13 @@ void Trimaran_interface::load_mem_config(Mem_hierarchy* mem,const string& filena
 	pos = word.find("B'")-1;
 	if (word.find("kB'")!=-1) 
 	{
+	    string logfile = base_path+string(EE_LOG_PATH);
+	    int myid = get_mpi_rank();
+	    write_to_log(myid,logfile,"FATAL ERROR: 'kB' postfix not supported in "+ filename+". Use only 'B'.");
 	    cout << "\n Error: the 'kB' postfix in " << filename;
 	    cout << "\n is currently not supported by epic explorer";
 	    cout << "\n You must express cache size in bytes using 'B' postfix";
-#ifndef EPIC_MPI
-	    wait_key();
-#endif
+	    exit(EXIT_FAILURE);
 	}
 	value = atoi(word.substr(1,pos));
 	mem->L2U.size.set_val(value);

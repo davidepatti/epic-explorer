@@ -43,6 +43,7 @@ public:
 
 	void set_benchmark(string new_benchmark);
 	void set_save_tcclog(bool do_save_log);
+	void set_continue_on_failure(bool value);
 
 	void set_environment(const string& path);
 
@@ -67,6 +68,7 @@ private:
 	string base_path;
 	bool do_hyperblock;
 	bool do_save_log;
+	bool continue_on_failure;
 };
 
 #endif

@@ -73,7 +73,7 @@ vector<Simulation> Explorer::simulate_loop(const vector<Configuration>& space)
 	    if (Options.approx_settings.enabled>0) 
 		    function_approx->Learn(space[i],current_sim,processor,mem_hierarchy);
 
-	    if (!Options.multidir)
+	    if (!Options.continue_on_failure)
 	    {
 		string cmd = "rm -rf ";
 		cmd += exe_dir;

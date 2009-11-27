@@ -57,7 +57,6 @@ private:
 	void save_settings(string settings_file);
 	void save_settings_wrapper();
 	void load_settings(string settings_file);
-	void load_settings_wrapper();
 
 	void set_subspace_wrapper();
 
