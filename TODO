@@ -5,8 +5,7 @@ META-TODO: Translate this TODO in english !
 
 current version:
 - clean code and make more modular
-- implement a MAX_RETRY mechanism in save/restore simulation to avoid
-  undefined blocking of exploration process
+- set benchmark directory
 - add new mem parameters allowed by m5
 - use directly the envrc script of trimaran instead of environment.h
 - il fuzzy_approx funziona correttamente solo con GA...
@@ -15,6 +14,10 @@ current version:
 
 DONE :
 
+- (REPLACED) implement a MAX_RETRY mechanism in save/restore simulation to avoid
+  undefined blocking of exploration process. 
+  SOLUTION --> continue on failure option. Retry would be useless when
+  compilation error occour, since they will simply happens again...
 - move subspace to settings, remove edit
 - Logging of epic explorer activities
 - add compiler space exploration
