@@ -228,7 +228,7 @@ void Explorer::GA_evaluate(population* pop)
 	sim.config = conf;    
 
 	if(!conf.is_feasible()){
-	    cout << EE_TAG << "configuration " << index << " not feasible" << endl;
+	    write_to_log(myrank,logfile,"WARNING: GA configuration " + to_string(index) + " not feasible");
 	    sim.exec_time = BIG_CYCLES;
 	    sim.energy = BIG_ENERGY;
 	    sim.area = BIG_AREA;
