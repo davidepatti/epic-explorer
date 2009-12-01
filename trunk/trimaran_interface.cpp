@@ -18,6 +18,7 @@
 #include "trimaran_interface.h"
 #include "environment.h"
 #include "common.h"
+#include <sys/stat.h>
 
 Trimaran_interface::Trimaran_interface(const string& base_dir)
 {
@@ -196,11 +197,20 @@ Dynamic_stats Trimaran_interface::get_dynamic_stats(const string& path)
     string logfile = base_path+string(EE_LOG_PATH);
     int myid = get_mpi_rank();
 
+    struct stat st;
+    stat(pd_filename.c_str(), &st);
+    
     if (!pd_file) 
     {
+	// even if something went wrong, we should not leave a mem dir
+	// without PD_STATS file, other processes could wait
+	// indefinetively of it
+	string cmd = "touch "+pd_filename;
+	system(cmd.c_str());
+
 	if (continue_on_failure)
 	{
-	    write_to_log(myid,logfile,"ERROR: get_dynamic_stats() cannot open file:" + pd_filename + ", continuing...");
+	    write_to_log(myid,logfile,"ERROR: get_dynamic_stats() cannot open file:" + pd_filename + ", continuing creating dummy empty file...");
 	    dynamic_stats.valid = false;
 	}
 	else
@@ -208,6 +218,7 @@ Dynamic_stats Trimaran_interface::get_dynamic_stats(const string& path)
 	    write_to_log(myid,logfile,"FATAL ERROR: get_dynamic_stats() cannot open file:" + pd_filename+". Terminating epic, to change this beaviour see continue_on_failure setting");
 	    exit(EXIT_FAILURE);
 	}
+
     }
     else if (!m5_file)
     {
@@ -219,6 +230,19 @@ Dynamic_stats Trimaran_interface::get_dynamic_stats(const string& path)
 	else
 	{
 	    write_to_log(myid,logfile,"FATAL ERROR: get_dynamic_stats() cannot open file:" + m5_filename+". Terminating epic, to change this beaviour see continue_on_failure setting");
+	    exit(EXIT_FAILURE);
+	}
+    }
+    else if (st.st_size==0) // a previous simulation let a 0-sized PD_STATS
+    {
+	if (continue_on_failure)
+	{
+	    write_to_log(myid,logfile,"ERROR: get_dynamic_stats() found 0-sized " + pd_filename + ", continuing on failure...");
+	    dynamic_stats.valid = false;
+	}
+	else
+	{
+	    write_to_log(myid,logfile,"FATAL ERROR: get_dynamic_stats() found 0-sized " + pd_filename+". Terminating epic, to change this beaviour see continue_on_failure setting");
 	    exit(EXIT_FAILURE);
 	}
     }
