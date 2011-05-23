@@ -1,1 +1,1 @@
-#define VERSION "2010.SVN"
+#define VERSION "2011.SVN"
