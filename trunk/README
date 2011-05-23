@@ -1,13 +1,12 @@
 r*************************************************************
 	EPIC Explorer - Installing instructions
 **************************************************************
-      			         Last update Nov 13, 2009
-		        by Davide Patti (dpatti@diit.unict.it)
+      			         Last update May 22nd, 2011
+		        by Davide Patti (dpatti@dieei.unict.it)
 
 ==============================================================
 SECTION I: REQUIREMENTS
 ==============================================================
-
 
 This version of epic explorer will work on Trimaran version 4.0. So
 ALL trimaran 4.0 requirement are ALSO epic explorer requirements. The
@@ -23,7 +22,7 @@ If compiling for AMD64 architectures (e.g. Opteron) with a 64
 bit distribution, see also the specific notes at the Appendix of this
 document.
 
-If you want to use the MPI feature of Epic Explorer so exploit
+If you want to use the MPI feature of Epic Explorer to exploit
 parallelism during exploration, please refer also to the MPI.README
 file provided in the source directory.
 
@@ -33,8 +32,8 @@ SECTION II: INSTALLING TRIMARAN
 
                      *** IMPORTANT! ****
 
-Before reporting ANY bug or problem see section V: "COMMON PROBLEMS
-AND ERRORS" at the end of this document.
+Before reporting ANY bug or problem see both APPENDIX I and II at the
+end of this document.
                         **********
 
 First of all, you have to install the Trimaran compiler framework.
@@ -55,7 +54,7 @@ We will refer to the chosen dir as <TRDIR>.
 
 STEP 3: 
 
-Download Epic Explorer source from
+If not yet done, download Epic Explorer source from
 http://epic-explorer.sourceforge.net and unpack the archive:
 
 tar xvfz epic-VERSION.tar.gz 
@@ -78,45 +77,50 @@ STEP 5:
 Now you can proceed with the normal trimaran installation.  Follow the
 istructions of section 2 'Manual Installation' of the pdf manual found
 in the trimaran/manual directory. Proceed to the next step only after
-trimaran has been correctly installed.
+trimaran has been correctly installed.  
 
-    NOTE 5.1: you should start from point 4 of  subsection 2.2, in other
-    words, you should NOT unpack *again* the source, because this would
-    overwrite the new PD_m5e.c copied in the previous step 4)
+IMPORTANT 1: you should start from point 4 of  subsection 2.2, in other
+words, you should NOT unpack *again* the source, because this would
+overwrite the new PD_m5e.c copied in the previous step 4)
 
-    NOTE 5.2: As regards point 4 of subsection 2.2, if you are using a
-    GNU/Linux based system and you unpacked sources in the home
-    directory, you probably should NOT modify the envrc.bash script.
+IMPORTANT 2: As regards point 4 of subsection 2.2, if you are using a
+GNU/Linux based system and you unpacked sources in the home directory,
+you probably should NOT modify the envrc.bash script, but just give a
+command:
 
-    In any case, a GOOD choice to avoid problems in the future is to
-    add the 'source...' command to the .bashrc, as suggested in the
-    same section of the manual. 
-    So, in most cases, if you installed trimaran in you home directory,
-    simply add the line:
+    source ~/trimaran/scripts/envrc.bash
+
+in every shell where you want to use trimaran. In order to avoid to
+retype this command in every new shell opened, add
+the 'source...' command to the .bashrc, as suggested in the same
+section of the manual.  So, in most cases, if you installed trimaran
+in you home directory, simply add the line:
 
     source ~/trimaran/scripts/envrc.bash
 
     at the end of your .bashrc file inside your home.
 
-    IMPORTANT FOR UBUNTU USERS: 
-    
-    as described in the footnote 1 of subsection 2.2, you should avoid
-    using dash shell instead of bash.  To accomplish this, simply
-    type: 
-    sudo dpkg-reconfigure dash 
-    and then answer "NO" to the question prompted.
+IMPORTANT FOR UBUNTU USERS: 
+
+As described in the footnote 1 of subsection 2.2 in Trimaran manual ,
+you should avoid using dash shell instead of bash.  To accomplish
+this, simply type:
+sudo dpkg-reconfigure dash 
+and then answer "NO" to the question prompted.
 
 STEP 6: 
 
 If the above step was ok, install M5 memory simulator as explained in
-Section 7 of trimaran manual. 
+Section 7 of trimaran manual. If you encounter problems, look a the M5
+SPECIFIC problems at the end of this document (APPENDIX II)
  
     NOTE 1: when typing 'make' into m5 directory, a download of m5
     tar.gz should start. If not, download it manually from:
     http://sourceforge.net/projects/m5sim/files/m5sim/m5_1.1.tar.gz/
+    and put the file in the m5 directory.
 
-    NOTE 2: you will probably encounter the errors E.2 described in
-    Section V of this README.
+    NOTE 2: you will probably encounter the errors described in
+    APPENDIX II of this README.
 
     NOTE 3: if compiling for AMD64 architectures (e.g. Opteron) with a 64
     bit distribution, see also the specific notes at the appendix of this
@@ -125,6 +129,9 @@ Section 7 of trimaran manual.
 ==============================================================
 SECTION III: INSTALLING EPIC EXPLORER 
 ==============================================================
+
+Note: if you used the trick of the gcc 3.x wrappers (described below in
+APPENDIX II) use a new shell in order to have a normal gcc 4.x
 
 1) If not yet done, unpack epic explorer source
 
@@ -223,7 +230,7 @@ OUTPUT FILE NAMES
 
 
 ==============================================================
-	SECTION V. COMMON PROBLEMS AND ERRORS
+	APPENDIX I: COMMON PROBLEMS AND ERRORS
 ==============================================================
 
 This section lists common errors you can experience while trying to
@@ -240,7 +247,7 @@ me with problems that are strictly related to compiling trimaran.
 
 > Trimaran support:  http://trimaran.org/support.shtml
 
-> Epic explorer support: dpatti@diit.unict.it  (that's me)
+> Epic explorer support: dpatti@dieei.unict.it  (that's me)
   Please report gcc version, GNU/Linux distribution and any other
   useful info.
 
@@ -306,7 +313,7 @@ apply these changes:
 
 
 *******************************************************
-             M5 SPECIFIC PROBLEMS
+	APPENDIX II: M5 SPECIFIC PROBLEMS
 *******************************************************
 
 OK, WHAT'S THE QUICK SOLUTION ?
@@ -351,6 +358,7 @@ scons: building terminated because of errors.
 make: *** [install/m5/build/ALPHA/libm5shared.so] Error 2
 
 ---> SOLUTION: 
+
 It's simple: gcc4.1 DOES NOT work for M5, you should use version 3.4.
 
 Install gcc and g++ 3.4.  To be sure to compile with version 3.4
@@ -358,7 +366,7 @@ instead of the usual /usr/bin/gcc it's HIGHLY recommended to use the
 two wrapper scripts provided in MISC_FILES/gcc_wrapper so that gcc and
 g++ 3.4 are used when compiling m5.
 
-In other words, just for the M5 compilation, put this path BEFORE the standard
+In other words, JUST for the M5 compilation, put this path BEFORE the standard
 path, for example type this before compiling:
 
 export PATH=<EPIC_DIR>/MISC_FILES/gcc_wrappers:$PATH
@@ -373,6 +381,13 @@ PROBLEM 3)
 While trying to compile M5 cache simulator,  the following error is
 encountered:
 
+A LOT OF:
+
+trimaran/m5/install/m5/build/ext/libelf/po/de.msg:105: invalid
+character: message ignored
+
+ENDING WITH THE FOLLOWING:
+
 /usr/bin/ld: libelf/lib/libelf.a(begin.o): relocation R_X86_64_32
 against `a local symbol' can not be used when making a shared object;
 rec ompile with -fPIC libelf/lib/libelf.a: could not read symbols: Bad
@@ -380,7 +395,8 @@ value
 
 SOLUTION:
 
-Jump to DESPERATE SOLUTION below.
+Don't ask me why, but simply re-typing 'make' command works (same as
+PROBLEM 5 below). If not, jump to DESPERATE SOLUTION below.
 
 
 PROBLEM 4) 
@@ -410,6 +426,20 @@ m5/build/ext/libelf/po/de.msg:228: invalid character: message ignored
 SOLUTION:
 
 Simply re-run the "make" command magically solves the issue.
+
+
+PROBLEM 6)
+===============================================================
+
+/usr/bin/ld: skipping incompatible /usr/lib/libz.a when searching for
+-lz
+/usr/bin/ld: cannot find -lz
+
+That is, you are compiling m5 with the needed gcc 3.x 32bit wrappers,
+but you still miss a compatible 32 libz library.
+
+SOLUTION: on Ubuntu, install lib32z-dev package
+
 
 
 DESPERATE SOLUTION
