@@ -3,5 +3,5 @@ in the user's home) and that the directory name is 'epic'.
 So, if you want to use the svn code you should create a symbolic link
 named 'epic' that points to the svn code.
 For example:
-ln -s ~/somewhere/epic-explorer/trunk epic
+ln -s ~/epic-explorer/trunk epic
 
