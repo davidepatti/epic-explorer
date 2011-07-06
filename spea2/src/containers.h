@@ -12,6 +12,19 @@
 #include <vector>
 #include <iostream>
 
+static unsigned int mylog2 (unsigned int val) {
+    const unsigned int b[] = {0x2, 0xC, 0xF0, 0xFF00, 0xFFFF0000};
+    const unsigned int S[] = {1, 2, 4, 8, 16};
+    register unsigned int ret = 0; // result of log2(v) will go here
+    for (int i = 4; i >= 0; i--) {
+	if (val & b[i]) {
+		val >>= S[i];
+		ret |= S[i];
+	} 
+    }
+    return ret;
+}
+
 /*---ALLELE---*/
 typedef int allele;
 
@@ -23,16 +36,25 @@ typedef std::vector<allele> alleleset;
 /*---INDIVIDUAL---*/
 class individual {
 private:
-	static int uid;
+	static unsigned int uid;
 	static std::vector<alleleset> als;
+	static unsigned int als_sum;
 
-	int _index;
-	int _chromosome_dim;
-	int _objectives_dim;
+	unsigned int _index;
+	unsigned int _chromosome_dim;
+	unsigned int _objectives_dim;
 	allele* chromosome;
 
+	unsigned int adjusted_rand_allele();
+
 public:
-	static void setAllelesets(std::vector<alleleset> a) {individual::als = a;}
+	static void setAllelesets(std::vector<alleleset> a) {
+		individual::als = a;
+		unsigned int tmp = 0;
+		for(unsigned int i=0; i<individual::als.size(); i++)
+			tmp += mylog2(individual::als.at(i).size());
+		individual::als_sum = tmp;
+	}
 	static std::vector<alleleset> getAllelesets() {return individual::als;}
 
 	individual(int chromo_dim, int obj_dim);
@@ -50,7 +72,11 @@ public:
 	void randomize();
 	void bit_mutation();
 	void mutation(double pmut);
+	void adjusted_mutation(double pmut);
 	void crossover(individual&);
+	void uniform_crossover(individual&);
+	void half_uniform_crossover(individual&);
+	void adjusted_crossover(individual&);
 
 	double* objectives;
 };

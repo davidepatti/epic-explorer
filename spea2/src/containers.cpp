@@ -10,18 +10,23 @@
 #include <iostream>
 #include <iomanip>
 #include <cstring>
+#include <list>
 #include "utility.h"
 #include "containers.h"
 
 using namespace std;
 
 /*---INDIVIDUAL---*/
+unsigned int individual::uid = 0;
+vector<alleleset> individual::als;
+unsigned int individual::als_sum = 0;
+
 individual::individual(int chromo_dim, int obj_dim)
 : _chromosome_dim(chromo_dim),
   _objectives_dim(obj_dim) {
 	assert(_chromosome_dim > 0);
 	assert(_objectives_dim > 0);
-	assert(_chromosome_dim == (int)individual::als.size());
+	assert(_chromosome_dim == individual::als.size());
 	chromosome = new allele[_chromosome_dim];
 	objectives = new double[_objectives_dim];
 	_index = individual::uid++;
@@ -65,23 +70,79 @@ individual individual::child() const {
 }
 
 void individual::randomize(){
-	for (int i=0; i<_chromosome_dim; i++){
+	for (unsigned int i=0; i<_chromosome_dim; i++){
 		this->chromosome[i]=irand(individual::als[i].size());
 	}
 }
 
 void individual::crossover(individual& other){
-	int section_point = 1+irand(_chromosome_dim-1);
+	unsigned int section_point = 1+irand(_chromosome_dim-1);
 	//cout << "section_point: " << section_point << endl;
 	assert(0 < section_point && section_point < _chromosome_dim);
-	int rest = _chromosome_dim - section_point;
-	int* tmp = new allele[rest];
+	unsigned int rest = _chromosome_dim - section_point;
+	allele* tmp = new allele[rest];
 	// WARNING assuming "shallow copy"-able chromosome
 	// implements 1 point crossover
 	//FIXME use std::swap
 	memcpy(tmp, other.chromosome+section_point, rest*sizeof(allele));
 	memcpy(other.chromosome+section_point, this->chromosome+section_point, rest*sizeof(allele));	
 	memcpy(this->chromosome+section_point, tmp, rest*sizeof(allele));
+}
+
+void individual::uniform_crossover(individual& other){
+	allele tmp;
+	for(unsigned int i=0; i < _chromosome_dim; i++){
+		if(drand(1) < 0.5)
+			tmp = this->chromosome[i];
+			this->chromosome[i] = other.chromosome[i];
+			other.chromosome[i] = tmp;
+	}
+}
+
+void individual::half_uniform_crossover(individual& other){
+	int distance=0, half, j, k;
+	allele tmp;
+	list<int> positions;
+	list<int>::iterator it;
+
+	// find hamming distance and bookkeep differing genes' position	
+	for(unsigned int i=0; i < _chromosome_dim; i++){
+		if(this->chromosome[i] != other.chromosome[i]){
+			distance++;
+			positions.push_back(i);
+		}
+	}
+	half = distance / 2;
+	// draw half of the genes for crossover
+	for(int i=0; i < half; i++){
+		// draw a random gene
+		j = irand(positions.size());
+		it = positions.begin();
+		advance(it, j);
+		k = *it;
+		// swap the selected gene
+		tmp = this->chromosome[k];
+		this->chromosome[k] = other.chromosome[k];
+		other.chromosome[k] = tmp;
+		// remove gene from the pool
+		positions.erase(it);
+	}
+	//delete positions;
+}
+
+void individual::adjusted_crossover(individual& other){
+	unsigned int section_point = adjusted_rand_allele();
+	//cout << "section_point: " << section_point << endl;
+	assert(0 <= section_point && section_point < _chromosome_dim);
+	unsigned int rest = _chromosome_dim - section_point;
+	allele* tmp = new allele[rest];
+	// WARNING assuming "shallow copy"-able chromosome
+	// implements 1 point crossover
+	//FIXME use std::swap
+	memcpy(tmp, other.chromosome+section_point, rest*sizeof(allele));
+	memcpy(other.chromosome+section_point, this->chromosome+section_point, rest*sizeof(allele));	
+	memcpy(this->chromosome+section_point, tmp, rest*sizeof(allele));
+
 }
 
 void individual::bit_mutation(){
@@ -92,17 +153,42 @@ void individual::bit_mutation(){
 }
 
 void individual::mutation(double pmut){
-	int assuredMutated = (int) (_chromosome_dim * pmut);
-	double randomMutated = _chromosome_dim * pmut - assuredMutated;
+	int assuredmutated = (int) (_chromosome_dim * pmut);
+	double randommutated = _chromosome_dim * pmut - assuredmutated;
 	int pos;
-	for(int j=0; j<assuredMutated; j++){
+	for(int j=0; j < assuredmutated; j++){
 		pos = irand(_chromosome_dim);
 		this->chromosome[pos] = irand(als[pos].size());
 	}
-	if(drand(1) < randomMutated){  //mutatation occurs.
+	if(drand(1) < randommutated){  //mutatation occurs.
 		pos = irand(_chromosome_dim);
 		this->chromosome[pos] = irand(als[pos].size());
 	}
+}
+
+void individual::adjusted_mutation(double pmut) {
+	int assuredmutated = (int) (_chromosome_dim * pmut);
+	double randommutated = _chromosome_dim * pmut - assuredmutated;
+	int pos;
+	for(int j=0; j < assuredmutated; j++){
+		pos = adjusted_rand_allele();
+		this->chromosome[pos] = irand(als[pos].size());
+	}
+	if(drand(1) < randommutated){  //mutatation occurs.
+		pos = adjusted_rand_allele();
+		this->chromosome[pos] = irand(als[pos].size());
+	}
+}
+
+unsigned int individual::adjusted_rand_allele() {
+	unsigned int rand_allele;
+	unsigned int allele_selector = irand(individual::als_sum);
+	//cout << "allele_selector: " << allele_selector << endl;
+	for (rand_allele = 0; rand_allele < individual::als.size()
+		&& allele_selector > mylog2(individual::als.at(rand_allele).size()); rand_allele++)
+		allele_selector -= mylog2(individual::als.at(rand_allele).size());
+	//cout << "rand_allele: " << rand_allele << endl;
+	return rand_allele;
 }
 
 std::ostream& operator<<(std::ostream& os, const individual& ind){
