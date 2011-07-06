@@ -14,10 +14,6 @@
 #define DEF_TOURNAMENT 2
 #define DEF_HASH_TABLE_SIZE   128
 
-// static initializations for GA
-int individual::uid = 0;
-vector<alleleset> individual::als;
-
 void Explorer::start_GA(const GA_parameters& parameters)
 {
     current_algo="GA";

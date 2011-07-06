@@ -17,11 +17,10 @@
 #include "containers.h"
 
 #define CHROMO_DIM 10
+#define ALLELE_DIM 8
 
 using namespace std;
 
-int individual::uid = 0;
-vector<alleleset> individual::als;
 
 void evaluate(population *pop){
         for(population::iterator it=pop->begin(); it!=pop->end(); it++){
@@ -53,13 +52,8 @@ int main(int argc, char* argv[]){
 	// Allele sets building
 	vector<alleleset> sets;
 	alleleset tmp;
-//	for(int i=10; i<20; i++)
-//		tmp.push_back(i);
-	tmp.push_back(0);
-	tmp.push_back(1);
-	tmp.push_back(2);
-	tmp.push_back(3);
-	tmp.push_back(4);
+	for(int i=0; i<ALLELE_DIM; i++)
+		tmp.push_back(i);
 	for(int i=0; i<CHROMO_DIM; i++)
 		sets.push_back(tmp);
 	individual::setAllelesets(sets);
