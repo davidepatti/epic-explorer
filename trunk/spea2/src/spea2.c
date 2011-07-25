@@ -81,10 +81,11 @@ int main(int argc, char* argv[]){
 	cout << "Selected population" << endl;
 	cout << var->get_sel() << endl;
 	// main exploration loop
+	bool adjustedOperators = false;
 	while(generation++ < MAX_GENERATIONS){
 		var->read_sel();
 		var->read_arc();
-		var->variate();
+		var->variate(adjustedOperators);
 		evaluate(var->get_offspring()); // evaluate offspring
 		var->write_var();
 		
