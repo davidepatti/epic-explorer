@@ -18,7 +18,7 @@ public:
 	void read_arc();
 	void write_ini();
 	void write_var();
-	void variate();
+	void variate(bool adjustedOperators);
 	void write_output();
 
 	population* get_offspring();

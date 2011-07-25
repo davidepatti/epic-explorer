@@ -20,6 +20,8 @@ void Explorer::start_GA(const GA_parameters& parameters)
     string logfile = get_base_dir()+string(EE_LOG_PATH);
     int myrank = get_mpi_rank();
 
+    // TODO map it to an option in epic
+    bool adjustedOperators = true;
 
     if (Options.approx_settings.enabled == 1)
 	current_algo+="_fuzzy";
@@ -82,7 +84,7 @@ void Explorer::start_GA(const GA_parameters& parameters)
 	write_to_log(myrank,logfile,"Selected population");
 	write_to_log(myrank,logfile,to_string(var->get_sel()));
 
-	var->variate();			// create offspring
+	var->variate(adjustedOperators);	// create offspring
 
 	GA_evaluate(var->get_offspring()); // evaluate offspring population
 
