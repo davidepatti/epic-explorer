@@ -77,6 +77,7 @@ struct User_Settings
     bool save_estimation;
     bool auto_clock;
     bool save_objectives_details;
+    bool properators;
     string default_settings_file;
     struct 
     {

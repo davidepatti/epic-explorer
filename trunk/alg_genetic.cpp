@@ -21,7 +21,7 @@ void Explorer::start_GA(const GA_parameters& parameters)
     int myrank = get_mpi_rank();
 
     // TODO map it to an option in epic
-    bool adjustedOperators = true;
+    bool adjustedOperators = Options.properators;
 
     if (Options.approx_settings.enabled == 1)
 	current_algo+="_fuzzy";

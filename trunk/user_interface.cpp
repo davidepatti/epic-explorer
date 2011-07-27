@@ -412,6 +412,7 @@ void User_interface::edit_user_settings()
 	        cout << " " << *it;
 	    cout << endl;
 	}
+	cout << "\n (16) - Genetic Proportional Operators   --> " << status_string(user_settings.properators);
 	cout << "\n" ;
 	cout << "\n ----------------------------------------------------------";
 	cout << "\n (s) - Save current settings";
@@ -520,6 +521,7 @@ void User_interface::edit_user_settings()
 	    user_settings.continue_on_failure = !user_settings.continue_on_failure;
 	    trimaran_interface->set_continue_on_failure(user_settings.continue_on_failure);
 	}
+	if (ch=="16") user_settings.properators = !user_settings.properators;
 
 	if (ch=="s") save_settings_wrapper();
 
@@ -808,6 +810,7 @@ void User_interface::load_settings(string settings_file)
        user_settings.save_tcclog = false;
        user_settings.continue_on_failure = false;
        user_settings.multibench = false;
+       user_settings.properators = false;
 
        fp= fopen(settings_file.c_str(),"w");
        fclose(fp);
@@ -836,6 +839,7 @@ void User_interface::load_settings(string settings_file)
 	user_settings.save_PD_TRACE = false;
 	user_settings.continue_on_failure = false;
 	user_settings.save_restore = false;
+	user_settings.properators = false;
 
 	go_until("benchmark",input_file);
 	input_file >> word;
@@ -897,6 +901,10 @@ void User_interface::load_settings(string settings_file)
 	input_file >> word;
 	if (word=="ENABLED") user_settings.continue_on_failure= true;
 
+	go_until("properators",input_file);
+	input_file >> word;
+	if (word=="ENABLED") user_settings.properators= true;
+
 	// not saved - must be enabled at runtime
         user_settings.multibench = false;
         
@@ -948,6 +956,7 @@ void User_interface::save_settings(string settings_file)
 	output_file << "\nsave_restore " << status_string(user_settings.save_restore);
 	output_file << "\nsave_tcclog " << status_string(user_settings.save_tcclog);
 	output_file << "\ncontinue_on_failure " << status_string(user_settings.continue_on_failure);
+	output_file << "\nproperators " << status_string(user_settings.properators);
 
 	cout << "\n Ok, saved current settings in " << settings_file;
     }
