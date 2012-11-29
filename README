@@ -317,17 +317,20 @@ apply these changes:
 *******************************************************
 
 OK, WHAT'S THE QUICK SOLUTION ?
+Go to the "DESPERATE SOLUTIONS" section below...
+
+
 -----------------------------------------------------
 Below you'll find different problems you may enconter while trying to
 compile m5. There are two main reason that causes M5 compilation to be
 sometimes very difficult:
 
-REASON 1) You CANNOT use gcc and g++ version 3.4, but only newer version
+REASON 1) You ARE NOT USING gcc and g++ version 3.4, but only newer version
 (for example 4.x)
 
 REASON 2) You are using a 64bit distribution.
 
-If you match both cases, in other words if you cannot install gcc and g++
+If you match both cases, in other words if you CANNOT/DON'T WANT install gcc and g++
 3.4 and you have a 64 bit distribution, you should probably jump
 directly to the "DESPERATE SOLUTIONS" at the end of this section.
 
@@ -459,8 +462,7 @@ in that case all proposed solutions should work.
 
 2)
 If you are REALLY desperate, you can try to use the libm5shared file
-that you find in the "Extra" folder here:
+that you find here:
 
-https://sourceforge.net/projects/epic-explorer/files/
-
+http://epic-explorer.googlecode.com/files/libm5shared.so
 
