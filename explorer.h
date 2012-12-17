@@ -68,6 +68,7 @@ public:
   void start_GA(const GA_parameters& parameters); 
   void start_EXHA();
   void start_REP(const string&); //G
+  void start_PARAMSPACE(double,int,int);
   void test(); // for testing only
 
   // Main function for simulating a parameter space 

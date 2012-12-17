@@ -16,6 +16,7 @@ current
 2008.4 beta1
 --------------------------------------
 - support for multi-cluster register files
+
 - new m5 memory simulator support
 - rewritten multi-objective genetic algorithm
 - support for execution in parallel environment (e.g. mpi)

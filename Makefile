@@ -27,11 +27,11 @@ epic: ${GALIB_DIR}/libspea2.a compiler.o explorer.o alg_dep.o alg_random.o alg_s
 	estimator.o area.o time.o processor.o mem_hierarchy.o \
 	main.o user_interface.o trimaran_interface.o \
 	parameter.o common.o simulate_space.o \
-	FuzzyApprox.o RuleList.o FuzzyWrapper.o 
+	FuzzyApprox.o RuleList.o FuzzyWrapper.o alg_paramspace.o
 	${MPICC} compiler.o explorer.o simulate_space.o alg_dep.o alg_random.o alg_sensivity.o alg_genetic.o \
 	user_interface.o trimaran_interface.o estimator.o area.o time.o \
 	processor.o mem_hierarchy.o main.o parameter.o common.o \
-	FuzzyApprox.o RuleList.o FuzzyWrapper.o \
+	FuzzyApprox.o RuleList.o FuzzyWrapper.o alg_paramspace.o \
 	-L${GALIB_DIR} -lspea2 -o epic
 
 compiler.o: compiler.cpp compiler.h parameter.h
@@ -61,6 +61,9 @@ alg_random.o: alg_random.cpp explorer.h common.h
 alg_genetic.o: alg_genetic.cpp explorer.h common.h
 	${MPICC} -I${GAINC_DIR} ${CFLAGS} -c alg_genetic.cpp
 
+alg_paramspace.o: alg_paramspace.cpp paramspace.h 
+	 ${MPICC} -I${GAINC_DIR} ${CFLAGS} -c alg_paramspace.cpp
+
 processor.o: processor.cpp processor.h parameter.h
 	${CXX} ${CFLAGS} -c processor.cpp
 
@@ -86,6 +89,7 @@ time.o: cacti.h time.c
 
 parameter.o: parameter.cpp parameter.h 
 	${CXX} ${CFLAGS} -c parameter.cpp
+
 
 common.o: common.cpp common.h 
 	${MPICC} ${CFLAGS} -c common.cpp

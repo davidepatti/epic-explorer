@@ -306,8 +306,32 @@ int User_interface::show_menu()
 	    break;
 
 	case 't':
+	    // TODO: move paramspace alg to another command leaving this empty
+	    // for test() method
+	    if (myrank == 0) {
+		start_exploration_message();
+		int k,max_eras;
+		double alpha;
+		unsigned int seed;
+		cout << "\n Size of simulation budget (k) :";
+		cin >> k;
+		cout  << "\n Max number of eras: ";
+		cin >> max_eras;
+		cout << "\n alpha threshold: ";
+		cin >> alpha;
+		cout << "\n Enter random seed (0 = auto):";
+		cin >> seed;
+		if (seed==0)
+		    srand((unsigned int)time((time_t*)NULL));
+		else
+		    srand(seed);
+		my_explorer->start_PARAMSPACE(alpha,k,max_eras);
+		wait_key();
+	    }
+	    /*
 	    if (myrank == 0) my_explorer->test();
 	    if (myrank == 0) wait_key();
+	    */
 	    break;
 
 	case '1':
