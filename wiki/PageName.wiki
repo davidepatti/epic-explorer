@@ -5,30 +5,36 @@
 Department of Computer Science and Telecommunications Engineering ([http://www.diit.unict.it/ DIIT])
 ==About==
 EPIC Explorer is a open framework for evaluation, in terms of performance, cost and power consumption, of a system based on a parameterized VLIW microprocessor together with the memory hierarchy subsystem following execution of a specific application. It interfaces to the parameterized [http://www.trimaran.org/ Trimaran infrastructure] that provide powerful compiler and simulation tools for a large class of EPIC/VLIW architectures. Further, EPIC Explorer implements a number of multi-objective DSE algorithms to obtain Pareto-optimal configurations and a set of C++ classes that facilitate the creation of new DSE strategies.
+
 ==What's New ?==
-'''(Feb 19th, 2010)''' New release,  epic.log and and Continue on failure features! (check README)
 
-'''(Nov 23th, 2009)''' New version, cleaner subspace management.
+ *(Feb 19th, 2010) New release,  epic.log and and Continue on failure features! (check README)
 
-'''(Gen 22th, 2009)''' MPI bug-fixed and documented release of Epic Explorer.
+ *(Nov 23th, 2009) New version, cleaner subspace management.
 
-==[[Old news]]==
+ *(Gen 22th, 2009) MPI bug-fixed and documented release of Epic Explorer.
+
 ==Screenshots==
 * [http://epic-explorer.sourceforge.net/IMAGES/main_menu.jpg Main menu> ]
 * [http://epic-explorer.sourceforge.net/IMAGES/options.jpg Options]
 * [http://epic-explorer.sourceforge.net/IMAGES/space_config.jpg Exploration space edit]
 * [http://epic-explorer.sourceforge.net/IMAGES/dyn_stats.jpg Dynamic stats]
 * [http://epic-explorer.sourceforge.net/IMAGES/estimation.jpg Estimation]
+
 ==References==
-# Installation Instructions: See README file provided with Epic-Exlorer source code
-# V. Catania, M. Palesi, D. Patti. [http://www.diit.unict.it/users/mpalesi/DOWNLOAD/taco08.pdf Reducing Complexity of Multi-objective Design Space Exploration in VLIW-based Embedded Systems]. ACM Transactions on Architecture and Code Optimization, 2008.
-# V. Catania, M. Palesi, D. Patti. ''Reducing Complexity of Multi-objective Design Space Exploration in VLIW-based Embedded Systems''. Accepted for publication in ACM Transactions on Architecture and Code Optimization.
-# G.Ascia, V.Catania, M.Palesi, D.Patti. A System-level Framework for Evaluating Area/Performance/Power Trade-offs of VLIW-based Embedded Systems. Asia and South Pacific Design Automation Conference 2005, Shanghai, Cina, Jan. 18-21, 2005.
-# G.Ascia, V.Catania, M.Palesi, and D.Patti. [http://epic-explorer.sourceforge.net/DOWNLOAD/eh04.pdf Multi-Objective Optimization of a Parameterized VLIW Architecture]. In NASA/DoD Conference on Evolvable Hardware, Seattle, Washington, USA, Jun.24--26 2004.
-# G.Ascia, V.Catania, M.Palesi, and D.Patti. [http://epic-explorer.sourceforge.net/DOWNLOAD/estimedia03.pdf EPIC-Explorer: A parameterized VLIW-based platform framework for design space exploration]. In First Workshop on Embedded Systems for Real-Time Multimedia (ESTIMedia), Newport Beach, California, USA, Oct. 3--4 2003.
+
+ # Installation Instructions: See README file provided with Epic-Exlorer source code
+
+ # V. Catania, M. Palesi, D. Patti. [http://www.diit.unict.it/users/mpalesi/DOWNLOAD/taco08.pdf Reducing Complexity of Multi-objective Design Space Exploration in VLIW-based Embedded Systems]. ACM Transactions on Architecture and Code Optimization, 2008.
+ # V. Catania, M. Palesi, D. Patti. ''Reducing Complexity of Multi-objective Design Space Exploration in VLIW-based Embedded Systems''. Accepted for publication in ACM Transactions on Architecture and Code Optimization.
+ # G.Ascia, V.Catania, M.Palesi, D.Patti. A System-level Framework for Evaluating Area/Performance/Power Trade-offs of VLIW-based Embedded Systems. Asia and South Pacific Design Automation Conference 2005, Shanghai, Cina, Jan. 18-21, 2005.
+ # G.Ascia, V.Catania, M.Palesi, and D.Patti. [http://epic-explorer.sourceforge.net/DOWNLOAD/eh04.pdf Multi-Objective Optimization of a Parameterized VLIW Architecture]. In NASA/DoD Conference on Evolvable Hardware, Seattle, Washington, USA, Jun.24--26 2004.
+ # G.Ascia, V.Catania, M.Palesi, and D.Patti. [http://epic-explorer.sourceforge.net/DOWNLOAD/estimedia03.pdf EPIC-Explorer: A parameterized VLIW-based platform framework for design space exploration]. In First Workshop on Embedded Systems for Real-Time Multimedia (ESTIMedia), Newport Beach, California, USA, Oct. 3--4 2003.
+
 ==Download==
-* [https://sourceforge.net/projects/epic-explorer/ Latest Release> ]
-* Reference manual (coming soon)
+
+ * [http://code.google.com/p/epic-explorer/downloads/list]
+ * Reference manual (coming soon)
 
 You can also try to download (at your own risk) latest svn:
-<pre>svn co https://epic-explorer.svn.sourceforge.net/svnroot/epic-explorer epic-explorer</pre>
+[http://code.google.com/p/epic-explorer/source/checkout]
