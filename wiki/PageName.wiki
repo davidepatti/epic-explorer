@@ -15,11 +15,12 @@ EPIC Explorer is a open framework for evaluation, in terms of performance, cost 
  *(Gen 22th, 2009) MPI bug-fixed and documented release of Epic Explorer.
 
 ==Screenshots==
-* [http://epic-explorer.sourceforge.net/IMAGES/main_menu.jpg Main menu> ]
-* [http://epic-explorer.sourceforge.net/IMAGES/options.jpg Options]
-* [http://epic-explorer.sourceforge.net/IMAGES/space_config.jpg Exploration space edit]
-* [http://epic-explorer.sourceforge.net/IMAGES/dyn_stats.jpg Dynamic stats]
-* [http://epic-explorer.sourceforge.net/IMAGES/estimation.jpg Estimation]
+
+ * [http://epic-explorer.sourceforge.net/IMAGES/main_menu.jpg Main menu> ]
+ * [http://epic-explorer.sourceforge.net/IMAGES/options.jpg Options]
+ * [http://epic-explorer.sourceforge.net/IMAGES/space_config.jpg Exploration space edit]
+ * [http://epic-explorer.sourceforge.net/IMAGES/dyn_stats.jpg Dynamic stats]
+ * [http://epic-explorer.sourceforge.net/IMAGES/estimation.jpg Estimation]
 
 ==References==
 
