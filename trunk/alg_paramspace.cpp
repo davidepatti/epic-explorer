@@ -13,14 +13,14 @@
 using namespace std;
 
 // utilities 
-// TBD: what to put inside/outside Region class ??
+// TBD: what to put inside/outside Regionn class ??
 bool check_interval_contiguity(const Edges& e1, const Edges& e2,const Parameter& p)
 {
     // Parameter::get_interval(....)
     return false;
 }
 
-int get_splitting_direction(const Region& r)
+int get_splitting_direction(const Regionn& r)
 {
     // 
 
@@ -35,12 +35,12 @@ int get_splitting_direction(const Region& r)
 
 
 // put outside for coherence with merge_regions() ?
-vector<Region> Region::split_region()
+vector<Regionn> Regionn::split_region()
 {
     // we just want to split in 2, but leaving vector for general case
 
-    Region r1,r2;
-    vector<Region> regions;
+    Regionn r1,r2;
+    vector<Regionn> regions;
 
     int dir = get_splitting_direction(*this);
 
@@ -52,10 +52,10 @@ vector<Region> Region::split_region()
     return regions;
 }
 
-Region merge_regions(const Region& r1,const Region& r2)
+Regionn merge_regions(const Regionn& r1,const Regionn& r2)
 {
     // TBD: what returns when merging is not possible ?
-    Region r;
+    Regionn r;
 
     // return a region with valid=false if not possible merge
     return r;
@@ -71,12 +71,12 @@ double get_innovation_score(const Simulation& s, vector<Simulation> pareto)
     return 0.0;
 }
 
-double get_innovation_score(const Region& r,vector<Simulation> pareto)
+double get_innovation_score(const Regionn& r,vector<Simulation> pareto)
 {
     return 0.0;
 }
 
-void sort_by_innovation(vector<Region> * regions)
+void sort_by_innovation(vector<Regionn> * regions)
 {
     // actually modifies the main set of regions...
 }
@@ -109,7 +109,7 @@ void Explorer::start_PARAMSPACE(double alpha, int k, int max_eras)
 
     // create a space of k randomly chosen configurations
     vector<Configuration> initial_space;
-    vector<Region> regions;
+    vector<Regionn> regions;
 
 
     int valid = 0 ;
