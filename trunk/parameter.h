@@ -52,11 +52,13 @@ public:
   bool decrease();
 
   vector<int> get_values(); // mau
+  vector<int> get_interval(int a, int b);
   void set_values(vector<int> values,int default_val);
   void set_values(Parameter parameter);
 
   int get_first();
   int get_last();
+
 
 private:
 

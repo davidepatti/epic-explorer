@@ -7,7 +7,79 @@
 #include "explorer.h"
 #include "common.h"
 #include "paramspace.h"
+#include "parameter.h"
 #include <values.h>
+
+using namespace std;
+
+// utilities 
+// TBD: what to put inside/outside Region class ??
+bool check_interval_contiguity(const Edges& e1, const Edges& e2,const Parameter& p)
+{
+    // Parameter::get_interval(....)
+    return false;
+}
+
+int get_splitting_direction(const Region& r)
+{
+    // 
+
+    // Parameter::get_index();
+    // (internamente associa ad una label un indice, poi utilizza
+    // per selezione l'Edge
+
+    // N_PARAMS = numero totale di parametri
+    return 0;
+}
+
+
+
+// put outside for coherence with merge_regions() ?
+vector<Region> Region::split_region()
+{
+    // we just want to split in 2, but leaving vector for general case
+
+    Region r1,r2;
+    vector<Region> regions;
+
+    int dir = get_splitting_direction(*this);
+
+    // use direction in some way....
+
+    regions.push_back(r1);
+    regions.push_back(r2);
+
+    return regions;
+}
+
+Region merge_regions(const Region& r1,const Region& r2)
+{
+    // TBD: what returns when merging is not possible ?
+    Region r;
+
+    // return a region with valid=false if not possible merge
+    return r;
+}
+
+double separation(const Simulation& s1, const Simulation& s2)
+{
+    return 0.0;
+}
+
+double get_innovation_score(const Simulation& s, vector<Simulation> pareto)
+{
+    return 0.0;
+}
+
+double get_innovation_score(const Region& r,vector<Simulation> pareto)
+{
+    return 0.0;
+}
+
+void sort_by_innovation(vector<Region> * regions)
+{
+    // actually modifies the main set of regions...
+}
 
 void Explorer::start_PARAMSPACE(double alpha, int k, int max_eras)
 {
@@ -37,6 +109,8 @@ void Explorer::start_PARAMSPACE(double alpha, int k, int max_eras)
 
     // create a space of k randomly chosen configurations
     vector<Configuration> initial_space;
+    vector<Region> regions;
+
 
     int valid = 0 ;
 
@@ -87,7 +161,7 @@ void Explorer::start_PARAMSPACE(double alpha, int k, int max_eras)
 
     while ( era++ < max_eras )
     {
-	write_to_log(myrank,logfile,"Iteration " + era);
+	write_to_log(myrank,logfile,"Era " + era);
 
 	vector<Simulation> current_sims = simulate_space(initial_space);
 	vector<Simulation> pareto_set = get_pareto(current_sims);
