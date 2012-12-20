@@ -175,3 +175,16 @@ int Parameter::get_pos(int value)
 
 	return NOT_VALID;
 }
+
+// PARAMSPACE
+// regardless a,b being allowed parameter values, this function returns values falling into interval
+// notes: assuming a<=b , not the best implementation
+// 
+vector<int> Parameter::get_interval(int a, int b)
+{
+    vector<int> interval;
+    for(int i=0; i<values.size(); ++i)
+	if (values[i]>=a && values[i]<=b) interval.push_back(values[i]);
+
+    return interval;
+}
