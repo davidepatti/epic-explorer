@@ -27,15 +27,15 @@ typedef struct
 } Edges;
 
 
-class Region {
+class Regionn {
 public: 
-  Region();
-  ~Region();
+//  Regionn();
+//  ~Regionn();
 
   double innovation_score;
   bool valid;
 
-  vector<Region> split_region();
+  vector<Regionn> split_region();
 
 
 
