@@ -111,6 +111,16 @@ void Parameter::set_random()
     set_val(values[random_index]);
 }
 
+// added by andrea.araldo@gmail.com
+void Parameter::set_random(int a, int b)
+{
+  	vector<int> interval = get_interval(a, b);
+    float r =  (float)rand()/(RAND_MAX);
+    int random_index = (int)(r*interval.size());
+    set_val(interval[random_index]);
+}
+
+
 bool Parameter::increase()
 {
     if (++current==values.size())
