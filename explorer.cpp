@@ -96,6 +96,54 @@ void Explorer::set_options(const struct User_Settings& user_settings)
 ////////////////////////////////////////////////////////////////////////////
 //********************************************************************
 
+//added by andrea.araldo@gmail.com
+void Explorer::fix_parameter(Configuration* conf, EParameterType pt, int value)
+{
+	switch (pt)
+	{
+		case ke_gpr_static_size:	 conf->gpr_static_size=value; return;
+		case ke_fpr_static_size:	 conf->fpr_static_size=value; return;
+		case ke_pr_static_size:		 conf->pr_static_size=value; return;
+		case ke_cr_static_size:		 conf->cr_static_size=value; return;
+		case ke_btr_static_size:	 conf->btr_static_size=value; return;
+		case ke_num_clusters:		 conf->num_clusters=value; return;
+		case ke_integer_units:		 conf->integer_units=value; return;
+		case ke_float_units:		 conf->float_units=value; return;
+		case ke_branch_units:		 conf->branch_units=value; return;
+		case ke_memory_units:		 conf->memory_units=value; return;
+		
+		case ke_L1D_size:			 conf->L1D_size=value; return;
+		case ke_L1D_block_size:		 conf->L1D_block=value; return;
+		case ke_L1D_associativity:	 conf->L1D_assoc=value; return;
+		case ke_L1I_size:			 conf->L1I_size=value; return;
+		case ke_L1I_block_size:		 conf->L1I_block=value; return;
+		case ke_L1I_associativity:	 conf->L1I_assoc=value; return;
+		case ke_L2U_size:			 conf->L2U_size=value; return;
+		case ke_L2U_block_size:		 conf->L2U_block=value; return;
+		case ke_L2U_associativity:	 conf->L2U_assoc=value; return;
+		
+		case ke_tcc_region:			 conf->tcc_region=value; return;
+		case ke_max_unroll_allowed:	 conf->max_unroll_allowed=value; return;
+		case ke_regroup_only:		 conf->regroup_only=value; return;
+		case ke_do_classic_opti:	 conf->do_classic_opti=value; return;
+		case ke_do_prepass_scalar_scheduling:
+									 conf->do_prepass_scalar_scheduling=value; return;
+		case ke_do_postpass_scalar_scheduling:
+									 conf->do_postpass_scalar_scheduling=value; return;
+		case ke_do_modulo_scheduling:
+									 conf->do_modulo_scheduling=value; return;
+		case ke_memvr_profiled:		 conf->memvr_profiled=value; return;		
+		
+		
+		default:		
+			string message = "explorer.cpp: ERROR: parameter "+to_string(pt)+
+				" is not valid";
+			exit(-124);
+	
+	}
+}
+
+
 Configuration Explorer::create_configuration(const Processor& p,const Mem_hierarchy& mem, const Compiler& comp) //db
 {
     Configuration conf;
@@ -1880,6 +1928,56 @@ vector<pair<int,int> > Explorer::getParameterRanges()
 
   return v;
 }
+
+
+// added by andrea.araldo@gmail.com
+Parameter Explorer::getParameter(EParameterType pt)
+{
+	switch (pt)
+	{
+		case ke_gpr_static_size:	return processor.gpr_static_size;
+		case ke_fpr_static_size:	return processor.fpr_static_size;
+		case ke_pr_static_size:		return processor.pr_static_size;
+		case ke_cr_static_size:		return processor.cr_static_size;
+		case ke_btr_static_size:	return processor.btr_static_size;
+		case ke_num_clusters:		return processor.num_clusters;
+		case ke_integer_units:		return processor.integer_units;
+		case ke_float_units:		return processor.float_units;
+		case ke_branch_units:		return processor.branch_units;
+		case ke_memory_units:		return processor.memory_units;
+		
+		case ke_L1D_size:			return mem_hierarchy.L1D.size;
+		case ke_L1D_block_size:		return mem_hierarchy.L1D.block_size;
+		case ke_L1D_associativity:	return mem_hierarchy.L1D.associativity;
+		case ke_L1I_size:			return mem_hierarchy.L1I.size;
+		case ke_L1I_block_size:		return mem_hierarchy.L1I.block_size;
+		case ke_L1I_associativity:	return mem_hierarchy.L1I.associativity;
+		case ke_L2U_size:			return mem_hierarchy.L2U.size;
+		case ke_L2U_block_size:		return mem_hierarchy.L2U.block_size;
+		case ke_L2U_associativity:	return mem_hierarchy.L2U.associativity;
+		
+		case ke_tcc_region:			return compiler.tcc_region;
+		case ke_max_unroll_allowed:	return compiler.max_unroll_allowed;
+		case ke_regroup_only:		return compiler.regroup_only;
+		case ke_do_classic_opti:	return compiler.do_classic_opti;
+		case ke_do_prepass_scalar_scheduling:
+									return compiler.do_prepass_scalar_scheduling;
+		case ke_do_postpass_scalar_scheduling:
+									return compiler.do_postpass_scalar_scheduling;
+		case ke_do_modulo_scheduling:
+									return compiler.do_modulo_scheduling;
+		case ke_memvr_profiled:		return compiler.memvr_profiled;
+		
+		
+		
+		default:		
+			string message = "explorer.cpp: ERROR: parameter "+to_string(pt)+
+				" is not valid";
+			exit(-122);
+	
+	}
+}
+  
 
 ////////////////////////////////////////////////////////////////////////////
 

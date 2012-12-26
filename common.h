@@ -39,6 +39,28 @@
 #define BIG_ENERGY      1e30
 #define BIG_AREA        1e30
 
+// added by andrea.araldo@gmail.com
+// TODO: non so se questo sia il posto giusto per mettere questo
+enum EParameterType
+{
+	ke_gpr_static_size, ke_fpr_static_size, ke_pr_static_size, 
+	ke_cr_static_size, ke_btr_static_size, 
+	
+	ke_num_clusters, ke_integer_units, ke_float_units, ke_branch_units, 
+	ke_memory_units,
+	
+	ke_L1D_size, ke_L1D_block_size, ke_L1D_associativity, 
+	ke_L1I_size, ke_L1I_block_size, ke_L1I_associativity,
+	ke_L2U_size, ke_L2U_block_size, ke_L2U_associativity,
+	
+	ke_tcc_region, ke_max_unroll_allowed, ke_regroup_only, 
+	ke_do_classic_opti, ke_do_prepass_scalar_scheduling, 
+	ke_do_postpass_scalar_scheduling, ke_do_modulo_scheduling,
+	ke_memvr_profiled
+};
+
+
+
 using namespace std;
 
 void wait_key();

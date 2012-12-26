@@ -46,12 +46,18 @@ public:
   void set_to_first();
   void set_to_last();
   void set_random();
+  
+  // added by andrea.araldo@gmail.com
+  // set a random value in the interval [a,b]
+  void set_random(int a, int b);
 
   int get_pos(int value);
   bool increase();
   bool decrease();
 
   vector<int> get_values(); // mau
+
+  
   vector<int> get_interval(int a, int b);
   void set_values(vector<int> values,int default_val);
   void set_values(Parameter parameter);

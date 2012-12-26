@@ -27,22 +27,28 @@ typedef struct
 } Edges;
 
 
-class Regionn {
+
+
+
+class Region {
 public: 
-//  Regionn();
-//  ~Regionn();
+	double innovation_score;
+	bool valid;
 
-  double innovation_score;
-  bool valid;
-
-  vector<Regionn> split_region();
+//	Region()
+//  ~Region();
 
 
+	vector<Region> split_region();
 
-  // the index is the one computed by Parameter::get_index()
- Edges edges[N_PARAMS];
+
+
+// the index is the one computed by Parameter::get_index()
+	Edges edges[N_PARAMS];
 private:
 
 };
+
+
 
 #endif
