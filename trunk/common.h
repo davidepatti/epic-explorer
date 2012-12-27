@@ -197,6 +197,13 @@ struct Configuration
   string get_header() const;
   string get_executable_dir() const;
   string get_mem_dir() const;
+  
+  // added by andrea.araldo@gmail.com
+  // You can use this pointer if you want to link this Configuration to another object
+  // Ignore this field if you don't need it.
+  // (see http://www.learncpp.com/cpp-tutorial/613-void-pointers/
+  // for info about void pointer type)
+  void* pointer;
 };
 
 struct Simulation 

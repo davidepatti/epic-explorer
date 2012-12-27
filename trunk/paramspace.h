@@ -32,6 +32,7 @@ typedef struct
 
 class Region {
 public: 
+	double id;
 	double innovation_score;
 	bool valid;
 
@@ -40,7 +41,9 @@ public:
 
 
 	vector<Region> split_region();
-
+	
+	// The simulations of the current era that fall into this region
+//	list<Simulation> simulations; //PENSO CHE SIA INUTILE
 
 
 // the index is the one computed by Parameter::get_index()
