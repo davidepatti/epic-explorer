@@ -39,6 +39,7 @@ int get_splitting_direction(const Region& r)
 }
 
 //TODO: si potrebbe evitare di passare expl se getParameterRanges fosse statico
+// At the end of this method, r will be a region including all the parameter space
 void transform_to_root_region(Region* r, Explorer* expl)
 {
 	vector<pair<int,int> > ranges = expl->getParameterRanges();
@@ -61,6 +62,10 @@ void transform_to_root_region(Region* r, Explorer* expl)
 	return;
 }
 
+
+//TODO: per ora e' fatto sbagliato. L'ampiezza dell'arco della roulette wheel deve
+// essere proporzionale all'innovation score solo per le regioni con innovation 
+// score negativo
 Region* select_region(vector<Region*> regions, double total_innovation_score)
 {
 	double r =  (double)rand()/(RAND_MAX);
@@ -103,19 +108,61 @@ Region merge_regions(const Region& r1,const Region& r2)
     return r;
 }
 
+
+// Calculate s(s1 -> s2)
 double separation(const Simulation& s1, const Simulation& s2)
 {
-    return 0.0;
+    return 	fabs( (s1.energy-s2.energy) ) 		/ s1.energy 	+
+    		fabs( (s1.area-s2.area) ) 			/ s1.area 		+
+    		fabs( (s1.exec_time-s2.exec_time) ) 	/ s1.exec_time
+    		;
 }
 
 double get_innovation_score(const Simulation& s, vector<Simulation> pareto)
 {
-    return 0.0;
+	if (pareto.empty())
+		return 0;
+
+	double innovation_score = separation( pareto[0], s);
+	for (int i=1; i<pareto.size(); i++)
+	{
+		// Calculate s(pareto[i] -> s)
+		double temp=separation( pareto[i], s);
+		if (temp<innovation_score)
+			innovation_score = temp;
+	}
+	
+    return innovation_score;
 }
 
-double get_innovation_score(const Region& r,vector<Simulation> pareto)
+void update_region_innovation_scores(vector<Region*> regions, 
+	vector<Simulation> old_pareto_set, vector<Simulation> new_pareto_set)
 {
-    return 0.0;
+	// Clear the innovaton score of all regions
+	for (int i=0; i<regions.size(); i++)
+	{
+		if (regions[i]->innovation_score >= 0)
+			regions[i]->innovation_score=0;
+		//else
+		//	do nothing because this region has negative innovation_score
+	}
+
+    for (int i=0; i<new_pareto_set.size(); i++)
+    {
+    	Simulation s = new_pareto_set[i];
+   		Region* region = (Region*) (s.config.pointer);
+   		
+   		if (region->innovation_score<0 && get_innovation_score(s,old_pareto_set)>0)
+   		// We thought that this region was useless, whereas it has a configuration 
+   		// in the new pareto set. Before updating the innovation score of this region
+   		// its penalty (i.e. the negative innovation_score) must be removed
+   			region->innovation_score=0;
+   		
+   		
+   		// Notice that if a configuration of the new_pareto_set is already contained
+   		// in the old_pareto_set, its innovation score is 0
+   		region->innovation_score += get_innovation_score(s,old_pareto_set);
+    }
 }
 
 void sort_by_innovation(vector<Region> * regions)
@@ -149,64 +196,72 @@ void Explorer::start_PARAMSPACE(double alpha, int k, int max_eras)
     
     
     //DA QUI COMINCIA
-    int era = 0;
     int valid = 0 ;
     
     //The sum of the innovation_score of all regions
-    double total_innovation_score=0;
+    double era_innovation_score=-1;
+    // A negative number is used beacause we want all the regions in era 0 to be
+    // "high innovation" regions, although in era 0 all regions have 
+    // innovation score=0
     
     vector<Region*> regions;
     Region* root_region = new Region();
     transform_to_root_region(root_region, this);
     regions.push_back(root_region);
+    vector<Simulation> new_pareto_set, old_pareto_set;
     
     // create a space of k randomly chosen configurations
     vector<Configuration> configs_to_simulate;
 
-    
-    
-    // Use the budget of k simulations
-    for(int i=0;i<k;i++)
+    for (int era=0; era<max_eras; era++)
     {
-    	Region* selected_region = select_region(regions, total_innovation_score);
-    	Configuration temp_conf;
-    	
-    	for (int j=0; j<N_PARAMS; j++)
-    	{
-    		Parameter par = getParameter( (EParameterType)j );
-    		Edges edges = (selected_region->edges)[j];
-    		par.set_random(edges.a, edges.b );
-    		fix_parameter(&temp_conf, (EParameterType)j, par.get_val() );
-    	}
-    	//Now all parameters of temp_conf are fixed.
-
-		if (temp_conf.is_feasible())
+		// Use the budget of k simulations
+		for(int i=0;i<k;i++)
 		{
-			valid++;
-			configs_to_simulate.push_back(temp_conf);
+			Region* selected_region = select_region(regions, era_innovation_score);
+			Configuration temp_conf;
+			
+			for (int j=0; j<N_PARAMS; j++)
+			{
+				Parameter par = getParameter( (EParameterType)j );
+				Edges edges = (selected_region->edges)[j];
+				par.set_random(edges.a, edges.b );
+				fix_parameter(&temp_conf, (EParameterType)j, par.get_val() );
+				temp_conf.pointer = selected_region;
+			}
+			//Now all parameters of temp_conf are fixed.
+
+			if (temp_conf.is_feasible())
+			{
+				valid++;
+				configs_to_simulate.push_back(temp_conf);
+			}
+			
 		}
-    	
-    }
 
 
-    message = header+ "Valid configurations:" + to_string(valid) + " of "+to_string(k)+" requested";
-    write_to_log(myrank,logfile,message);
-
-
-
-    while ( era++ < max_eras )
-    {
+		message = header+ "Valid configurations:" + to_string(valid) + " of "+to_string(k)+" requested";
+		write_to_log(myrank,logfile,message);
+		
 		write_to_log(myrank,logfile,"Era " + era);
 
 		vector<Simulation> current_sims = simulate_space(configs_to_simulate);
-		vector<Simulation> pareto_set = get_pareto(current_sims);
+		
+		//TODO: Dobbiamo distruggere l'old_pareto_set prima?
+		
+		old_pareto_set = new_pareto_set;
+		new_pareto_set = get_pareto(current_sims);
+		
+		update_region_innovation_scores(regions, old_pareto_set, new_pareto_set);
 
 		char temp[30];
 		sprintf(temp, "_%d", era);
 
 		save_simulations(current_sims,Options.benchmark+"_PARAMSPACE"+current_space+"_gen"+string(temp)+".exp");
-		save_simulations(pareto_set,Options.benchmark+"_PARAMSPACE"+current_space+"_gen"+string(temp)+".pareto.exp");
-    }
+		save_simulations(new_pareto_set,Options.benchmark+"_PARAMSPACE"+current_space+"_gen"+string(temp)+".pareto.exp");
+
+	}
+
 
     // save statistics
     stats.end_time = time(NULL);
