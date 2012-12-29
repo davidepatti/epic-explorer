@@ -48,8 +48,9 @@ public:
   void set_random();
   
   // added by andrea.araldo@gmail.com
-  // set a random value in the interval [a,b]
-  void set_random(int a, int b);
+  // Randomly set one of the values contained in the subinterval from index pos_a to
+  // index pos_b
+  void set_random(int pos_a, int pos_b);
 
   int get_pos(int value);
   bool increase();
