@@ -18,18 +18,21 @@
 #ifndef PARAMSPACE_H
 #define PARAMSPACE_H
 
+#define ALPHA 1.0 //Used to decide whether a region has high, low or no innovation
+
 using namespace std;
 
 
 typedef struct 
 {
+	//These are indexes of the values vector of a parameter
     int a,b;
 } Edges;
 
 
 
 
-
+/*
 class Region {
 public: 
 	double id;
@@ -39,8 +42,6 @@ public:
 //	Region()
 //  ~Region();
 
-
-	vector<Region> split_region();
 	
 	// The simulations of the current era that fall into this region
 //	list<Simulation> simulations; //PENSO CHE SIA INUTILE
@@ -51,6 +52,27 @@ public:
 private:
 
 };
+*/
+
+
+typedef struct{
+	double id;
+	double innovation_score;
+	bool valid;
+
+//	Region()
+//  ~Region();
+
+	
+	// The simulations of the current era that fall into this region
+//	list<Simulation> simulations; //PENSO CHE SIA INUTILE
+
+
+// the index is the one computed by Parameter::get_index()
+	Edges edges[N_PARAMS];
+
+} Region;
+
 
 
 
