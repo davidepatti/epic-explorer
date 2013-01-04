@@ -113,11 +113,7 @@ public:
   Configuration create_configuration() const; // default values
   Configuration create_configuration(const Space_mask& mask,const Configuration& base) const;
   Configuration create_configuration(const Processor& p,const Mem_hierarchy& mem, const Compiler& comp);
-  
-  //added by andrea.araldo@gmail.com
-  //
-  void fix_parameter(Configuration* conf, EParameterType pt, int value);
-  
+    
 
   bool configuration_present(const Configuration& conf,const vector<Configuration>& space) const;
   int simulation_present(const Simulation& sim,const vector<Simulation>& simulations) const;

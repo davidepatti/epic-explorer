@@ -19,6 +19,8 @@
 #define PARAMSPACE_H
 
 #define ALPHA 1.0 //Used to decide whether a region has high, low or no innovation
+#define DEBUG_LEVEL_DEBUG 1
+
 
 using namespace std;
 
@@ -72,6 +74,19 @@ typedef struct{
 	Edges edges[N_PARAMS];
 
 } Region;
+
+
+
+/********************************************************************************/
+/***************DEBUG FUNCTIONS**************************************************/
+/********************************************************************************/
+//TODO: spostare in un file a parte
+
+string to_string(Region r);
+
+
+// Exit the program if the region is not well-formed. Do nothing, otherwise
+void well_formed(Region r, Explorer* expl);
 
 
 

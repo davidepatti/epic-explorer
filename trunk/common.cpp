@@ -119,6 +119,115 @@ string Configuration::get_mem_dir() const
     return string(s);
 }
 
+
+//added by andrea.araldo@gmail.com
+void Configuration::fix_parameter(EParameterType pt, int value)
+{
+	switch (pt)
+	{
+		case ke_gpr_static_size:	 gpr_static_size=value; return;
+		case ke_fpr_static_size:	 fpr_static_size=value; return;
+		case ke_pr_static_size:		 pr_static_size=value; return;
+		case ke_cr_static_size:		 cr_static_size=value; return;
+		case ke_btr_static_size:	 btr_static_size=value; return;
+		case ke_num_clusters:		 num_clusters=value; return;
+		case ke_integer_units:		 integer_units=value; return;
+		case ke_float_units:		 float_units=value; return;
+		case ke_branch_units:		 branch_units=value; return;
+		case ke_memory_units:		 memory_units=value; return;
+		
+		case ke_L1D_size:			 L1D_size=value; return;
+		case ke_L1D_block_size:		 L1D_block=value; return;
+		case ke_L1D_associativity:	 L1D_assoc=value; return;
+		case ke_L1I_size:			 L1I_size=value; return;
+		case ke_L1I_block_size:		 L1I_block=value; return;
+		case ke_L1I_associativity:	 L1I_assoc=value; return;
+		case ke_L2U_size:			 L2U_size=value; return;
+		case ke_L2U_block_size:		 L2U_block=value; return;
+		case ke_L2U_associativity:	 L2U_assoc=value; return;
+		
+		case ke_tcc_region:			 tcc_region=value; return;
+		case ke_max_unroll_allowed:	 max_unroll_allowed=value; return;
+		case ke_regroup_only:		 regroup_only=value; return;
+		case ke_do_classic_opti:	 do_classic_opti=value; return;
+		case ke_do_prepass_scalar_scheduling:
+									 do_prepass_scalar_scheduling=value; return;
+		case ke_do_postpass_scalar_scheduling:
+									 do_postpass_scalar_scheduling=value; return;
+		case ke_do_modulo_scheduling:
+									 do_modulo_scheduling=value; return;
+		case ke_memvr_profiled:		 memvr_profiled=value; return;		
+		
+		
+		default:		
+			string message = "explorer.cpp: ERROR: parameter "+to_string(pt)+
+				" is not valid";
+			exit(-124);
+	
+	}
+}
+
+//added by andrea.araldo@gmail.com
+int Configuration::getParameterValue(EParameterType pt) const
+{
+	switch (pt)
+	{
+		case ke_gpr_static_size:	 return gpr_static_size;
+		case ke_fpr_static_size:	 return fpr_static_size;
+		case ke_pr_static_size:		 return pr_static_size;
+		case ke_cr_static_size:		 return cr_static_size;
+		case ke_btr_static_size:	 return btr_static_size;
+		case ke_num_clusters:		 return num_clusters;
+		case ke_integer_units:		 return integer_units;
+		case ke_float_units:		 return float_units;
+		case ke_branch_units:		 return branch_units;
+		case ke_memory_units:		 return memory_units;
+		
+		case ke_L1D_size:			 return L1D_size;
+		case ke_L1D_block_size:		 return L1D_block;
+		case ke_L1D_associativity:	 return L1D_assoc;
+		case ke_L1I_size:			 return L1I_size;
+		case ke_L1I_block_size:		 return L1I_block;
+		case ke_L1I_associativity:	 return L1I_assoc;
+		case ke_L2U_size:			 return L2U_size;
+		case ke_L2U_block_size:		 return L2U_block;
+		case ke_L2U_associativity:	 return L2U_assoc;
+		
+		case ke_tcc_region:			 return tcc_region;
+		case ke_max_unroll_allowed:	 return max_unroll_allowed;
+		case ke_regroup_only:		 return regroup_only;
+		case ke_do_classic_opti:	 return do_classic_opti;
+		case ke_do_prepass_scalar_scheduling:
+									 return do_prepass_scalar_scheduling;
+		case ke_do_postpass_scalar_scheduling:
+									 return do_postpass_scalar_scheduling;
+		case ke_do_modulo_scheduling:
+									 return do_modulo_scheduling;
+		case ke_memvr_profiled:		 return memvr_profiled;
+		
+		
+		default:		
+			string message = "explorer.cpp: ERROR: parameter "+to_string(pt)+
+				" is not valid";
+			exit(-124);
+	
+	}
+}
+
+
+//added by andrea.araldo@gmail.com
+string Configuration::configuration_to_string() const
+{
+	string s="[";
+	for (int i=0; i<N_PARAMS; i++)
+		s = s+ to_string(getParameterValue( (EParameterType)i ) ) +";  ";
+		
+	s = s+"]";
+	return s;
+
+}
+
+
 //G
 void Simulation::add_simulation(const Simulation& other)
 {

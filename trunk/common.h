@@ -198,6 +198,13 @@ struct Configuration
   string get_executable_dir() const;
   string get_mem_dir() const;
   
+  //<added by andrea.araldo@gmail.com>
+  void fix_parameter(EParameterType pt, int value);
+  int getParameterValue(EParameterType pt) const;
+  string configuration_to_string() const;
+  //</added by andrea.araldo@gmail.com>
+
+  
   // added by andrea.araldo@gmail.com
   // You can use this pointer if you want to link this Configuration to another object
   // Ignore this field if you don't need it.
