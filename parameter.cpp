@@ -18,6 +18,9 @@
 #include "parameter.h"
 #include "common.h"
 #include <cstdlib>
+#include <math.h> //for round
+
+
 
 using namespace std;
 
@@ -97,7 +100,7 @@ void Parameter::set_val(int new_value)
     {
 	string logfile = string(getenv(BASE_DIR))+string(EE_LOG_PATH);
 	int myid = get_mpi_rank();
-	write_to_log(myid,logfile," ERROR: not valid valuet for parameter '"+label+" (value=" + to_string(new_value) + "). Check subspace file.");
+	write_to_log(myid,logfile," ERROR: not valid value for parameter '"+label+" (value=" + to_string(new_value) + "). Check subspace file.");
 	exit(EXIT_FAILURE);
     }
 }
@@ -112,12 +115,16 @@ void Parameter::set_random()
 }
 
 // added by andrea.araldo@gmail.com
-void Parameter::set_random(int a, int b)
-{
-  	vector<int> interval = get_interval(a, b);
-    float r =  (float)rand()/(RAND_MAX);
-    int random_index = (int)(r*interval.size());
-    set_val(interval[random_index]);
+void Parameter::set_random(int pos_a, int pos_b)
+{  	
+    float r =  (float)rand()*(pos_b - pos_a) /(RAND_MAX);
+    int offset = round(r);
+    vector<int> values = this->get_values();
+    printf("Ho recuperato i valori che sono %d. Sto prendendo il %d-esimo\n", 
+    		values.size(), pos_a + offset);
+    int value = values[pos_a + offset];
+    set_val( value );
+    printf("parameter.cpp: offset=%d, value=%d\n", offset, value);
 }
 
 

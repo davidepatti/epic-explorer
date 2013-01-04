@@ -11,14 +11,14 @@
 #include <values.h>
 #include <list>
 #include <cstdlib> //for rand()
-#include <tr1/random> //for uniform_real_distribution and mt19937
+
+
 
 using namespace std;
 
 
 string logfile;
 int myrank;
-std::tr1::mt19937 random_engine;
 
 
 
@@ -93,8 +93,9 @@ void transform_to_root_region(Region* r, Explorer* expl)
 
 double roulette_wheel_arc_length(Region* r)
 {
+	printf("dentro roulette_wheel_arc\n");
    	if (r->innovation_score >= 0)
-   		return 1;
+   		return 1.0;
   	else
    		return pow(2, r->innovation_score );
 }
@@ -107,11 +108,21 @@ Region* select_region(vector<Region*> regions)
 {
 	double roulette_wheel_length = 0;
 	for (int i=0; i<regions.size(); i++)
-		roulette_wheel_length += roulette_wheel_arc_length( regions[i] );
+	{
+		Region* regionn = regions[i]; // da togliere
+		double incremento = roulette_wheel_arc_length( regions[i] ); // da togliere
+		printf("incremento=%e\n",incremento);
+		//roulette_wheel_length += roulette_wheel_arc_length( regions[i] );
+		roulette_wheel_length += incremento;
+		printf("roulette wheel length=%e\n",roulette_wheel_length);
+	}
 
-	// see http://www.johndcook.com/cpp_TR1_random.html for more info on tr1
-    std::tr1::uniform_real<double> dis(0, roulette_wheel_length);
-    double random_number = dis(random_engine);
+	// TODO: meglio usare
+	// http://www.johndcook.com/cpp_TR1_random.html
+	// solo che mi genera numeri enormi e non capisco perche'
+	double random_number =  (double)(rand()*roulette_wheel_length)/(RAND_MAX);
+
+    printf("random_number=%e\n",random_number);
  
 	// double r =  (double)rand()/(RAND_MAX);
     // double random_point = (double)(r*total_innovation_score);
@@ -119,10 +130,14 @@ Region* select_region(vector<Region*> regions)
     
     int i; for (i=0; partial_roulette < random_number; i++)
     	partial_roulette += roulette_wheel_arc_length( regions[i] );
+    	
+    i--;
     
+    printf("partial_roulette=%e\n",partial_roulette);
     string message = "alg_paramspace.cpp: region " + to_string(i) + " is selected";
     write_to_log(myrank,logfile,message);	
     
+    printf("Sto per ritornare da select_region=\n");
     return regions[i];
 }
 
@@ -367,16 +382,33 @@ vector<Region*> build_new_regions(
 
 Configuration fix_random_configuration(Region* region, Explorer* expl)
 {
+			printf("Sono dentro fix_random_configuration\n");
+			if (DEBUG_LEVEL_DEBUG)
+				well_formed(*region,expl);
+				
+			printf("Sono dopo il well-formed\n");
+
+			
 			Configuration conf;
 			for (int j=0; j<N_PARAMS; j++)
 			{
 				Parameter par = expl->getParameter( (EParameterType)j );
-				vector<int> values = par.get_values();
-				Edges edges = (region->edges)[j];
+				printf("Sono dopo il get_parameter\n");
+				Edges edges = (*region).edges[j];
+				
+				printf("alg_paramspace: edges.b=%d, values are %d\n", 
+						edges.b,par.get_values().size());
 				par.set_random( edges.a, edges.b );
-				expl->fix_parameter(&conf, (EParameterType)j, par.get_val() );
+				conf.fix_parameter((EParameterType)j, par.get_val() );
 			}
 			conf.pointer = region;
+			
+			if (DEBUG_LEVEL_DEBUG)
+			{
+			    string message = "Random configuration " + conf.configuration_to_string();
+			    write_to_log(myrank,logfile,message);
+			}
+			
 			return conf;
 }
 
@@ -386,8 +418,6 @@ void Explorer::start_PARAMSPACE(double alpha, int k, int max_eras)
     myrank = get_mpi_rank();
     assert(myrank == 0);
     
-    random_engine.seed(paramspace_seed);
-
 
     // setup some not-algorithm-related stuff before starting
     current_algo="PARAMSPACE";
@@ -421,6 +451,7 @@ void Explorer::start_PARAMSPACE(double alpha, int k, int max_eras)
     vector<Region*> regions, no_innovation_regions;
     Region* root_region = new Region();
     transform_to_root_region(root_region, this);
+    printf("Root region fatta\n");
     regions.push_back(root_region);
     vector<Simulation> new_pareto_set, old_pareto_set;
     double old_average_innovation_score, new_average_innovation_score;
@@ -430,12 +461,34 @@ void Explorer::start_PARAMSPACE(double alpha, int k, int max_eras)
 
     for (int era=0; era<max_eras; era++)
     {
+    	if (DEBUG_LEVEL_DEBUG)
+    	{
+    		string message = "Era " + to_string(era) + ". Regions are ";
+		    write_to_log(myrank,logfile,message);
+		    for (int j=0; j<regions.size(); j++)
+			    write_to_log(myrank,logfile,to_string( *(regions[j]) ) );
+			if (era>0)
+				exit(-1871);
+				
+			for (int j=0; j<regions.size(); j++)
+			    well_formed( *(regions[j]), this);
+			
+    	}
 		// Use the budget of k simulations
 		for(int i=0;i<k;i++)
 		{
 			Region* selected_region = select_region(regions);
+			
+			if (DEBUG_LEVEL_DEBUG)
+			{
+				printf("selezionata la regione\n");
+				string message = "Selected region is " + to_string(*selected_region);
+			    write_to_log(myrank,logfile,message);
+			}
+			
 			Configuration temp_conf = fix_random_configuration(selected_region,this);
-
+			
+			
 			if (temp_conf.is_feasible())
 			{
 				valid++;
@@ -480,6 +533,51 @@ void Explorer::start_PARAMSPACE(double alpha, int k, int max_eras)
     stats.n_sim = get_sim_counter();
     save_stats(stats, file_name+".stat");
 }
+
+
+
+
+/********************************************************************************/
+/***************DEBUG FUNCTIONS**************************************************/
+/********************************************************************************/
+//TODO: spostare in un file a parte
+
+string to_string(Region r)
+{
+	string s="[";
+	for (int i=0; i<N_PARAMS; i++)
+	{
+		s = s+ to_string(r.edges[i].a)+ ":"+ to_string(r.edges[i].b)+";  ";
+	}
+	s = s+"]";
+	return s;
+}
+
+void well_formed(Region r, Explorer* expl)
+{
+	printf("alg_paramspace.cpp checking region\n" );
+	cout << to_string(r) << "\n";
+	
+	
+	for (int j=0; j<N_PARAMS; j++)
+	{
+		Parameter par = expl->getParameter( (EParameterType)j );
+		Edges edges = (r.edges)[j];
+
+		if (edges.b >= par.get_values().size())
+		{
+			printf("parameter %d has %d values while edges.b=%d\n",
+				j, par.get_values().size(), edges.b );
+			exit(-761);
+		}
+	}
+	printf("The region is well-formed\n" );
+}
+
+
+
+
+
 
 
 

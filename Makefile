@@ -61,7 +61,7 @@ alg_random.o: alg_random.cpp explorer.h common.h
 alg_genetic.o: alg_genetic.cpp explorer.h common.h
 	${MPICC} -I${GAINC_DIR} ${CFLAGS} -c alg_genetic.cpp
 
-alg_paramspace.o: alg_paramspace.cpp paramspace.h 
+alg_paramspace.o: alg_paramspace.cpp paramspace.h
 	 ${MPICC} -I${GAINC_DIR} ${CFLAGS} -c alg_paramspace.cpp
 
 processor.o: processor.cpp processor.h parameter.h
