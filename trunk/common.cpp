@@ -206,13 +206,14 @@ int Configuration::getParameterValue(EParameterType pt) const
 		case ke_memvr_profiled:		 return memvr_profiled;
 		
 		
-		default:		
-			string message = "explorer.cpp: ERROR: parameter "+to_string(pt)+
-				" is not valid";
+		default:
+			printf("explorer.cpp %d: ERROR: parameter is not valid",__LINE__);
 			exit(-124);
 	
 	}
 }
+
+
 
 
 //added by andrea.araldo@gmail.com
@@ -224,7 +225,6 @@ string Configuration::configuration_to_string() const
 		
 	s = s+"]";
 	return s;
-
 }
 
 
