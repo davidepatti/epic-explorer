@@ -104,7 +104,7 @@ double roulette_wheel_arc_length(Region* r)
 // Implementa l'algoritmo di roulette wheel. L'ampiezza dell'arco associato a 
 // ciascuna regione e' 1 oppure, se is e' negativo, 2^is (is e' l'innovation score 
 // della regione
-Region* select_region(vector<Region*> regions)
+Region* select_region(int era,vector<Region*> regions)
 {
 	double roulette_wheel_length = 0;
 	for (int i=0; i<regions.size(); i++)
@@ -134,10 +134,10 @@ Region* select_region(vector<Region*> regions)
     i--;
     
     printf("partial_roulette=%e\n",partial_roulette);
-    string message = "alg_paramspace.cpp: region " + to_string(i) + " is selected";
+    string message = "The next simulation will be chosen inside region " 
+    	+ to_string_region_concise(era,i);
     write_to_log(myrank,logfile,message);	
     
-    printf("Sto per ritornare da select_region=\n");
     return regions[i];
 }
 
@@ -271,10 +271,10 @@ double get_innovation_score(const Simulation& s, vector<Simulation> pareto)
     return innovation_score;
 }
 
-
+//TODO: mqybe the average innovation score must be returned
 // Calculate the innovation_score of each region. Return the sum of all innovation
 // scores
-double update_region_innovation_scores(vector<Region*> regions, 
+double update_region_innovation_scores(int era,vector<Region*> regions, 
 	vector<Simulation> old_pareto_set, vector<Simulation> new_pareto_set)
 {
 	double total_innovation_score = 0;
@@ -293,11 +293,19 @@ double update_region_innovation_scores(vector<Region*> regions,
     	Simulation s = new_pareto_set[i];
    		Region* region = (Region*) (s.config.pointer);
    		
-   		if (region->innovation_score<0 && get_innovation_score(s,old_pareto_set)>0)
-   		// We thought that this region was useless, whereas it has a configuration 
-   		// in the new pareto set. Before updating the innovation score of this region
-   		// its penalty (i.e. the negative innovation_score) must be removed
-   			region->innovation_score=0;
+   		if (region->innovation_score<0 && get_innovation_score(s,old_pareto_set)>0){
+	   		// We thought that this region was useless, whereas it has a configuration 
+	   		// in the new pareto set. Before updating the innovation score of this region,
+	   		// its penalty (i.e. the negative innovation_score) must be removed
+	   		if (DEBUG_LEVEL_DEBUG){
+			    string message = "Region ("+to_string_region_concise(era,i)+" had innovation score "
+			    	+to_string(region->innovation_score)+" in previous era, but now a pareto config "
+			    	+ "was found in it. Its innovation score is put to 0";
+			    write_to_log(myrank,logfile,message);
+	   		}
+   			region->innovation_score=0;	
+	   	}
+		
    		
    		
    		// Notice that if a configuration of the new_pareto_set is already contained
@@ -305,7 +313,15 @@ double update_region_innovation_scores(vector<Region*> regions,
    		double config_innovation_score = get_innovation_score(s,old_pareto_set);
    		region->innovation_score += config_innovation_score;
    		total_innovation_score += config_innovation_score;
-    }
+    }	
+
+	if (DEBUG_LEVEL_DEBUG){
+		for (int i=0; i<regions.size(); i++){
+			string message = "Innovation score of "+to_string_region_concise(era,i)
+				+": "+to_string(regions[i]->innovation_score) ;
+		    write_to_log(myrank,logfile,message);
+   		}
+	}
     
     return total_innovation_score;
 }
@@ -393,11 +409,8 @@ Configuration fix_random_configuration(Region* region, Explorer* expl)
 			for (int j=0; j<N_PARAMS; j++)
 			{
 				Parameter par = expl->getParameter( (EParameterType)j );
-				printf("Sono dopo il get_parameter\n");
 				Edges edges = (*region).edges[j];
 				
-				printf("alg_paramspace: edges.b=%d, values are %d\n", 
-						edges.b,par.get_values().size());
 				par.set_random( edges.a, edges.b );
 				conf.fix_parameter((EParameterType)j, par.get_val() );
 			}
@@ -422,20 +435,23 @@ void Explorer::start_PARAMSPACE(double alpha, int k, int max_eras)
     // setup some not-algorithm-related stuff before starting
     current_algo="PARAMSPACE";
     logfile = get_base_dir()+string(EE_LOG_PATH);
+    cout << "logfile: " << logfile << endl;
 
     Exploration_stats stats;
     stats.space_size = get_space_size();
     stats.start_time = time(NULL);
     reset_sim_counter();
 
-    string file_name;
-
-    file_name = Options.benchmark+"_"+current_algo+"_"+current_space;
+	//To write stats
+    string file_name = Options.benchmark+"_"+current_algo+"_"+current_space;
 
     string header = "["+Options.benchmark+"_"+current_algo+"] ";
     string message = header+"Building random space for " + to_string(k) + " simulations...";
     write_to_log(myrank,logfile,message);
     
+	message = header+"Notation remark: the j-th region of era i will be indicated as" 
+    		+ " (i,j)";
+    write_to_log(myrank,logfile,message);
     
     
     //DA QUI COMINCIA
@@ -449,12 +465,12 @@ void Explorer::start_PARAMSPACE(double alpha, int k, int max_eras)
     // innovation score=0
     
     vector<Region*> regions, no_innovation_regions;
-    Region* root_region = new Region();
-    transform_to_root_region(root_region, this);
-    printf("Root region fatta\n");
-    regions.push_back(root_region);
     vector<Simulation> new_pareto_set, old_pareto_set;
     double old_average_innovation_score, new_average_innovation_score;
+
+    Region* root_region = new Region();
+    transform_to_root_region(root_region, this);
+    regions.push_back(root_region);
     
     // create a space of k randomly chosen configurations
     vector<Configuration> configs_to_simulate;
@@ -466,10 +482,10 @@ void Explorer::start_PARAMSPACE(double alpha, int k, int max_eras)
     		string message = "Era " + to_string(era) + ". Regions are ";
 		    write_to_log(myrank,logfile,message);
 		    for (int j=0; j<regions.size(); j++)
-			    write_to_log(myrank,logfile,to_string( *(regions[j]) ) );
-			if (era>0)
-				exit(-1871);
-				
+			    write_to_log(myrank,logfile,
+			    	to_string_region_concise(era,j)+" = "+to_string( *(regions[j]) ) );
+			
+			//Check if all regions are well formed
 			for (int j=0; j<regions.size(); j++)
 			    well_formed( *(regions[j]), this);
 			
@@ -477,14 +493,7 @@ void Explorer::start_PARAMSPACE(double alpha, int k, int max_eras)
 		// Use the budget of k simulations
 		for(int i=0;i<k;i++)
 		{
-			Region* selected_region = select_region(regions);
-			
-			if (DEBUG_LEVEL_DEBUG)
-			{
-				printf("selezionata la regione\n");
-				string message = "Selected region is " + to_string(*selected_region);
-			    write_to_log(myrank,logfile,message);
-			}
+			Region* selected_region = select_region(era,regions);
 			
 			Configuration temp_conf = fix_random_configuration(selected_region,this);
 			
@@ -498,10 +507,9 @@ void Explorer::start_PARAMSPACE(double alpha, int k, int max_eras)
 		}
 
 
-		message = header+ "Valid configurations:" + to_string(valid) + " of "+to_string(k)+" requested";
+		message = header+ "In era "+to_string(era)+", among "+to_string(k)+
+			" valid configurations, "+ to_string(k) + " are valid";
 		write_to_log(myrank,logfile,message);
-		
-		write_to_log(myrank,logfile,"Era " + era);
 
 		vector<Simulation> current_sims = simulate_space(configs_to_simulate);
 		
@@ -511,9 +519,12 @@ void Explorer::start_PARAMSPACE(double alpha, int k, int max_eras)
 		new_pareto_set = get_pareto(current_sims);
 		
 		double old_era_innovation_score = era_innovation_score;
-		
 		era_innovation_score = update_region_innovation_scores(
-				regions, old_pareto_set, new_pareto_set);
+				era,regions, old_pareto_set, new_pareto_set);
+				
+		message = header+ "Era "+to_string(era)+": total innovation score= "+
+				to_string(era_innovation_score);
+		write_to_log(myrank,logfile,message);
 				
 		regions = build_new_regions(regions, old_era_innovation_score / regions.size());
 		
@@ -542,7 +553,7 @@ void Explorer::start_PARAMSPACE(double alpha, int k, int max_eras)
 /********************************************************************************/
 //TODO: spostare in un file a parte
 
-string to_string(Region r)
+const string to_string(Region r)
 {
 	string s="[";
 	for (int i=0; i<N_PARAMS; i++)
@@ -553,12 +564,14 @@ string to_string(Region r)
 	return s;
 }
 
-void well_formed(Region r, Explorer* expl)
+const string to_string_region_concise(int era, int region_index)
 {
-	printf("alg_paramspace.cpp checking region\n" );
-	cout << to_string(r) << "\n";
-	
-	
+	string s="("+to_string(era)+","+to_string(region_index)+")";
+	return s;
+}
+
+void well_formed(Region r, Explorer* expl)
+{	
 	for (int j=0; j<N_PARAMS; j++)
 	{
 		Parameter par = expl->getParameter( (EParameterType)j );
@@ -566,12 +579,13 @@ void well_formed(Region r, Explorer* expl)
 
 		if (edges.b >= par.get_values().size())
 		{
+			printf("alg_paramspace.cpp %d: Error checking region\n",__LINE__ );
+			cout << to_string(r) << "\n";
 			printf("parameter %d has %d values while edges.b=%d\n",
 				j, par.get_values().size(), edges.b );
 			exit(-761);
 		}
 	}
-	printf("The region is well-formed\n" );
 }
 
 

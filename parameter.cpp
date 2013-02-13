@@ -120,11 +120,8 @@ void Parameter::set_random(int pos_a, int pos_b)
     float r =  (float)rand()*(pos_b - pos_a) /(RAND_MAX);
     int offset = round(r);
     vector<int> values = this->get_values();
-    printf("Ho recuperato i valori che sono %d. Sto prendendo il %d-esimo\n", 
-    		values.size(), pos_a + offset);
     int value = values[pos_a + offset];
     set_val( value );
-    printf("parameter.cpp: offset=%d, value=%d\n", offset, value);
 }
 
 

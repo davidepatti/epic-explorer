@@ -82,7 +82,9 @@ typedef struct{
 /********************************************************************************/
 //TODO: spostare in un file a parte
 
-string to_string(Region r);
+const string to_string(Region r);
+
+const string to_string_region_concise(int era, int region_index);
 
 
 // Exit the program if the region is not well-formed. Do nothing, otherwise
