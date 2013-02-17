@@ -10,16 +10,17 @@
 #include "parameter.h"
 #include <values.h>
 #include <list>
+#include <vector>
 #include <cstdlib> //for rand()
 
+#include <iostream>
 
-
-using namespace std;
 
 
 string logfile;
 int myrank;
-
+vector<Region*> regions, no_innovation_regions;
+  
 
 
 // TODO: sistemare correttamente la questione del seed
@@ -93,7 +94,6 @@ void transform_to_root_region(Region* r, Explorer* expl)
 
 double roulette_wheel_arc_length(Region* r)
 {
-	printf("dentro roulette_wheel_arc\n");
    	if (r->innovation_score >= 0)
    		return 1.0;
   	else
@@ -142,27 +142,46 @@ Region* select_region(int era,vector<Region*> regions)
 }
 
 
-vector<Region*> split_region(Region* region)
+vector<Region*> split_region(int region_index)
 {
     // we just want to split in 2, but leaving vector for general case
+    Region* region = regions[region_index];
 
     Region *r1,*r2;
     vector<Region*> regions;
-
     EParameterType splitting_parameter = get_splitting_parameter();
     
-    Edges interval = region->edges[splitting_parameter];
-    int interval_size = interval.b - interval.a +1;
+    Edges* interval = &(region->edges[splitting_parameter]);
+   	printf("!!!line %d: interval, index=%d\n",__LINE__,region_index);std::cin.ignore();
+   	
+   	int provb = region->edges[splitting_parameter].b;
+	printf("!!!line %d: provb=%d\n",__LINE__,provb);std::cin.ignore();
+
+   	
+   	int provaaa = interval->b;
+	printf("!!!line %d: provaaaa=%d\n",__LINE__,provaaa);std::cin.ignore();
+	
+	
+
+	int interval_size = (interval->b) - (interval->a) +1;
+	printf("!!!line %d: Calcolato interval size\n",__LINE__);std::cin.ignore();
     
-    if (interval_size == 1)
+    if (interval_size == 1){
     	regions.push_back(region);
+    }
     else if (interval_size > 1)
     {
+
+   		std::vector<int> v;
+		int a=4;
+		v.push_back(a);
+		printf("!!!line %d: v[0]=%d\n",__LINE__,v[0]);std::cin.ignore();
+
     	Edges interval1, interval2; 
-    	interval1.a = interval.a; 
-    	interval1.b= interval.a + (int)(interval_size/2)-1;
+    	interval1.a = interval->a; 
+    	interval1.b= interval->a + (int)(interval_size/2)-1;
     	
-    	interval2.b = interval.b;
+    	interval2.b = interval->b;
     	interval2.a = interval1.b + 1;
     	
     	r1 = region;
@@ -171,8 +190,42 @@ vector<Region*> split_region(Region* region)
     	r1->edges[splitting_parameter] = interval1;
     	r2->edges[splitting_parameter] = interval2;
     	
-        regions.push_back(r1);
+	   	printf("!!!Ho preso interval\n"); std::cin.ignore();
+    	
+    	Region* vettorediprova[1];
+    	vettorediprova[0]=r1;
+	   	Edges edges_prova=r1->edges[splitting_parameter];
+	   	printf("!!!Ho usato r1\n"); std::cin.ignore();
+	   	
+	   	list<int> vettoreinteriprova;
+	   	int ciao=1;
+	   	vettoreinteriprova.push_back(ciao);
+	   	printf("!!!Ho pushato intero\n"); std::cin.ignore();
+	   	
+	   	
+/*	   	
+	   	vector<Region> vettoreregioniprova;
+	   	Region regioneprova;
+	   	vettoreregioniprova.push_back(regioneprova);
+	   	printf("!!!Ho pushato regioneprova\n"); std::cin.ignore();
+*/	   	
+   		std::vector<int> v2;
+	   	printf("!!!line %d: Ho allocato v2\n",__LINE__); std::cin.ignore();
+		int a2=4;
+	   	printf("!!!line %d: Ho allocato a2\n",__LINE__); std::cin.ignore();
+		v2.push_back(a);
+		printf("!!!line %d: v2[0]=%d\n",__LINE__,v2[0]);std::cin.ignore();
+
+	   	vector<void*> vettoreprova;
+	   	void* puntatoreProva;
+	   	vettoreprova.push_back(puntatoreProva);
+	   	
+	   	printf("!!!Ho pushato puntatoreProva\n"); std::cin.ignore();
+    	
+		regions.push_back(r1);
+	   	printf("!!!line %d: Primo pushback fatto\n",__LINE__); std::cin.ignore();
 	    regions.push_back(r2);
+	   	printf("!!!line %d: Secondo pushback fatto\n",__LINE__); std::cin.ignore();
     }else{
     	// This is a debug check
     	string message = "alg_paramspace.cpp:"+ to_string(__LINE__) +
@@ -182,6 +235,7 @@ vector<Region*> split_region(Region* region)
 		exit(-12721);
     }
     
+   	printf("!!!Esco da split_region\n"); std::cin.ignore();
     return regions;
 }
 
@@ -297,12 +351,12 @@ double update_region_innovation_scores(int era,vector<Region*> regions,
 	   		// We thought that this region was useless, whereas it has a configuration 
 	   		// in the new pareto set. Before updating the innovation score of this region,
 	   		// its penalty (i.e. the negative innovation_score) must be removed
-	   		if (DEBUG_LEVEL_DEBUG){
+	   		#ifdef DEBUG_LEVEL_DEBUG
 			    string message = "Region ("+to_string_region_concise(era,i)+" had innovation score "
 			    	+to_string(region->innovation_score)+" in previous era, but now a pareto config "
 			    	+ "was found in it. Its innovation score is put to 0";
 			    write_to_log(myrank,logfile,message);
-	   		}
+	   		#endif
    			region->innovation_score=0;	
 	   	}
 		
@@ -315,13 +369,13 @@ double update_region_innovation_scores(int era,vector<Region*> regions,
    		total_innovation_score += config_innovation_score;
     }	
 
-	if (DEBUG_LEVEL_DEBUG){
+	#ifdef DEBUG_LEVEL_DEBUG
 		for (int i=0; i<regions.size(); i++){
 			string message = "Innovation score of "+to_string_region_concise(era,i)
 				+": "+to_string(regions[i]->innovation_score) ;
 		    write_to_log(myrank,logfile,message);
    		}
-	}
+	#endif
     
     return total_innovation_score;
 }
@@ -335,7 +389,8 @@ void sort_by_innovation(vector<Region> * regions)
 // If it has no_innovation try to merge. All the regions obtained as above are 
 // returned in a vector.
 vector<Region*> build_new_regions( 
-	vector<Region*> regions, double old_average_innovation_score)
+	//vector<Region*> regions, 
+	double old_average_innovation_score)
 {
 	vector<Region*> new_regions, regions_to_merge;
 	for (int i=0; i<regions.size(); i++ )
@@ -345,7 +400,7 @@ vector<Region*> build_new_regions(
 		if (region->innovation_score > (ALPHA * old_average_innovation_score) )
 		{
 			//high innovation region
-			vector<Region*> out_regions = split_region(region);
+			vector<Region*> out_regions = split_region(i);
 			for (int j=0; j<out_regions.size(); j++)
 				new_regions.push_back(out_regions[j]);
 		}
@@ -392,15 +447,19 @@ vector<Region*> build_new_regions(
 			new_regions.push_back(regions_to_merge[i]);
 		}
 	}
-	return new_regions;
+	//TODO: find a more efficient way without swapping. It would be best if we are able to 
+	//use only the vector regions, without using another vector and then swap .
+	regions.swap(new_regions);
+	return regions;
 }
 
 
 Configuration fix_random_configuration(Region* region, Explorer* expl)
 {
 			printf("Sono dentro fix_random_configuration\n");
-			if (DEBUG_LEVEL_DEBUG)
+			#ifdef SEVERE_DEBUG
 				well_formed(*region,expl);
+			#endif
 				
 			printf("Sono dopo il well-formed\n");
 
@@ -416,17 +475,23 @@ Configuration fix_random_configuration(Region* region, Explorer* expl)
 			}
 			conf.pointer = region;
 			
-			if (DEBUG_LEVEL_DEBUG)
-			{
+			#ifdef DEBUG_LEVEL_DEBUG
 			    string message = "Random configuration " + conf.configuration_to_string();
 			    write_to_log(myrank,logfile,message);
-			}
+			#endif
 			
 			return conf;
 }
 
 void Explorer::start_PARAMSPACE(double alpha, int k, int max_eras)
 {
+		std:vector<Region*> provaregioni;
+		Region* provareg1,provareg2;
+		provaregioni.push_back(provareg1);
+	   	printf("!!!line %d: Primo pushback fatto\n",__LINE__); std::cin.ignore();
+
+
+
     // mpi parallel implementation currently unsupported on PARAMSPACE
     myrank = get_mpi_rank();
     assert(myrank == 0);
@@ -464,32 +529,45 @@ void Explorer::start_PARAMSPACE(double alpha, int k, int max_eras)
     // "high innovation" regions, although in era 0 all regions have 
     // innovation score=0
     
-    vector<Region*> regions, no_innovation_regions;
+//    vector<Region*> regions, no_innovation_regions;
     vector<Simulation> new_pareto_set, old_pareto_set;
     double old_average_innovation_score, new_average_innovation_score;
 
-    Region* root_region = new Region();
+	Region* root_region = new Region();
+//    Region* root_region = (Region*)malloc(sizeof(Region));
     transform_to_root_region(root_region, this);
     regions.push_back(root_region);
+    
+    #ifdef SEVERE_DEBUG
+    printf("alg_paramspace.c %d: checking root region\n",__LINE__);
+    for (int u=0; u<N_PARAMS; u++){
+    	Edges edges = root_region->edges[u];
+    	if (edges.a == edges.b){
+    		printf("alg_paramspace.cpp %d: ERROR\n",__LINE__);
+    		exit(65431);
+    	}
+    }	
+    #endif
     
     // create a space of k randomly chosen configurations
     vector<Configuration> configs_to_simulate;
 
     for (int era=0; era<max_eras; era++)
     {
-    	if (DEBUG_LEVEL_DEBUG)
-    	{
+    	#ifdef DEBUG_LEVEL_DEBUG
     		string message = "Era " + to_string(era) + ". Regions are ";
 		    write_to_log(myrank,logfile,message);
 		    for (int j=0; j<regions.size(); j++)
 			    write_to_log(myrank,logfile,
 			    	to_string_region_concise(era,j)+" = "+to_string( *(regions[j]) ) );
 			
+			#ifdef SEVERE_DEBUG
 			//Check if all regions are well formed
 			for (int j=0; j<regions.size(); j++)
 			    well_formed( *(regions[j]), this);
-			
-    	}
+			#endif
+    	#endif
+    	
 		// Use the budget of k simulations
 		for(int i=0;i<k;i++)
 		{
@@ -526,7 +604,7 @@ void Explorer::start_PARAMSPACE(double alpha, int k, int max_eras)
 				to_string(era_innovation_score);
 		write_to_log(myrank,logfile,message);
 				
-		regions = build_new_regions(regions, old_era_innovation_score / regions.size());
+		/*regions = */build_new_regions(/*regions, */old_era_innovation_score / regions.size());
 		
 		char era_string[30];
 		sprintf(era_string, "_%d", era);
