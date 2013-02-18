@@ -20,7 +20,7 @@
 
 #define ALPHA 1.0 //Used to decide whether a region has high, low or no innovation
 #define DEBUG_LEVEL_DEBUG 1
-#define SEVERE_DEBUG
+#define SEVERE_DEBUG 1
 
 
 using namespace std;
@@ -67,12 +67,7 @@ class Region{
 	// the index is the one computed by Parameter::get_index()
 		Edges edges[N_PARAMS];
 
-		Region(){
-			id=0; innovation_score=0; valid=false;
-			for (int i=0; i<N_PARAMS; i++){
-				edges[i].a=0; edges[i].b=0;
-			}
-		}
+		Region();
 	
 //  ~Region();
 };

@@ -20,6 +20,13 @@
 string logfile;
 int myrank;
 vector<Region*> regions, no_innovation_regions;
+
+Region::Region(){
+			id=0; innovation_score=0; valid=false;
+			for (int i=0; i<N_PARAMS; i++){
+				edges[i].a=0; edges[i].b=0;
+			}
+		}
   
 
 
@@ -65,7 +72,13 @@ Edges merge_intervals(Edges e1, Edges e2)
 
 EParameterType get_splitting_parameter()
 {
-	return (EParameterType) round( (double)rand() * N_PARAMS / RAND_MAX );
+	int val = round( (double)rand() * (N_PARAMS-1) / RAND_MAX );
+	#ifdef SEVERE_DEBUG
+	if (val<0 || val>=N_PARAMS){
+		printf("alg_paramspace.cpp %d: Error, val=%d",__LINE__, val);
+	}
+	#endif
+	return (EParameterType) val;
 }
 
 //TODO: si potrebbe evitare di passare expl se getParameterRanges fosse statico
@@ -146,38 +159,20 @@ vector<Region*> split_region(int region_index)
 {
     // we just want to split in 2, but leaving vector for general case
     Region* region = regions[region_index];
-
+    
     Region *r1,*r2;
-    vector<Region*> regions;
+    vector<Region*> output_regions;
     EParameterType splitting_parameter = get_splitting_parameter();
     
     Edges* interval = &(region->edges[splitting_parameter]);
-   	printf("!!!line %d: interval, index=%d\n",__LINE__,region_index);std::cin.ignore();
-   	
-   	int provb = region->edges[splitting_parameter].b;
-	printf("!!!line %d: provb=%d\n",__LINE__,provb);std::cin.ignore();
-
-   	
-   	int provaaa = interval->b;
-	printf("!!!line %d: provaaaa=%d\n",__LINE__,provaaa);std::cin.ignore();
-	
-	
-
 	int interval_size = (interval->b) - (interval->a) +1;
-	printf("!!!line %d: Calcolato interval size\n",__LINE__);std::cin.ignore();
     
     if (interval_size == 1){
-    	regions.push_back(region);
+    	output_regions.push_back(region);
     }
     else if (interval_size > 1)
     {
-
-   		std::vector<int> v;
-		int a=4;
-		v.push_back(a);
-		printf("!!!line %d: v[0]=%d\n",__LINE__,v[0]);std::cin.ignore();
-
-    	Edges interval1, interval2; 
+		Edges interval1, interval2; 
     	interval1.a = interval->a; 
     	interval1.b= interval->a + (int)(interval_size/2)-1;
     	
@@ -185,47 +180,13 @@ vector<Region*> split_region(int region_index)
     	interval2.a = interval1.b + 1;
     	
     	r1 = region;
-    	r2 = (Region*) malloc(1* sizeof(Region) );
+    	r2 = new Region();
     	
     	r1->edges[splitting_parameter] = interval1;
     	r2->edges[splitting_parameter] = interval2;
     	
-	   	printf("!!!Ho preso interval\n"); std::cin.ignore();
-    	
-    	Region* vettorediprova[1];
-    	vettorediprova[0]=r1;
-	   	Edges edges_prova=r1->edges[splitting_parameter];
-	   	printf("!!!Ho usato r1\n"); std::cin.ignore();
-	   	
-	   	list<int> vettoreinteriprova;
-	   	int ciao=1;
-	   	vettoreinteriprova.push_back(ciao);
-	   	printf("!!!Ho pushato intero\n"); std::cin.ignore();
-	   	
-	   	
-/*	   	
-	   	vector<Region> vettoreregioniprova;
-	   	Region regioneprova;
-	   	vettoreregioniprova.push_back(regioneprova);
-	   	printf("!!!Ho pushato regioneprova\n"); std::cin.ignore();
-*/	   	
-   		std::vector<int> v2;
-	   	printf("!!!line %d: Ho allocato v2\n",__LINE__); std::cin.ignore();
-		int a2=4;
-	   	printf("!!!line %d: Ho allocato a2\n",__LINE__); std::cin.ignore();
-		v2.push_back(a);
-		printf("!!!line %d: v2[0]=%d\n",__LINE__,v2[0]);std::cin.ignore();
-
-	   	vector<void*> vettoreprova;
-	   	void* puntatoreProva;
-	   	vettoreprova.push_back(puntatoreProva);
-	   	
-	   	printf("!!!Ho pushato puntatoreProva\n"); std::cin.ignore();
-    	
-		regions.push_back(r1);
-	   	printf("!!!line %d: Primo pushback fatto\n",__LINE__); std::cin.ignore();
-	    regions.push_back(r2);
-	   	printf("!!!line %d: Secondo pushback fatto\n",__LINE__); std::cin.ignore();
+		output_regions.push_back(r1);
+	    output_regions.push_back(r2);
     }else{
     	// This is a debug check
     	string message = "alg_paramspace.cpp:"+ to_string(__LINE__) +
@@ -235,8 +196,7 @@ vector<Region*> split_region(int region_index)
 		exit(-12721);
     }
     
-   	printf("!!!Esco da split_region\n"); std::cin.ignore();
-    return regions;
+    return output_regions;
 }
 
 
