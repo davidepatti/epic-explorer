@@ -79,7 +79,10 @@ class Region{
 /********************************************************************************/
 //TODO: spostare in un file a parte
 
-const string to_string(Region r);
+/**
+ * category: can be "no_innovation", "low_innovation", "high_innovation"
+ */
+const string to_string(const Region r, int era, string category);
 
 const string to_string_region_concise(int era, int region_index);
 

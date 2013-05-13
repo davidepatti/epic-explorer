@@ -18,6 +18,7 @@
 
 
 string logfile;
+FILE* region_logfile;
 int myrank;
 vector<Region*> regions, no_innovation_regions;
 
@@ -42,17 +43,19 @@ bool edges_equality(const Edges& e1, const Edges& e2)
 Edges merge_intervals(Edges e1, Edges e2)
 {
 	Edges first_edges, second_edges;
-	if (e1.b < e2.a){
+	if (e1.b <= e2.a){
 		first_edges = e1; second_edges = e2;
 	} 
-	else if (e2.b < e1.a){
+	else if (e2.b <= e1.a){
 		first_edges = e2; second_edges = e1;
 	}
 	else{
 		string message = "alg_paramspace.cpp:"+ to_string(__LINE__) +
 			": ERROR: e1.a=" + to_string(e1.a)+ "; e1.b="+ to_string(e1.b)+
 			"; e2.a=" + to_string(e2.a)+ "; e2.b="+ to_string(e2.b)+
-			". This edges are not valid";
+			". This edges are not valid"+ "AGGIUNGI IL METODO verify_edges PER "+
+			"DA INVOCARE OGNI VOLTA CHE UNA REGIONE VIENE SPLITTATA, PER VERIFICARE "+
+			"SUBITO SE GLI EDGES CHE VENGONO PRODOTTI SONO VALIDI";
 		write_to_log(myrank,logfile,message);
 		exit(-8712);
 	}
@@ -124,10 +127,8 @@ Region* select_region(int era,vector<Region*> regions)
 	{
 		Region* regionn = regions[i]; // da togliere
 		double incremento = roulette_wheel_arc_length( regions[i] ); // da togliere
-		printf("incremento=%e\n",incremento);
 		//roulette_wheel_length += roulette_wheel_arc_length( regions[i] );
 		roulette_wheel_length += incremento;
-		printf("roulette wheel length=%e\n",roulette_wheel_length);
 	}
 
 	// TODO: meglio usare
@@ -135,8 +136,6 @@ Region* select_region(int era,vector<Region*> regions)
 	// solo che mi genera numeri enormi e non capisco perche'
 	double random_number =  (double)(rand()*roulette_wheel_length)/(RAND_MAX);
 
-    printf("random_number=%e\n",random_number);
- 
 	// double r =  (double)rand()/(RAND_MAX);
     // double random_point = (double)(r*total_innovation_score);
     double partial_roulette = 0;
@@ -146,7 +145,6 @@ Region* select_region(int era,vector<Region*> regions)
     	
     i--;
     
-    printf("partial_roulette=%e\n",partial_roulette);
     string message = "The next simulation will be chosen inside region " 
     	+ to_string_region_concise(era,i);
     write_to_log(myrank,logfile,message);	
@@ -350,16 +348,21 @@ void sort_by_innovation(vector<Region> * regions)
 // returned in a vector.
 vector<Region*> build_new_regions( 
 	//vector<Region*> regions, 
-	double old_average_innovation_score)
+	double old_average_innovation_score, int era)
 {
 	vector<Region*> new_regions, regions_to_merge;
 	for (int i=0; i<regions.size(); i++ )
 	{
 		Region* region = regions[i];
 		
+		//TODO: avoid to_string of "high_innovation", ....
 		if (region->innovation_score > (ALPHA * old_average_innovation_score) )
 		{
 			//high innovation region
+			#ifdef DEBUG_LEVEL_DEBUG
+			string message = to_string(*region, era, to_string("high_innovation")) + "\n";
+			fprintf(region_logfile, "%s",message.c_str()); fflush(region_logfile);
+			#endif
 			vector<Region*> out_regions = split_region(i);
 			for (int j=0; j<out_regions.size(); j++)
 				new_regions.push_back(out_regions[j]);
@@ -367,14 +370,24 @@ vector<Region*> build_new_regions(
 		else if (region->innovation_score == 0)
 		{
 			//no innovation region
+			#ifdef DEBUG_LEVEL_DEBUG
+			string message = to_string(*region, era, to_string("no_innovation") ) + "\n";
+			fprintf(region_logfile, "%s",message.c_str()); fflush(region_logfile);
+			#endif
 			regions_to_merge.push_back(region);
 		}
 		else
 		{
 			//low_innovation_region: leave it unchanged
+			#ifdef DEBUG_LEVEL_DEBUG
+			string message = to_string(*region, era, to_string("low_innovation") ) + "\n";
+			fprintf(region_logfile, "%s",message.c_str()); fflush(region_logfile);
+			#endif
 			new_regions.push_back(region);
 		}
 	}
+	
+	
 
 	// merging_mask[i] == true if the region has been merged. It is false otherwise
 	bool merging_mask[regions.size()];
@@ -445,11 +458,11 @@ Configuration fix_random_configuration(Region* region, Explorer* expl)
 
 void Explorer::start_PARAMSPACE(double alpha, int k, int max_eras)
 {
-		std:vector<Region*> provaregioni;
+/*		std:vector<Region*> provaregioni;
 		Region* provareg1,provareg2;
 		provaregioni.push_back(provareg1);
 	   	printf("!!!line %d: Primo pushback fatto\n",__LINE__); std::cin.ignore();
-
+*/
 
 
     // mpi parallel implementation currently unsupported on PARAMSPACE
@@ -460,7 +473,10 @@ void Explorer::start_PARAMSPACE(double alpha, int k, int max_eras)
     // setup some not-algorithm-related stuff before starting
     current_algo="PARAMSPACE";
     logfile = get_base_dir()+string(EE_LOG_PATH);
+    string region_logfile_name = logfile + "-region";
+    region_logfile = fopen(region_logfile_name.c_str(), "w+");
     cout << "logfile: " << logfile << endl;
+    cout << "region_logfile: " << region_logfile << endl;
 
     Exploration_stats stats;
     stats.space_size = get_space_size();
@@ -499,7 +515,6 @@ void Explorer::start_PARAMSPACE(double alpha, int k, int max_eras)
     regions.push_back(root_region);
     
     #ifdef SEVERE_DEBUG
-    printf("alg_paramspace.c %d: checking root region\n",__LINE__);
     for (int u=0; u<N_PARAMS; u++){
     	Edges edges = root_region->edges[u];
     	if (edges.a == edges.b){
@@ -514,19 +529,11 @@ void Explorer::start_PARAMSPACE(double alpha, int k, int max_eras)
 
     for (int era=0; era<max_eras; era++)
     {
-    	#ifdef DEBUG_LEVEL_DEBUG
-    		string message = "Era " + to_string(era) + ". Regions are ";
-		    write_to_log(myrank,logfile,message);
-		    for (int j=0; j<regions.size(); j++)
-			    write_to_log(myrank,logfile,
-			    	to_string_region_concise(era,j)+" = "+to_string( *(regions[j]) ) );
-			
-			#ifdef SEVERE_DEBUG
+    		#ifdef SEVERE_DEBUG
 			//Check if all regions are well formed
 			for (int j=0; j<regions.size(); j++)
 			    well_formed( *(regions[j]), this);
 			#endif
-    	#endif
     	
 		// Use the budget of k simulations
 		for(int i=0;i<k;i++)
@@ -564,7 +571,7 @@ void Explorer::start_PARAMSPACE(double alpha, int k, int max_eras)
 				to_string(era_innovation_score);
 		write_to_log(myrank,logfile,message);
 				
-		/*regions = */build_new_regions(/*regions, */old_era_innovation_score / regions.size());
+		build_new_regions(old_era_innovation_score / regions.size(),era);
 		
 		char era_string[30];
 		sprintf(era_string, "_%d", era);
@@ -575,7 +582,10 @@ void Explorer::start_PARAMSPACE(double alpha, int k, int max_eras)
 			current_space+"_gen"+string(era_string)+".pareto.exp");
 
 	}
-
+	fprintf(region_logfile, "ATTENZIONE. e' strano che quando una high innovation \
+		region viene divisa, l'unico parametro splittato e' l'ultimo");
+	
+	fclose(region_logfile);
 
     // save statistics
     stats.end_time = time(NULL);
@@ -591,14 +601,13 @@ void Explorer::start_PARAMSPACE(double alpha, int k, int max_eras)
 /********************************************************************************/
 //TODO: spostare in un file a parte
 
-const string to_string(Region r)
+const string to_string(const Region r, int era, string category)
 {
-	string s="[";
+	string s = to_string_region_concise(era, r.id) + " " + category;
 	for (int i=0; i<N_PARAMS; i++)
 	{
-		s = s+ to_string(r.edges[i].a)+ ":"+ to_string(r.edges[i].b)+";  ";
+		s = s+" "+ to_string(r.edges[i].a)+ ":"+ to_string(r.edges[i].b);
 	}
-	s = s+"]";
 	return s;
 }
 
@@ -618,7 +627,6 @@ void well_formed(Region r, Explorer* expl)
 		if (edges.b >= par.get_values().size())
 		{
 			printf("alg_paramspace.cpp %d: Error checking region\n",__LINE__ );
-			cout << to_string(r) << "\n";
 			printf("parameter %d has %d values while edges.b=%d\n",
 				j, par.get_values().size(), edges.b );
 			exit(-761);
