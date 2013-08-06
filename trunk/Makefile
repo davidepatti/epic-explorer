@@ -21,6 +21,15 @@ CFLAGS += -DNDEBUG
 #CFLAGS += -g -DDEBUG
 endif
 
+#<aa> added by andrea.araldo@gmail.com
+# If it is defined, a lot of redundant and overabundant checks will be performed to 
+# check for inconsistent states or data. This can be useful when you edit the code to be
+# sure that the modifications do not produce those inconcistencies</aa>
+CFLAGS += -DSEVERE_DEBUG
+#</aa>
+
+
+
 all: epic
 
 epic: ${GALIB_DIR}/libspea2.a compiler.o explorer.o alg_dep.o alg_random.o alg_sensivity.o alg_genetic.o \
