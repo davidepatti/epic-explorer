@@ -1960,7 +1960,13 @@ void Explorer::load_space_file(const string& filename)
 	string logfile = get_base_dir()+string(EE_LOG_PATH);
 	int myid = get_mpi_rank();
 	write_to_log(myid,logfile,"ERROR: cannot load " + filename);
-	cout << "\n ERROR: cannot load " << filename;
+	cout << "\n ERROR: cannot load " << filename << "Try to run post_install.sh again to fix the problem\n";
+	
+	//<aa>
+	#ifdef SEVERE_DEBUG
+	exit(EXIT_FAILURE);
+	#endif
+	//</aa>
 	sleep(2);
    }
    else

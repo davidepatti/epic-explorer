@@ -174,12 +174,34 @@ void Parameter::set_values(Parameter parameter)
 
 int Parameter::get_first()
 {
+#ifdef SEVERE_DEBUG
+  if ( values.size()<= 0 )
+  {
+  	cout << "Parameter " << get_label();
+	printf("\nparameter.cpp %d: FATAL ERROR: values.size()=%u\n",__LINE__ ,values.size() );
+	exit(EXIT_FAILURE);
+  }
+#endif
   return values[0];
 }
 
 int Parameter::get_last()
 {
-  return values[values.size()-1];
+#ifdef SEVERE_DEBUG
+  if ( values.size()<= 0 )
+  {
+  	cout << "Parameter " << get_label();
+	printf("\nparameter.cpp %d: FATAL ERROR: values.size()=%u\n",__LINE__ ,values.size() );
+	exit(EXIT_FAILURE);
+  }
+#endif
+  printf("\nCalculating i\n");
+  int i = values.size()-1;
+  printf("\nCalculating last_value from %u values\n", values.size() );
+  int last_value = values[i];
+  printf("\nCiao\n");
+  return last_value;
+
 }
 
 int Parameter::get_pos(int value)

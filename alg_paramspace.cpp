@@ -18,6 +18,7 @@
 
 
 string logfile;
+EraDescriptor current_era_descriptor;
 FILE* region_logfile;
 int myrank;
 vector<Region*> regions, no_innovation_regions;
@@ -28,7 +29,64 @@ Region::Region(){
 				edges[i].a=0; edges[i].b=0;
 			}
 		}
-  
+
+EraDescriptor::EraDescriptor(){
+	era_id = -1;
+}
+
+void EraDescriptor::reinitialize(int era_id_)
+{
+	era_id = era_id_;
+	high_innovation_regions.clear();
+	no_innovation_regions.clear();
+	low_innovation_regions.clear();
+}
+
+void EraDescriptor::add_region(
+	unsigned region_id, double innovation_score, region_category category)
+{
+	#ifdef SEVERE_DEBUG
+	if (era_id < 0){
+		printf("\nalg_paramspace.cpp %d: FATAL ERROR: maybe you forgot to call reinitialize(..) and the era id is not initialized\n", __LINE__);
+		exit(EXIT_FAILURE);
+	}
+	#endif
+	
+	switch(category)
+	{
+		HIGH_INNOVATION:	high_innovation_regions[region_id] = innovation_score;
+							break;
+							
+		NO_INNOVATION:		no_innovation_regions[region_id] = innovation_score;
+							break;
+							
+		LOW_INNOVATION:		low_innovation_regions[region_id] = innovation_score;
+							break;
+
+		default:			printf("\nalg_paramspace.cpp %d: FATAL ERROR\n", __LINE__);
+							exit(EXIT_FAILURE);
+	}
+}
+
+const string EraDescriptor::tostring()
+{
+	string return_value = to_string(era_id)+": ";
+
+	map<unsigned,double>::iterator it;
+	for(it=high_innovation_regions.begin(); it!=high_innovation_regions.end(); ++it)
+		return_value += to_string(it->first ) + "," + to_string(it->second ) + " ";
+		
+	return_value += "| ";
+	for(it=no_innovation_regions.begin(); it!=no_innovation_regions.end(); ++it)
+		return_value += to_string(it->first ) + "," + to_string(it->second ) + " ";
+
+	return_value += "| ";
+	for(it=low_innovation_regions.begin(); it!=low_innovation_regions.end(); ++it)
+		return_value += to_string(it->first ) + "," + to_string(it->second ) + " ";
+	
+	return return_value;
+}
+
 
 
 // TODO: sistemare correttamente la questione del seed
@@ -88,8 +146,10 @@ EParameterType get_splitting_parameter()
 // At the end of this method, r will be a region including all the parameter space
 void transform_to_root_region(Region* r, Explorer* expl)
 {
+	printf("\nPrima di getParameterRanges()\n");
 	vector<pair<int,int> > ranges = expl->getParameterRanges();
-	
+	#ifdef SEVERE_DEBUG
+	printf("\nDopo getParameterRanges()\n");
 	if (ranges.size() != N_PARAMS)
 	{
 		string message = "alg_paramspace.cpp:"+ to_string(__LINE__) +": ERROR: N_PARAMS=" + 
@@ -98,6 +158,7 @@ void transform_to_root_region(Region* r, Explorer* expl)
 		write_to_log(myrank,logfile,message);
 		exit(-716);
 	}
+	#endif
 	
 	for(int i=0; i<N_PARAMS; i++)
 	{
@@ -194,6 +255,10 @@ vector<Region*> split_region(int region_index)
 		exit(-12721);
     }
     
+	printf("\nalg_paramsapce.cpp %d: assegnare id alle nuove regioni\n", __LINE__);
+	exit(EXIT_FAILURE);
+
+    
     return output_regions;
 }
 
@@ -202,6 +267,10 @@ vector<Region*> split_region(int region_index)
 // Else, return NULL.
 Region* merge_regions(Region* r1, Region* r2)
 {
+	printf("\nalg_paramsapce.cpp %d: assegnare id alla nuova regione\n", __LINE__);
+	exit(EXIT_FAILURE);
+
+
     // TBD: what returns when merging is not possible ?
     Region* r=NULL;
     Edges merged_interval;
@@ -300,12 +369,21 @@ double update_region_innovation_scores(int era,vector<Region*> regions,
 		//	do nothing because this region has negative innovation_score
 	}
 
+	// We will take, one by one, all the configurations in the new pareto set.
+	// For each of them, we will calculate the innovation score, we will retrieve
+	// the region which contains that configuration and update the innovation score
+	// of that region accordingly.
     for (int i=0; i<new_pareto_set.size(); i++)
     {
     	Simulation s = new_pareto_set[i];
    		Region* region = (Region*) (s.config.pointer);
+
+   		// Notice that if a configuration of the new_pareto_set is already contained
+   		// in the old_pareto_set, its innovation score is 0.
+   		// This is the same as considering only the configurations added by the current era
+   		double config_innovation_score = get_innovation_score(s,old_pareto_set);
    		
-   		if (region->innovation_score<0 && get_innovation_score(s,old_pareto_set)>0){
+   		if (region->innovation_score<0 && config_innovation_score>0){
 	   		// We thought that this region was useless, whereas it has a configuration 
 	   		// in the new pareto set. Before updating the innovation score of this region,
 	   		// its penalty (i.e. the negative innovation_score) must be removed
@@ -320,9 +398,6 @@ double update_region_innovation_scores(int era,vector<Region*> regions,
 		
    		
    		
-   		// Notice that if a configuration of the new_pareto_set is already contained
-   		// in the old_pareto_set, its innovation score is 0
-   		double config_innovation_score = get_innovation_score(s,old_pareto_set);
    		region->innovation_score += config_innovation_score;
    		total_innovation_score += config_innovation_score;
     }	
@@ -359,10 +434,8 @@ vector<Region*> build_new_regions(
 		if (region->innovation_score > (ALPHA * old_average_innovation_score) )
 		{
 			//high innovation region
-			#ifdef DEBUG_LEVEL_DEBUG
-			string message = to_string(*region, era, to_string("high_innovation")) + "\n";
-			fprintf(region_logfile, "%s",message.c_str()); fflush(region_logfile);
-			#endif
+			current_era_descriptor.add_region(region->id, region->innovation_score, 
+														HIGH_INNOVATION);
 			vector<Region*> out_regions = split_region(i);
 			for (int j=0; j<out_regions.size(); j++)
 				new_regions.push_back(out_regions[j]);
@@ -370,19 +443,15 @@ vector<Region*> build_new_regions(
 		else if (region->innovation_score == 0)
 		{
 			//no innovation region
-			#ifdef DEBUG_LEVEL_DEBUG
-			string message = to_string(*region, era, to_string("no_innovation") ) + "\n";
-			fprintf(region_logfile, "%s",message.c_str()); fflush(region_logfile);
-			#endif
+			current_era_descriptor.add_region(region->id, region->innovation_score, 
+														NO_INNOVATION);
 			regions_to_merge.push_back(region);
 		}
 		else
 		{
 			//low_innovation_region: leave it unchanged
-			#ifdef DEBUG_LEVEL_DEBUG
-			string message = to_string(*region, era, to_string("low_innovation") ) + "\n";
-			fprintf(region_logfile, "%s",message.c_str()); fflush(region_logfile);
-			#endif
+			current_era_descriptor.add_region(region->id,region->innovation_score, 
+														LOW_INNOVATION);
 			new_regions.push_back(region);
 		}
 	}
@@ -426,6 +495,11 @@ vector<Region*> build_new_regions(
 	return regions;
 }
 
+void update_region_logfile()
+{
+	printf("\nalg_paramsapce.cpp %d: DA IMPLEMENTARE\n", __LINE__);
+	exit(EXIT_FAILURE);
+}
 
 Configuration fix_random_configuration(Region* region, Explorer* expl)
 {
@@ -476,7 +550,7 @@ void Explorer::start_PARAMSPACE(double alpha, int k, int max_eras)
     string region_logfile_name = logfile + "-region";
     region_logfile = fopen(region_logfile_name.c_str(), "w+");
     cout << "logfile: " << logfile << endl;
-    cout << "region_logfile: " << region_logfile << endl;
+    cout << "region_logfile: " << region_logfile_name << endl;
 
     Exploration_stats stats;
     stats.space_size = get_space_size();
@@ -510,7 +584,6 @@ void Explorer::start_PARAMSPACE(double alpha, int k, int max_eras)
     double old_average_innovation_score, new_average_innovation_score;
 
 	Region* root_region = new Region();
-//    Region* root_region = (Region*)malloc(sizeof(Region));
     transform_to_root_region(root_region, this);
     regions.push_back(root_region);
     
@@ -518,28 +591,33 @@ void Explorer::start_PARAMSPACE(double alpha, int k, int max_eras)
     for (int u=0; u<N_PARAMS; u++){
     	Edges edges = root_region->edges[u];
     	if (edges.a == edges.b){
-    		printf("alg_paramspace.cpp %d: ERROR\n",__LINE__);
+    		printf("alg_paramspace.cpp %d: ERROR: it's very strange that the root region has an edge composed by only one value. If you think that this is not an error, remove this check and recoompile\n",__LINE__);
     		exit(65431);
     	}
     }	
     #endif
     
-    // create a space of k randomly chosen configurations
+    //In every era, new configurations to simulate will be added. Notice that the configurations
+    //are simulated every era invoking simulate_space(configs_to_simulate) but if a configuration
+    //was already simulated in a previous era, the simulation will not be run again.
     vector<Configuration> configs_to_simulate;
 
     for (int era=0; era<max_eras; era++)
     {
-    		#ifdef SEVERE_DEBUG
-			//Check if all regions are well formed
-			for (int j=0; j<regions.size(); j++)
-			    well_formed( *(regions[j]), this);
-			#endif
+		#ifdef SEVERE_DEBUG
+		//Check if all regions are well formed
+		for (int j=0; j<regions.size(); j++)
+			well_formed( *(regions[j]), this);
+		#endif
+		
+		current_era_descriptor.reinitialize(era);
+    	
+    	// #### FIRST PHASE OF THE ERA: choice of the configuration to simulate
     	
 		// Use the budget of k simulations
 		for(int i=0;i<k;i++)
 		{
 			Region* selected_region = select_region(era,regions);
-			
 			Configuration temp_conf = fix_random_configuration(selected_region,this);
 			
 			
@@ -551,12 +629,16 @@ void Explorer::start_PARAMSPACE(double alpha, int k, int max_eras)
 			
 		}
 
-
-		message = header+ "In era "+to_string(era)+", among "+to_string(k)+
-			" valid configurations, "+ to_string(k) + " are valid";
+		message = header+ "In era "+to_string(era)+", "+to_string(k)+
+			" configurations were added. The valid configurations (starting from the era 0) are "+ to_string(valid);
 		write_to_log(myrank,logfile,message);
 
+    	// #### SECOND PHASE OF THE ERA: simulations of choses configurations
+    	
 		vector<Simulation> current_sims = simulate_space(configs_to_simulate);
+		
+		
+    	// #### THIRD PHASE OF THE ERA: pareto set and innovation_scores calculation
 		
 		//TODO: Dobbiamo distruggere l'old_pareto_set prima?
 		
@@ -570,8 +652,16 @@ void Explorer::start_PARAMSPACE(double alpha, int k, int max_eras)
 		message = header+ "Era "+to_string(era)+": total innovation score= "+
 				to_string(era_innovation_score);
 		write_to_log(myrank,logfile,message);
-				
+
+
+    	// #### FOURTH PHASE OF THE ERA: calculation of the regions of the next era
 		build_new_regions(old_era_innovation_score / regions.size(),era);
+		
+		// Even if the regions for the next era have been built, the current_era_descriptor
+		// has been updated by build_new_regions(..) with the information about the regions 
+		// of the current era. Therefore, we can update the region log file with the region
+		// of the current era with the following function that is based on current_era_descriptor
+		update_region_logfile();
 		
 		char era_string[30];
 		sprintf(era_string, "_%d", era);
@@ -582,9 +672,7 @@ void Explorer::start_PARAMSPACE(double alpha, int k, int max_eras)
 			current_space+"_gen"+string(era_string)+".pareto.exp");
 
 	}
-	fprintf(region_logfile, "ATTENZIONE. e' strano che quando una high innovation \
-		region viene divisa, l'unico parametro splittato e' l'ultimo");
-	
+
 	fclose(region_logfile);
 
     // save statistics

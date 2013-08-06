@@ -20,11 +20,12 @@
 
 #define ALPHA 1.0 //Used to decide whether a region has high, low or no innovation
 #define DEBUG_LEVEL_DEBUG 1
-#define SEVERE_DEBUG 1
 
+#include <map>
 
 using namespace std;
 
+enum region_category{HIGH_INNOVATION, NO_INNOVATION, LOW_INNOVATION};
 
 typedef struct 
 {
@@ -60,7 +61,7 @@ private:
 
 class Region{
 	public:
-		double id;
+		unsigned id;
 		double innovation_score;
 		bool valid;
 	
@@ -70,6 +71,26 @@ class Region{
 		Region();
 	
 //  ~Region();
+};
+
+/**
+ * It describes an era. In particular, it holds information about:
+ * - which regions are present in that era
+ * - the innovation score of each of such regions
+ * - the classification in high, mid and low region
+ */
+class EraDescriptor{
+	private:
+		int era_id;
+		std::map<unsigned, double> high_innovation_regions;
+		std::map<unsigned, double> no_innovation_regions;
+		std::map<unsigned, double> low_innovation_regions;
+
+	public:
+		EraDescriptor();
+		void reinitialize(int era_id_);
+		void add_region(unsigned region_id, double innovation_score, region_category category);
+		const string tostring();
 };
 
 
