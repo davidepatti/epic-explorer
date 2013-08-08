@@ -19,30 +19,95 @@
 
 string logfile;
 EraDescriptor current_era_descriptor;
+RegionHandler region_handler;
 FILE* region_logfile;
+FILE* era_logfile;
 int myrank;
-vector<Region*> regions, no_innovation_regions;
+//vector<Region*> regions;
 
 Region::Region(){
 			id=0; innovation_score=0; valid=false;
 			for (int i=0; i<N_PARAMS; i++){
 				edges[i].a=0; edges[i].b=0;
 			}
-		}
+}
+
+void Region::set_edges(const Edges* src_edges){
+	memcpy( (void*)edges, (const void*)src_edges, sizeof(Edges)*N_PARAMS );
+}
+
+const string Region::tostring()
+{
+	string s= to_string(id);
+	for (int i=0; i<N_PARAMS; i++)
+		s = s+" "+ to_string(edges[i].a)+ ":"+ to_string( edges[i].b);
+
+	return s;
+}
 
 EraDescriptor::EraDescriptor(){
 	era_id = -1;
 }
 
+RegionHandler::RegionHandler(){
+	last_region_id = 0;
+}
+
+void RegionHandler::add_region_to_next_era(Region *r)
+{
+	if(r->id == 0){
+		// This region has never seen before and has no id assigned. Assign a new id
+		// and print it
+		r->id = ++last_region_id;
+		fprintf(region_logfile, "%s\n", r->tostring().c_str() );
+	}
+
+	next_era_regions.push_back(r);
+}
+
+void RegionHandler::new_era_initialization()
+{
+	//TODO: find a more efficient way without swapping.
+	current_era_regions.swap(next_era_regions);
+	
+	next_era_regions.clear();
+	for(int i=0; i<regions_to_be_deleted.size(); i++)
+		delete regions_to_be_deleted[i];
+	
+}
+
+	const vector<Region*> RegionHandler::get_current_era_regions(){
+	return (const vector<Region*> ) current_era_regions;
+}
+
+const Region* RegionHandler::get_current_era_region(unsigned region_index){
+	return current_era_regions[region_index];
+}
+
+void RegionHandler::annotate_for_deletion(const Region* r)
+{
+		regions_to_be_deleted.push_back( (Region*)r);
+}
+
+#ifdef SEVERE_DEBUG
+void RegionHandler::check_regions(Explorer* expl)
+{
+		//Check if all regions are well formed
+		for (int j=0; j<current_era_regions.size(); j++)
+			well_formed( *(current_era_regions[j]), expl);
+}
+#endif
+
 void EraDescriptor::reinitialize(int era_id_)
 {
 	era_id = era_id_;
-	high_innovation_regions.clear();
-	no_innovation_regions.clear();
-	low_innovation_regions.clear();
+	
+	high_innovation_region_descriptors.clear();
+	no_innovation_region_descriptors.clear();
+	low_innovation_region_descriptors.clear();
 }
 
-void EraDescriptor::add_region(
+void EraDescriptor::add_region_descriptor(
 	unsigned region_id, double innovation_score, region_category category)
 {
 	#ifdef SEVERE_DEBUG
@@ -54,17 +119,21 @@ void EraDescriptor::add_region(
 	
 	switch(category)
 	{
-		HIGH_INNOVATION:	high_innovation_regions[region_id] = innovation_score;
-							break;
+		case HIGH_INNOVATION:	
+					high_innovation_region_descriptors[region_id] = innovation_score;
+					break;
 							
-		NO_INNOVATION:		no_innovation_regions[region_id] = innovation_score;
-							break;
+		case NO_INNOVATION:		
+					no_innovation_region_descriptors[region_id] = innovation_score;
+					break;
 							
-		LOW_INNOVATION:		low_innovation_regions[region_id] = innovation_score;
-							break;
+		case LOW_INNOVATION:		
+					low_innovation_region_descriptors[region_id] = innovation_score;
+					break;
 
-		default:			printf("\nalg_paramspace.cpp %d: FATAL ERROR\n", __LINE__);
-							exit(EXIT_FAILURE);
+		default:			
+					printf("\nalg_paramspace.cpp %d: FATAL ERROR: innovation category \"%d\"is invalid\n", __LINE__, category);
+					exit(EXIT_FAILURE);
 	}
 }
 
@@ -73,15 +142,21 @@ const string EraDescriptor::tostring()
 	string return_value = to_string(era_id)+": ";
 
 	map<unsigned,double>::iterator it;
-	for(it=high_innovation_regions.begin(); it!=high_innovation_regions.end(); ++it)
+	for(	it=high_innovation_region_descriptors.begin(); 
+			it!=high_innovation_region_descriptors.end(); ++it
+	)
 		return_value += to_string(it->first ) + "," + to_string(it->second ) + " ";
 		
 	return_value += "| ";
-	for(it=no_innovation_regions.begin(); it!=no_innovation_regions.end(); ++it)
+	for(	it=no_innovation_region_descriptors.begin(); 
+			it!=no_innovation_region_descriptors.end(); ++it
+	)
 		return_value += to_string(it->first ) + "," + to_string(it->second ) + " ";
 
 	return_value += "| ";
-	for(it=low_innovation_regions.begin(); it!=low_innovation_regions.end(); ++it)
+	for(	it=low_innovation_region_descriptors.begin(); 
+			it!=low_innovation_region_descriptors.end(); ++it
+	)
 		return_value += to_string(it->first ) + "," + to_string(it->second ) + " ";
 	
 	return return_value;
@@ -97,7 +172,8 @@ bool edges_equality(const Edges& e1, const Edges& e2)
 	return (e1.a == e2.a && e1.b == e2.b );
 }
 
-// Return edges with edges.a=-1 and edges.b=-1 if it is not possible to merge
+// Return edges with edges.a=-1 and edges.b=-1 if it is not possible to merge.
+// If the merge is possible, return the merged edges.
 Edges merge_intervals(Edges e1, Edges e2)
 {
 	Edges first_edges, second_edges;
@@ -146,10 +222,8 @@ EParameterType get_splitting_parameter()
 // At the end of this method, r will be a region including all the parameter space
 void transform_to_root_region(Region* r, Explorer* expl)
 {
-	printf("\nPrima di getParameterRanges()\n");
 	vector<pair<int,int> > ranges = expl->getParameterRanges();
 	#ifdef SEVERE_DEBUG
-	printf("\nDopo getParameterRanges()\n");
 	if (ranges.size() != N_PARAMS)
 	{
 		string message = "alg_paramspace.cpp:"+ to_string(__LINE__) +": ERROR: N_PARAMS=" + 
@@ -181,7 +255,7 @@ double roulette_wheel_arc_length(Region* r)
 // Implementa l'algoritmo di roulette wheel. L'ampiezza dell'arco associato a 
 // ciascuna regione e' 1 oppure, se is e' negativo, 2^is (is e' l'innovation score 
 // della regione
-Region* select_region(int era,vector<Region*> regions)
+Region* select_region(int era,const vector<Region*> regions)
 {
 	double roulette_wheel_length = 0;
 	for (int i=0; i<regions.size(); i++)
@@ -206,28 +280,35 @@ Region* select_region(int era,vector<Region*> regions)
     	
     i--;
     
-    string message = "The next simulation will be chosen inside region " 
-    	+ to_string_region_concise(era,i);
-    write_to_log(myrank,logfile,message);	
+    string message = "Era "+to_string(era)+":The next simulation will be chosen \
+    	inside region " + to_string( regions[i]->id );
+    write_to_log(myrank,logfile,message);
     
     return regions[i];
 }
 
 
-vector<Region*> split_region(int region_index)
+void split_region(unsigned region_index)
 {
+	cout << "\nAttenzione: lo split delle regioni e' sbagliato\n";
+
     // we just want to split in 2, but leaving vector for general case
-    Region* region = regions[region_index];
+    //Region* region = regions[region_index];
+    const Region* region = region_handler.get_current_era_region(region_index);
     
     Region *r1,*r2;
     vector<Region*> output_regions;
     EParameterType splitting_parameter = get_splitting_parameter();
     
-    Edges* interval = &(region->edges[splitting_parameter]);
+    const Edges* interval = &(region->edges[splitting_parameter]);
 	int interval_size = (interval->b) - (interval->a) +1;
     
+    //TODO: to decrease the number of requested era, maybe we can select the splitting
+    //parameter only among the ones that have an interval size > 1.
     if (interval_size == 1){
-    	output_regions.push_back(region);
+    	// The selected interval cannot be split. Therefore, the region cannot 
+    	// be split.
+    	region_handler.add_region_to_next_era( (Region*) region);
     }
     else if (interval_size > 1)
     {
@@ -238,15 +319,19 @@ vector<Region*> split_region(int region_index)
     	interval2.b = interval->b;
     	interval2.a = interval1.b + 1;
     	
-    	r1 = region;
+    	r1 = new Region(); 
+    	r1->set_edges( region->edges );
+
     	r2 = new Region();
     	
     	r1->edges[splitting_parameter] = interval1;
     	r2->edges[splitting_parameter] = interval2;
     	
-		output_regions.push_back(r1);
-	    output_regions.push_back(r2);
-    }else{
+    	region_handler.annotate_for_deletion(region);
+		region_handler.add_region_to_next_era(r1);
+	    region_handler.add_region_to_next_era(r2);
+    }
+    else{
     	// This is a debug check
     	string message = "alg_paramspace.cpp:"+ to_string(__LINE__) +
 			": ERROR: = splitting_parameter="+ to_string(splitting_parameter)+
@@ -254,23 +339,13 @@ vector<Region*> split_region(int region_index)
 		write_to_log(myrank,logfile,message);
 		exit(-12721);
     }
-    
-	printf("\nalg_paramsapce.cpp %d: assegnare id alle nuove regioni\n", __LINE__);
-	exit(EXIT_FAILURE);
-
-    
-    return output_regions;
 }
 
 
 // If r1 and r2 are contiguous, return the merged region and deallocate r1 and r2.
 // Else, return NULL.
-Region* merge_regions(Region* r1, Region* r2)
+Region* merge_regions(const Region* r1, const Region* r2)
 {
-	printf("\nalg_paramsapce.cpp %d: assegnare id alla nuova regione\n", __LINE__);
-	exit(EXIT_FAILURE);
-
-
     // TBD: what returns when merging is not possible ?
     Region* r=NULL;
     Edges merged_interval;
@@ -286,19 +361,33 @@ Region* merge_regions(Region* r1, Region* r2)
     		num_equal_edges += 1;
     	
     	else{
-    	
     		Edges new_interval = merge_intervals(e1, e2);
+    		
+    		#ifdef SEVERE_DEBUG
+    		if (	(new_interval.a==-1 && new_interval.b!=-1 ) ||
+		    		(new_interval.a!=-1 && new_interval.b==-1 )
+    		){
+				printf("\nalg_paramspace.cpp %d: FATAL ERROR: Inconsistent return \
+						value from merge_intervals(..) \n",__LINE__);
+				exit(EXIT_FAILURE);
+			}
+    		#endif
     		
     		if (new_interval.a==-1 || new_interval.b==-1)
     		{
-	    		// This is a debug check:
+    			cout << "Che significa che sono -1";
+    			exit(EXIT_FAILURE);
+    		
+	    		#ifdef SEVERE_DEBUG
 	    		if (merging_parameter >= 0)
-    			{
+    			{	//A previous merging parameter has already been found. Error
 					string message = "alg_paramspace.cpp:"+ to_string(__LINE__) +
 						": ERROR: = two merging parameters has been found. It is not possible";
 					write_to_log(myrank,logfile,message);
+					cout << message;
 					exit(-123221);
 				}
+				#endif
 				
 				
 				//else
@@ -306,23 +395,35 @@ Region* merge_regions(Region* r1, Region* r2)
 				merged_interval = new_interval;
     		}
     	}
-    }
+    } // end of for loop
     
-    if (num_equal_edges == N_PARAMS-1   ||    merging_parameter >= 0)
+    if (num_equal_edges == N_PARAMS-1   &&    merging_parameter >= 0)
     {
-    	// r1 is transformed in the new region
-    	r1->edges[merging_parameter] = merged_interval;
+    	Region* merged_region = new Region();
+    	
+    	merged_region->set_edges( r1->edges );
+    	merged_region->edges[merging_parameter] = merged_interval;
     	
     	// the new region is given the max between the innovation scores of r1 and r2
-    	r1->innovation_score = 
+    	merged_region->innovation_score = 
     		r1->innovation_score >= r2->innovation_score ?
     		r1->innovation_score : r2->innovation_score;
     		
-    	delete r2;
-    	return r1;
+    	return merged_region;
     }
-    else
+    else{ // The merge is not possible
+    
+    	#ifdef SEVERE_DEBUG
+    	if (num_equal_edges == N_PARAMS){
+    		printf("\nalg_paramspace.cpp %d: FATAL ERROR: Two identical \
+    					regions have been found\n",__LINE__);
+    		exit(EXIT_FAILURE);
+    	}
+    	#endif
+    	
     	return NULL;
+    }
+    	
 }
 
 
@@ -352,12 +453,11 @@ double get_innovation_score(const Simulation& s, vector<Simulation> pareto)
     return innovation_score;
 }
 
-//TODO: mqybe the average innovation score must be returned
-// Calculate the innovation_score of each region. Return the sum of all innovation
-// scores
-double update_region_innovation_scores(int era,vector<Region*> regions, 
+double RegionHandler::update_innovation_scores_of_current_era_regions(
+	int era,
 	vector<Simulation> old_pareto_set, vector<Simulation> new_pareto_set)
 {
+	vector<Region*> regions = current_era_regions;
 	double total_innovation_score = 0;
 	
 	// Clear the innovaton score of all regions
@@ -404,8 +504,9 @@ double update_region_innovation_scores(int era,vector<Region*> regions,
 
 	#ifdef DEBUG_LEVEL_DEBUG
 		for (int i=0; i<regions.size(); i++){
-			string message = "Innovation score of "+to_string_region_concise(era,i)
-				+": "+to_string(regions[i]->innovation_score) ;
+			string message = "Era "+to_string(era)+": Innovation score of region " +
+					to_string( regions[i]->id ) +
+					": "+to_string(regions[i]->innovation_score) ;
 		    write_to_log(myrank,logfile,message);
    		}
 	#endif
@@ -421,45 +522,44 @@ void sort_by_innovation(vector<Region> * regions)
 // If a region has high innovation, split it. If it has low innovation, do nothing.
 // If it has no_innovation try to merge. All the regions obtained as above are 
 // returned in a vector.
-vector<Region*> build_new_regions( 
+void build_next_era_regions( 
 	//vector<Region*> regions, 
 	double old_average_innovation_score, int era)
 {
-	vector<Region*> new_regions, regions_to_merge;
-	for (int i=0; i<regions.size(); i++ )
+	vector<Region*> regions_to_merge;
+	for (int i=0; i<region_handler.get_current_era_regions().size(); i++ )
 	{
-		Region* region = regions[i];
+		const Region* region = region_handler.get_current_era_region(i);
 		
-		//TODO: avoid to_string of "high_innovation", ....
 		if (region->innovation_score > (ALPHA * old_average_innovation_score) )
 		{
 			//high innovation region
-			current_era_descriptor.add_region(region->id, region->innovation_score, 
-														HIGH_INNOVATION);
-			vector<Region*> out_regions = split_region(i);
-			for (int j=0; j<out_regions.size(); j++)
-				new_regions.push_back(out_regions[j]);
+			current_era_descriptor.add_region_descriptor(
+						region->id, region->innovation_score, HIGH_INNOVATION);
+			split_region(i);
 		}
 		else if (region->innovation_score == 0)
 		{
 			//no innovation region
-			current_era_descriptor.add_region(region->id, region->innovation_score, 
-														NO_INNOVATION);
-			regions_to_merge.push_back(region);
+			current_era_descriptor.add_region_descriptor(
+						region->id, region->innovation_score, NO_INNOVATION);
+			regions_to_merge.push_back( (Region*) region);
+			//We will try to merge this region with other ones, later
+			
 		}
 		else
 		{
 			//low_innovation_region: leave it unchanged
-			current_era_descriptor.add_region(region->id,region->innovation_score, 
-														LOW_INNOVATION);
-			new_regions.push_back(region);
+			current_era_descriptor.add_region_descriptor(
+						region->id,region->innovation_score, LOW_INNOVATION);
+			region_handler.add_region_to_next_era( (Region*)region );
 		}
 	}
 	
 	
 
 	// merging_mask[i] == true if the region has been merged. It is false otherwise
-	bool merging_mask[regions.size()];
+	bool merging_mask[ region_handler.get_current_era_regions().size() ];
 
 	// Now, try to merge the regions_to_merge
 	for (int i=0; i<regions_to_merge.size(); i++)
@@ -468,12 +568,15 @@ vector<Region*> build_new_regions(
 		{
 			if (!merging_mask[j])
 			{
+				//The j-th region han not been merged yet
 				Region* merged_region = 
 					merge_regions(regions_to_merge[i], regions_to_merge[j] );
 
 				if (merged_region != NULL)
 				{
-					new_regions.push_back(merged_region);
+					region_handler.annotate_for_deletion( regions_to_merge[i] );
+					region_handler.annotate_for_deletion( regions_to_merge[j] );
+					region_handler.add_region_to_next_era(merged_region);
 					merging_mask[i]=true;
 					merging_mask[j]=true;
 				}
@@ -486,31 +589,22 @@ vector<Region*> build_new_regions(
 		{
 			// regions_to_merge[i] can not be merged with any other region
 			regions_to_merge[i]->innovation_score += -1;
-			new_regions.push_back(regions_to_merge[i]);
+			region_handler.add_region_to_next_era(regions_to_merge[i]);
 		}
 	}
-	//TODO: find a more efficient way without swapping. It would be best if we are able to 
-	//use only the vector regions, without using another vector and then swap .
-	regions.swap(new_regions);
-	return regions;
 }
 
-void update_region_logfile()
+void update_era_logfile()
 {
-	printf("\nalg_paramsapce.cpp %d: DA IMPLEMENTARE\n", __LINE__);
-	exit(EXIT_FAILURE);
+	fprintf(era_logfile, "%s\n", current_era_descriptor.tostring().c_str() );
 }
 
 Configuration fix_random_configuration(Region* region, Explorer* expl)
 {
-			printf("Sono dentro fix_random_configuration\n");
 			#ifdef SEVERE_DEBUG
 				well_formed(*region,expl);
 			#endif
 				
-			printf("Sono dopo il well-formed\n");
-
-			
 			Configuration conf;
 			for (int j=0; j<N_PARAMS; j++)
 			{
@@ -549,8 +643,11 @@ void Explorer::start_PARAMSPACE(double alpha, int k, int max_eras)
     logfile = get_base_dir()+string(EE_LOG_PATH);
     string region_logfile_name = logfile + "-region";
     region_logfile = fopen(region_logfile_name.c_str(), "w+");
+    string era_logfile_name = logfile + "-era";
+    era_logfile = fopen(era_logfile_name.c_str(), "w+");
     cout << "logfile: " << logfile << endl;
     cout << "region_logfile: " << region_logfile_name << endl;
+    cout << "era_logfile: " << era_logfile_name << endl;
 
     Exploration_stats stats;
     stats.space_size = get_space_size();
@@ -585,7 +682,7 @@ void Explorer::start_PARAMSPACE(double alpha, int k, int max_eras)
 
 	Region* root_region = new Region();
     transform_to_root_region(root_region, this);
-    regions.push_back(root_region);
+    region_handler.add_region_to_next_era(root_region);
     
     #ifdef SEVERE_DEBUG
     for (int u=0; u<N_PARAMS; u++){
@@ -604,29 +701,31 @@ void Explorer::start_PARAMSPACE(double alpha, int k, int max_eras)
 
     for (int era=0; era<max_eras; era++)
     {
+	    write_to_log(myrank,logfile,"\n");
+		message = header+ "Era "+to_string(era)+" started";
+		write_to_log(myrank,logfile,message);
+    
+		current_era_descriptor.reinitialize(era);
+		region_handler.new_era_initialization();
+		
 		#ifdef SEVERE_DEBUG
-		//Check if all regions are well formed
-		for (int j=0; j<regions.size(); j++)
-			well_formed( *(regions[j]), this);
+		region_handler.check_regions(this);
 		#endif
 		
-		current_era_descriptor.reinitialize(era);
-    	
     	// #### FIRST PHASE OF THE ERA: choice of the configuration to simulate
     	
 		// Use the budget of k simulations
 		for(int i=0;i<k;i++)
 		{
-			Region* selected_region = select_region(era,regions);
+			Region* selected_region = 
+				select_region(era,region_handler.get_current_era_regions() );
 			Configuration temp_conf = fix_random_configuration(selected_region,this);
-			
-			
+						
 			if (temp_conf.is_feasible())
 			{
 				valid++;
 				configs_to_simulate.push_back(temp_conf);
 			}
-			
 		}
 
 		message = header+ "In era "+to_string(era)+", "+to_string(k)+
@@ -646,8 +745,10 @@ void Explorer::start_PARAMSPACE(double alpha, int k, int max_eras)
 		new_pareto_set = get_pareto(current_sims);
 		
 		double old_era_innovation_score = era_innovation_score;
-		era_innovation_score = update_region_innovation_scores(
-				era,regions, old_pareto_set, new_pareto_set);
+		era_innovation_score =
+			region_handler.update_innovation_scores_of_current_era_regions(
+				era,old_pareto_set, new_pareto_set
+			);
 				
 		message = header+ "Era "+to_string(era)+": total innovation score= "+
 				to_string(era_innovation_score);
@@ -655,13 +756,16 @@ void Explorer::start_PARAMSPACE(double alpha, int k, int max_eras)
 
 
     	// #### FOURTH PHASE OF THE ERA: calculation of the regions of the next era
-		build_new_regions(old_era_innovation_score / regions.size(),era);
+		build_next_era_regions(
+			old_era_innovation_score / 
+			region_handler.get_current_era_regions().size(),
+			era);
 		
 		// Even if the regions for the next era have been built, the current_era_descriptor
 		// has been updated by build_new_regions(..) with the information about the regions 
 		// of the current era. Therefore, we can update the region log file with the region
 		// of the current era with the following function that is based on current_era_descriptor
-		update_region_logfile();
+		update_era_logfile();
 		
 		char era_string[30];
 		sprintf(era_string, "_%d", era);
@@ -689,6 +793,7 @@ void Explorer::start_PARAMSPACE(double alpha, int k, int max_eras)
 /********************************************************************************/
 //TODO: spostare in un file a parte
 
+/*
 const string to_string(const Region r, int era, string category)
 {
 	string s = to_string_region_concise(era, r.id) + " " + category;
@@ -698,6 +803,7 @@ const string to_string(const Region r, int era, string category)
 	}
 	return s;
 }
+*/
 
 const string to_string_region_concise(int era, int region_index)
 {
@@ -705,12 +811,19 @@ const string to_string_region_concise(int era, int region_index)
 	return s;
 }
 
+#ifdef SEVERE_DEBUG
 void well_formed(Region r, Explorer* expl)
 {	
 	for (int j=0; j<N_PARAMS; j++)
 	{
 		Parameter par = expl->getParameter( (EParameterType)j );
 		Edges edges = (r.edges)[j];
+
+		if ( r.id == 0)
+		{
+			printf("alg_paramspace.cpp %d: FATAL ERROR: region id not assigned\n",__LINE__ );
+			exit(-762);
+		}
 
 		if (edges.b >= par.get_values().size())
 		{
@@ -721,7 +834,7 @@ void well_formed(Region r, Explorer* expl)
 		}
 	}
 }
-
+#endif
 
 
 

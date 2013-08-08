@@ -25,7 +25,7 @@
 
 using namespace std;
 
-enum region_category{HIGH_INNOVATION, NO_INNOVATION, LOW_INNOVATION};
+typedef enum {HIGH_INNOVATION=1, NO_INNOVATION=2, LOW_INNOVATION=3} region_category;
 
 typedef struct 
 {
@@ -67,8 +67,11 @@ class Region{
 	
 	// the index is the one computed by Parameter::get_index()
 		Edges edges[N_PARAMS];
+		
+		void set_edges(const Edges* src_edges);
 
 		Region();
+		const string tostring();
 	
 //  ~Region();
 };
@@ -82,17 +85,49 @@ class Region{
 class EraDescriptor{
 	private:
 		int era_id;
-		std::map<unsigned, double> high_innovation_regions;
-		std::map<unsigned, double> no_innovation_regions;
-		std::map<unsigned, double> low_innovation_regions;
+		std::map<unsigned, double> high_innovation_region_descriptors;
+		std::map<unsigned, double> no_innovation_region_descriptors;
+		std::map<unsigned, double> low_innovation_region_descriptors;
 
 	public:
 		EraDescriptor();
 		void reinitialize(int era_id_);
-		void add_region(unsigned region_id, double innovation_score, region_category category);
+		void add_region_descriptor(
+			unsigned region_id, double innovation_score, region_category category);
 		const string tostring();
 };
 
+class RegionHandler{
+	private:
+		// Event if having regions public would be faster, please leave regions
+		// private. This reccomendation has the goal to ensure the consistency
+		// of the algorithm
+		vector<Region*> current_era_regions;
+		vector<Region*> next_era_regions;
+		vector<Region*> regions_to_be_deleted;
+		unsigned last_region_id;
+		
+	public:
+		RegionHandler();
+		void add_region_to_next_era(Region* r);
+		const Region* get_current_era_region(unsigned region_index);
+		void new_era_initialization();
+		const vector<Region*> get_current_era_regions();
+		
+		void annotate_for_deletion(const Region* r);
+		
+		// Calculate the innovation_score of each region. Return the sum of all
+		// innovation scores
+		double update_innovation_scores_of_current_era_regions(
+			int era,
+			vector<Simulation> old_pareto_set, vector<Simulation> new_pareto_set
+		);
+		
+		#ifdef SEVERE_DEBUG
+		//Check if all the current_era_regions are well formed
+		void check_regions(Explorer* expl);
+		#endif
+};
 
 
 /********************************************************************************/
