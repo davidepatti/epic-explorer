@@ -195,11 +195,8 @@ int Parameter::get_last()
 	exit(EXIT_FAILURE);
   }
 #endif
-  printf("\nCalculating i\n");
   int i = values.size()-1;
-  printf("\nCalculating last_value from %u values\n", values.size() );
   int last_value = values[i];
-  printf("\nCiao\n");
   return last_value;
 
 }
