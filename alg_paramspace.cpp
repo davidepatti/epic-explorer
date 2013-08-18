@@ -23,6 +23,7 @@ RegionHandler region_handler;
 FILE* region_logfile;
 FILE* era_logfile;
 int myrank;
+string header; //Used to write logfiles
 //vector<Region*> regions;
 
 Region::Region(){
@@ -76,7 +77,15 @@ void RegionHandler::new_era_initialization()
 	
 }
 
-	const vector<Region*> RegionHandler::get_current_era_regions(){
+void RegionHandler::new_run_initialization()
+{
+	last_region_id = 0;
+	next_era_regions.clear();
+	current_era_regions.clear();
+	regions_to_be_deleted.clear();
+}
+
+const vector<Region*> RegionHandler::get_current_era_regions(){
 	return (const vector<Region*> ) current_era_regions;
 }
 
@@ -207,15 +216,30 @@ Edges merge_intervals(Edges e1, Edges e2)
 	}		
 }
 
-EParameterType get_splitting_parameter()
+// Return a parameter along which to split the region. If the region has interval size
+// 1 along all the parameters, return 0-th parameter. The caller function can check if
+// it is the case by verifying that the region has interval size == 1 along the 
+// returned parameter
+EParameterType get_splitting_parameter(const Region* region)
 {
-	int val = round( (double)rand() * (N_PARAMS-1) / RAND_MAX );
-	#ifdef SEVERE_DEBUG
-	if (val<0 || val>=N_PARAMS){
-		printf("alg_paramspace.cpp %d: Error, val=%d",__LINE__, val);
+	// Find the parameters along which we can split the region
+	vector<int> splitting_parameters;
+	for (int i = 0; i < N_PARAMS; i++)
+	{
+		EParameterType par = (EParameterType) i;
+		const Edges* interval = &(region->edges[par]);
+		int interval_size = (interval->b) - (interval->a) +1;
+		if(interval_size > 1)
+			splitting_parameters.push_back(i);
 	}
-	#endif
-	return (EParameterType) val;
+	
+	if(splitting_parameters.size() == 0)
+		return (EParameterType) 0;
+	else{
+		int extracted = round( (double)rand() * (splitting_parameters.size()-1) / 
+						RAND_MAX );	
+		return (EParameterType)splitting_parameters[extracted];
+	}
 }
 
 //TODO: si potrebbe evitare di passare expl se getParameterRanges fosse statico
@@ -290,28 +314,40 @@ Region* select_region(int era,const vector<Region*> regions)
 
 void split_region(unsigned region_index)
 {
-	cout << "\nAttenzione: lo split delle regioni e' sbagliato\n";
-
-    // we just want to split in 2, but leaving vector for general case
-    //Region* region = regions[region_index];
     const Region* region = region_handler.get_current_era_region(region_index);
     
     Region *r1,*r2;
-    vector<Region*> output_regions;
-    EParameterType splitting_parameter = get_splitting_parameter();
+    EParameterType splitting_parameter = get_splitting_parameter(region);
+    
     
     const Edges* interval = &(region->edges[splitting_parameter]);
 	int interval_size = (interval->b) - (interval->a) +1;
     
-    //TODO: to decrease the number of requested era, maybe we can select the splitting
-    //parameter only among the ones that have an interval size > 1.
     if (interval_size == 1){
+    	#ifdef SEVERE_DEBUG
+    	if(splitting_parameter != (EParameterType)0 ){
+    		printf("\nalg_paramspace.cpp %d: FATAL ERROR: The only case when \
+				get_splitting_parameter(..) can return a parameter along which the \
+				region has interval size 1 is when the region has every interval of \
+				 size 1. In this case, get_splitting_parameter(..) must return \
+				 parameter 0. Here, the returned parameter is %d\n", 
+				 __LINE__, (int)splitting_parameter);
+    		 exit(654319);
+    	}
+    	#endif
+    
     	// The selected interval cannot be split. Therefore, the region cannot 
     	// be split.
     	region_handler.add_region_to_next_era( (Region*) region);
+
+   		string message = header+ "Region "+to_string(region->id)+
+	   		" cannot be split because it is composed of one configuration only";
+		write_to_log(myrank,logfile,message);
+
     }
     else if (interval_size > 1)
     {
+    	// interval1 will be assigned to region r1. interval2 will be assigned to r2.
 		Edges interval1, interval2; 
     	interval1.a = interval->a; 
     	interval1.b= interval->a + (int)(interval_size/2)-1;
@@ -323,6 +359,7 @@ void split_region(unsigned region_index)
     	r1->set_edges( region->edges );
 
     	r2 = new Region();
+    	r2->set_edges( region->edges );
     	
     	r1->edges[splitting_parameter] = interval1;
     	r2->edges[splitting_parameter] = interval2;
@@ -330,6 +367,13 @@ void split_region(unsigned region_index)
     	region_handler.annotate_for_deletion(region);
 		region_handler.add_region_to_next_era(r1);
 	    region_handler.add_region_to_next_era(r2);
+	    
+   		string message = header+ "Region "+to_string(region->id)+
+   			" has been split in region "+to_string(r1->id)+" and region "+
+   			to_string(r2->id)+". The splitting parameter is "+
+   			to_string( (int)splitting_parameter );
+		write_to_log(myrank,logfile,message);
+
     }
     else{
     	// This is a debug check
@@ -646,8 +690,6 @@ void Explorer::start_PARAMSPACE(double alpha, int k, int max_eras)
     string era_logfile_name = logfile + "-era";
     era_logfile = fopen(era_logfile_name.c_str(), "w+");
     cout << "logfile: " << logfile << endl;
-    cout << "region_logfile: " << region_logfile_name << endl;
-    cout << "era_logfile: " << era_logfile_name << endl;
 
     Exploration_stats stats;
     stats.space_size = get_space_size();
@@ -657,14 +699,18 @@ void Explorer::start_PARAMSPACE(double alpha, int k, int max_eras)
 	//To write stats
     string file_name = Options.benchmark+"_"+current_algo+"_"+current_space;
 
-    string header = "["+Options.benchmark+"_"+current_algo+"] ";
-    string message = header+"Building random space for " + to_string(k) + " simulations...";
+    header = "["+Options.benchmark+"_"+current_algo+"] ";
+    
+    string message = header + "region_logfile: " + region_logfile_name;
+	write_to_log(myrank,logfile,message);
+    message = header + "era_logfile: " + era_logfile_name;
+	write_to_log(myrank,logfile,message);
+		
+    
+    message = header+"Building random space for " + to_string(k) + " simulations...";
     write_to_log(myrank,logfile,message);
     
-	message = header+"Notation remark: the j-th region of era i will be indicated as" 
-    		+ " (i,j)";
-    write_to_log(myrank,logfile,message);
-    
+	
     
     //DA QUI COMINCIA
 	// The number of feasible configurations
@@ -675,6 +721,8 @@ void Explorer::start_PARAMSPACE(double alpha, int k, int max_eras)
     // A negative number is used beacause we want all the regions in era 0 to be
     // "high innovation" regions, although in era 0 all regions have 
     // innovation score=0
+    
+    region_handler.new_run_initialization();
     
 //    vector<Region*> regions, no_innovation_regions;
     vector<Simulation> new_pareto_set, old_pareto_set;
@@ -688,7 +736,9 @@ void Explorer::start_PARAMSPACE(double alpha, int k, int max_eras)
     for (int u=0; u<N_PARAMS; u++){
     	Edges edges = root_region->edges[u];
     	if (edges.a == edges.b){
-    		printf("alg_paramspace.cpp %d: ERROR: it's very strange that the root region has an edge composed by only one value. If you think that this is not an error, remove this check and recoompile\n",__LINE__);
+    		printf("alg_paramspace.cpp %d: ERROR: it's very strange that the root\
+    		  region has an edge composed by only one value. If you think that this\
+    		  is not an error, remove this check and recoompile\n",__LINE__);
     		exit(65431);
     	}
     }	
