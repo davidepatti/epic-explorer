@@ -111,6 +111,7 @@ class RegionHandler{
 		RegionHandler();
 		void add_region_to_next_era(Region* r);
 		const Region* get_current_era_region(unsigned region_index);
+		void new_run_initialization();
 		void new_era_initialization();
 		const vector<Region*> get_current_era_regions();
 		
