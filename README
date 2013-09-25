@@ -1,8 +1,8 @@
 r*************************************************************
 	EPIC Explorer - Installing instructions
 **************************************************************
-      			         Last update May 22nd, 2011
-		        by Davide Patti (dpatti@dieei.unict.it)
+      			         Last update Sep 24th, 2013
+		        by Davide Patti (davide.patti@dieei.unict.it)
 
 ==============================================================
 SECTION I: REQUIREMENTS
@@ -113,6 +113,11 @@ STEP 6:
 If the above step was ok, install M5 memory simulator as explained in
 Section 7 of trimaran manual. If you encounter problems, look a the M5
 SPECIFIC problems at the end of this document (APPENDIX II)
+
+IMPORTANT: as specified in the Trimaran section 7 when discussing M5 
+installation DO NOT forget to enable M5_BUILD flag: on src/emulib
+open the Makefile for editing. Change the value of BUILD M5E from 0 to 1 so that it is
+BUILD_M5E=1
  
     NOTE 1: when typing 'make' into m5 directory, a download of m5
     tar.gz should start. If not, download it manually from:
@@ -239,29 +244,59 @@ compile trimaran or epic explorer.
 OK, I HAVE A PROBLEM, CAN I ASK YOU ?
 
 IMPORTANT: in order to avoid confusion it's essential that distinguish
-between the problems of trimaran and those of epic explorer.
+between the problems of *trimaran* and those of *epic explorer*.
 
 In other words: don't mail to trimaran developers if you have problems
 while compiling/using epic explorer. On the other hand, don't bother
-me with problems that are strictly related to compiling trimaran.
+me with problems that are strictly related to compiling trimaran. However i've
+added a list of common Trimaran problems (see below).
 
 > Trimaran support:  http://trimaran.org/support.shtml
 
-> Epic explorer support: dpatti@dieei.unict.it  (that's me)
+> Epic explorer support: davide.patti@dieei.unict.it  (that's me)
   Please report gcc version, GNU/Linux distribution and any other
   useful info.
 
 
 LIST OF TRIMARAN-RELATED PROBLEMS
 
-_____ ERROR 1 _____________________________________
+_____ ERROR  _____________________________________
+missing lstc++ , skipping 64 bit version 
+
+>>> SOLUTION:
+On Ubuntu:
+sudo apt-get install ia32-libs
+sudo apt-get install gcc-multilib g++-multilib
+
+_____ ERROR  _____________________________________
 
 Missing 'aclocal'
 
 >>> SOLUTION:
 Install automake !!
 
-____ ERROR 2 _____________________________________
+____ ERROR ______________________________________
+/usr/include/features.h:323:26: fatal error: bits/predefs.h: No such file or directory
+
+>>> SOLUTION:
+sudo apt-get install libc6-dev-i386
+
+____ ERROR ______________________________________
+getnameinfo(const struct sockaddr *sa, socklen_t salen, char *host,
+      ^
+
+1 error detected in the compilation of "platform/x86lin_gcc/IPA_lib/__impact_lib.i".
+Exiting: non-zero exit code
+
+____ ERROR  _____________________________________
+
+>>> SOLUTION:
+Open the file platform/x86lin_gcc/IPA_lib/__impact_lib.c and go to line NO:
+1943 then in the function getnameinfo( ) change the last parameter from
+unsigned int flags to only int flags then try installing and the software
+openimpact will install successfully.
+
+____ ERROR  _____________________________________
 
 When compilating openimpact, the following error is encountered:
 
@@ -285,7 +320,7 @@ similar, simply change che declaration of the function in
 __impact_lib.c so that the type of each parameter is exactly the same
 of those declared in /usr/include/popt.h
 
-____  ERROR 3 _____________________________________________
+____  ERROR _____________________________________________
 
 When compiling/executing a benchmark, the following error is
 encountered:
@@ -462,7 +497,6 @@ in that case all proposed solutions should work.
 
 2)
 If you are REALLY desperate, you can try to use the libm5shared file
-that you find here:
+that you find here in MISC_FILES directory inside epic explorer.
 
-http://epic-explorer.googlecode.com/files/libm5shared.so
 
