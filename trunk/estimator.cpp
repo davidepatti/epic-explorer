@@ -381,14 +381,14 @@ double Estimator::get_processor_area(const Processor& processor)
     // NOTE:
     // register size = static + rotating , but rotating is assumed
     // equal to static portion
-    int n_regs_32bit =num_clusters*processor.gpr_static_size.get_val()+
-   		      num_clusters*processor.gpr_static_size.get_val()+
-		      num_clusters*processor.cr_static_size.get_val()+
-		      num_clusters*processor.cr_static_size.get_val();
+    int n_regs_32bit =processor.gpr_static_size.get_val()+
+   		      processor.gpr_static_size.get_val()+
+		      processor.cr_static_size.get_val()+
+		      processor.cr_static_size.get_val();
 
-    int n_regs_64bit = num_clusters*processor.fpr_static_size.get_val() + 
-	               num_clusters*processor.fpr_static_size.get_val()+
-		       num_clusters*processor.btr_static_size.get_val();
+    int n_regs_64bit = processor.fpr_static_size.get_val() + 
+	               processor.fpr_static_size.get_val()+
+		       processor.btr_static_size.get_val();
 
 
     // missing pr , only 1 bit width 
