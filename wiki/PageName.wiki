@@ -1,7 +1,7 @@
 =EPIC-Explorer=
 ==A Platform for Design Space Exploration of VLIW Architectures==
 [http://www.unict.it/ University of Catania]<br>
-Department of Computer Science and Telecommunications Engineering ([http://www.diit.unict.it/ DIIT])
+Department of Computer Science and Telecommunications Engineering ([http://www.dieei.unict.it/users/dpatti Davide Patti])
 ==About==
 EPIC Explorer is a open framework for evaluation, in terms of performance, cost and power consumption, of a system based on a parameterized VLIW microprocessor together with the memory hierarchy subsystem following execution of a specific application. It interfaces to the parameterized [http://www.trimaran.org/ Trimaran infrastructure] that provide powerful compiler and simulation tools for a large class of EPIC/VLIW architectures. Further, EPIC Explorer implements a number of multi-objective DSE algorithms to obtain Pareto-optimal configurations and a set of C++ classes that facilitate the creation of new DSE strategies.
 
