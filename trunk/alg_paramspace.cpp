@@ -79,7 +79,7 @@ void RegionHandler::new_era_initialization()
 	{
 	    write_to_log(myrank,logfile,string("deleting region"));
 	    delete regions_to_be_deleted[i];
-	    regions_to_be_deleted.erase(regions_to_be_deleted.begin()+i);
+	    regions_to_be_deleted.erase(regions_to_be_deleted.begin());
 	}
 	
 }
