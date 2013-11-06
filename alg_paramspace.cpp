@@ -72,8 +72,15 @@ void RegionHandler::new_era_initialization()
 	current_era_regions.swap(next_era_regions);
 	
 	next_era_regions.clear();
-	for(int i=0; i<regions_to_be_deleted.size(); i++)
-		delete regions_to_be_deleted[i];
+
+	int ndel = regions_to_be_deleted.size();
+
+	for(int i=0; i<ndel; i++)
+	{
+	    write_to_log(myrank,logfile,string("deleting region"));
+	    delete regions_to_be_deleted[i];
+	    regions_to_be_deleted.erase(regions_to_be_deleted.begin()+i);
+	}
 	
 }
 
