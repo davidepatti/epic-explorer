@@ -18,7 +18,7 @@ MPICC = ${CXX}
 CFLAGS += -DNDEBUG 
 #CFLAGS += -DTEST -DNDEBUG 
 #CFLAGS += -O2 -DNDEBUG
-#CFLAGS += -g -DDEBUG
+CFLAGS += -g 
 endif
 
 #<aa> added by andrea.araldo@gmail.com
