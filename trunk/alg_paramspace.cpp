@@ -78,7 +78,7 @@ void RegionHandler::new_era_initialization()
 	for(int i=0; i<ndel; i++)
 	{
 	    write_to_log(myrank,logfile,string("deleting region"));
-	    delete regions_to_be_deleted[i];
+	    delete regions_to_be_deleted[0];
 	    regions_to_be_deleted.erase(regions_to_be_deleted.begin());
 	}
 	
@@ -188,6 +188,21 @@ bool edges_equality(const Edges& e1, const Edges& e2)
 	return (e1.a == e2.a && e1.b == e2.b );
 }
 
+bool edges_contiguity(const Edges& e1,const Edges& e2)
+{
+	if (e1.b <= e2.a){
+	    return true;
+	    // first_edges = e1; second_edges = e2;
+	} 
+	else if (e2.b <= e1.a){
+	    return true;
+	    // first_edges = e2; second_edges = e1;
+	}
+
+	return false;
+
+}
+
 // Return edges with edges.a=-1 and edges.b=-1 if it is not possible to merge.
 // If the merge is possible, return the merged edges.
 Edges merge_intervals(Edges e1, Edges e2)
@@ -200,14 +215,15 @@ Edges merge_intervals(Edges e1, Edges e2)
 		first_edges = e2; second_edges = e1;
 	}
 	else{
-		string message = "alg_paramspace.cpp:"+ to_string(__LINE__) +
-			": ERROR: e1.a=" + to_string(e1.a)+ "; e1.b="+ to_string(e1.b)+
-			"; e2.a=" + to_string(e2.a)+ "; e2.b="+ to_string(e2.b)+
-			". This edges are not valid"+ "AGGIUNGI IL METODO verify_edges PER "+
-			"DA INVOCARE OGNI VOLTA CHE UNA REGIONE VIENE SPLITTATA, PER VERIFICARE "+
-			"SUBITO SE GLI EDGES CHE VENGONO PRODOTTI SONO VALIDI";
-		write_to_log(myrank,logfile,message);
-		exit(-8712);
+	    // DAV
+	//	string message = "alg_paramspace.cpp:"+ to_string(__LINE__) +
+	//		": ERROR: e1.a=" + to_string(e1.a)+ "; e1.b="+ to_string(e1.b)+
+	//		"; e2.a=" + to_string(e2.a)+ "; e2.b="+ to_string(e2.b)+
+	//		". This edges are not valid"+ "AGGIUNGI IL METODO verify_edges PER "+
+	//		"DA INVOCARE OGNI VOLTA CHE UNA REGIONE VIENE SPLITTATA, PER VERIFICARE "+
+	//		"SUBITO SE GLI EDGES CHE VENGONO PRODOTTI SONO VALIDI";
+	//	write_to_log(myrank,logfile,message);
+	//	exit(-8712);
 	}
 
 	Edges return_edges;
@@ -221,6 +237,9 @@ Edges merge_intervals(Edges e1, Edges e2)
 		return_edges.a = -1;
 		return_edges.b = -1;
 	}		
+
+	// DAV
+	return return_edges;
 }
 
 // Return a parameter along which to split the region. If the region has interval size
@@ -372,14 +391,20 @@ void split_region(unsigned region_index)
     	r2->edges[splitting_parameter] = interval2;
     	
     	region_handler.annotate_for_deletion(region);
-		region_handler.add_region_to_next_era(r1);
-	    region_handler.add_region_to_next_era(r2);
+	region_handler.add_region_to_next_era(r1);
+	region_handler.add_region_to_next_era(r2);
 	    
-   		string message = header+ "Region "+to_string(region->id)+
-   			" has been split in region "+to_string(r1->id)+" and region "+
-   			to_string(r2->id)+". The splitting parameter is "+
-   			to_string( (int)splitting_parameter );
-		write_to_log(myrank,logfile,message);
+	string message = header+ "Region "+to_string(region->id)+
+		" has been split in region "+to_string(r1->id)+" and region "+
+		to_string(r2->id)+". The splitting parameter is "+
+		to_string( (int)splitting_parameter );
+	write_to_log(myrank,logfile,message);
+
+	if (!edges_contiguity(interval1,interval2))
+	{
+	    string message = header + " FATAL: non-contiguos interval after splitting ";
+	    write_to_log(myrank,logfile,message);
+	}
 
     }
     else{
@@ -402,8 +427,10 @@ Region* merge_regions(const Region* r1, const Region* r2)
     Edges merged_interval;
     int merging_parameter=-1;
     int num_equal_edges = 0;
+
+    bool stop_trying = false;
     
-    for (int j=0; j<N_PARAMS; j++)
+    for (int j=0; (j<N_PARAMS) && (!stop_trying); j++)
     {
     	Edges e1 = r1->edges[j];
     	Edges e2 = r2->edges[j];
@@ -411,40 +438,39 @@ Region* merge_regions(const Region* r1, const Region* r2)
     	if ( edges_equality(e1, e2) )
     		num_equal_edges += 1;
     	
-    	else{
+    	else
+	{
     		Edges new_interval = merge_intervals(e1, e2);
     		
     		#ifdef SEVERE_DEBUG
     		if (	(new_interval.a==-1 && new_interval.b!=-1 ) ||
-		    		(new_interval.a!=-1 && new_interval.b==-1 )
-    		){
+		    		(new_interval.a!=-1 && new_interval.b==-1 ))
+		{
 				printf("\nalg_paramspace.cpp %d: FATAL ERROR: Inconsistent return \
 						value from merge_intervals(..) \n",__LINE__);
 				exit(EXIT_FAILURE);
-			}
+		}
     		#endif
     		
     		if (new_interval.a==-1 || new_interval.b==-1)
     		{
-    			cout << "Che significa che sono -1";
-    			exit(EXIT_FAILURE);
-    		
-	    		#ifdef SEVERE_DEBUG
-	    		if (merging_parameter >= 0)
-    			{	//A previous merging parameter has already been found. Error
-					string message = "alg_paramspace.cpp:"+ to_string(__LINE__) +
-						": ERROR: = two merging parameters has been found. It is not possible";
-					write_to_log(myrank,logfile,message);
-					cout << message;
-					exit(-123221);
-				}
-				#endif
-				
-				
-				//else
-				merging_parameter = j;
-				merged_interval = new_interval;
+		    //DAV - simply means cannot merge them ?
+    			//cout << "Che significa che sono -1";
+    			//exit(EXIT_FAILURE);
+			
+		    stop_trying = true;
     		}
+		else
+		{
+		    if (merging_parameter >= 0) {	
+			string message = "alg_paramspace.cpp:"+ to_string(__LINE__) + ": FATAL, two merging parameter already found!";
+			write_to_log(myrank,logfile,message);
+			cout << message;
+			exit(-123221);
+		    }
+		    merging_parameter = j;
+		    merged_interval = new_interval;
+		}
     	}
     } // end of for loop
     
@@ -462,18 +488,18 @@ Region* merge_regions(const Region* r1, const Region* r2)
     		
     	return merged_region;
     }
-    else{ // The merge is not possible
+    else
+    { 
     
     	#ifdef SEVERE_DEBUG
     	if (num_equal_edges == N_PARAMS){
-    		printf("\nalg_paramspace.cpp %d: FATAL ERROR: Two identical \
-    					regions have been found\n",__LINE__);
+    		printf("\nalg_paramspace.cpp %d: FATAL ERROR: Two identical regions have been found\n",__LINE__);
     		exit(EXIT_FAILURE);
     	}
     	#endif
-    	
-    	return NULL;
     }
+
+    return NULL;
     	
 }
 
