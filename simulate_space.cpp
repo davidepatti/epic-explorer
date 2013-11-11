@@ -105,6 +105,16 @@ vector<Simulation> Explorer::simulate_loop(const vector<Configuration>& space)
 	
 	simulations.push_back(current_sim);
 
+	// updates the number of unique configs simulated
+	string config_str = current_sim.config.configuration_to_string();
+
+	if (unique_configs.count(config_str) == 0)
+	    unique_configs[config_str] = 1;
+	else
+	    unique_configs[config_str]++;
+	////////////////////////////////////////////////////
+
+
 	// -------------------------------------------------------------------
 	//  when doing simulation some interesting info can be optionally saved 
 	if (do_simulation)
