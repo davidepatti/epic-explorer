@@ -817,6 +817,7 @@ void Explorer::save_stats(const Exploration_stats& stats,const string& file)
 
     fprintf(fp,"\n Space size: %g",stats.space_size);
     fprintf(fp,"\n simulations: %d ",stats.n_sim);
+    fprintf(fp,"\n unique simulations: %d ",get_unique_configs());
     fprintf(fp,"\n total exploration time: %d minutes ",elapsed_time);
     fprintf(fp,"\n simulation start: %s ",asctime(localtime(&stats.start_time)));
     fprintf(fp,"\n simulation end: %s ",asctime(localtime(&stats.end_time)));
@@ -1805,11 +1806,17 @@ int Explorer::get_sim_counter() const
 {
     return sim_counter;
 }
+////////////////////////////////////////////////////////////////////////////
+int Explorer::get_unique_configs() const
+{
+    return unique_configs.size();
+}
 
 ////////////////////////////////////////////////////////////////////////////
 void Explorer::reset_sim_counter() 
 {
     sim_counter=0;
+    unique_configs.clear();
 }
 
 ////////////////////////////////////////////////////////////////////////////

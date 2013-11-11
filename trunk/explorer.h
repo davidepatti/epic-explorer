@@ -23,6 +23,7 @@
 #include "stdlib.h"
 #include <vector>
 #include <string>
+#include <map>
 #include "processor.h"
 #include "trimaran_interface.h"
 #include "mem_hierarchy.h"
@@ -147,6 +148,7 @@ public:
   void save_objectives_details(const Dynamic_stats& dyn,const Configuration& conf, const string filename ) const;
 
   int get_sim_counter() const;
+  int get_unique_configs() const;
   void reset_sim_counter();
     
   CFunctionApproximation *function_approx;
@@ -214,6 +216,7 @@ private:
 
   int average_compilation_time, average_exec_time;
   int sim_counter;
+  map<string,int> unique_configs;
   vector<Simulation> previous_simulations;
   string previous_benchmark;
 
