@@ -858,6 +858,9 @@ void Explorer::start_PARAMSPACE(double alpha, int k, int max_eras)
 		save_simulations(new_pareto_set,Options.benchmark+"_PARAMSPACE"+
 			current_space+"_gen"+string(era_string)+".pareto.exp");
 
+		stats.end_time = time(NULL);
+		stats.n_sim = get_sim_counter();
+		save_stats(stats, file_name+"_era"+to_string(era)+".stat");
 	}
 
 	fclose(region_logfile);
