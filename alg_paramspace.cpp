@@ -442,34 +442,35 @@ Region* merge_regions(const Region* r1, const Region* r2)
 	{
     		Edges new_interval = merge_intervals(e1, e2);
     		
-    		#ifdef SEVERE_DEBUG
+    		//#ifdef SEVERE_DEBUG
     		if (	(new_interval.a==-1 && new_interval.b!=-1 ) ||
-		    		(new_interval.a!=-1 && new_interval.b==-1 ))
+			(new_interval.a!=-1 && new_interval.b==-1 ))
 		{
-				printf("\nalg_paramspace.cpp %d: FATAL ERROR: Inconsistent return \
-						value from merge_intervals(..) \n",__LINE__);
-				exit(EXIT_FAILURE);
+		    printf("\nalg_paramspace.cpp %d: FATAL ERROR: Inconsistent return  value from merge_intervals(..) \n",__LINE__);
+		    exit(EXIT_FAILURE);
 		}
-    		#endif
+    		//#endif
     		
-    		if (new_interval.a==-1 || new_interval.b==-1)
+		// cannot merge intervals, so regions cannot be merged
+    		if (new_interval.a==-1 && new_interval.b==-1)
     		{
-		    //DAV - simply means cannot merge them ?
-    			//cout << "Che significa che sono -1";
-    			//exit(EXIT_FAILURE);
-			
 		    stop_trying = true;
     		}
-		else
+		else // mergeable parameter found
 		{
+		    // if more than one parameter is mergeable, regions are not contiguos and cannot
+		    // be merged
 		    if (merging_parameter >= 0) {	
-			string message = "alg_paramspace.cpp:"+ to_string(__LINE__) + ": FATAL, two merging parameter already found!";
+			string message = "WARNING, cannot merge non contiguos regions " + to_string(r1->id)+"  "+to_string(r2->id);
 			write_to_log(myrank,logfile,message);
 			cout << message;
-			exit(-123221);
+			stop_trying = true;
 		    }
-		    merging_parameter = j;
-		    merged_interval = new_interval;
+		    else
+		    {
+			merging_parameter = j;
+			merged_interval = new_interval;
+		    }
 		}
     	}
     } // end of for loop
