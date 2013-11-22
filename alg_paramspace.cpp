@@ -851,17 +851,13 @@ void Explorer::start_PARAMSPACE(double alpha, int k, int max_eras)
 		// of the current era with the following function that is based on current_era_descriptor
 		update_era_logfile();
 		
-		char era_string[30];
-		sprintf(era_string, "_%d", era);
 
-		save_simulations(current_sims,Options.benchmark+"_PARAMSPACE"+
-			current_space+"_gen"+string(era_string)+".exp");
-		save_simulations(new_pareto_set,Options.benchmark+"_PARAMSPACE"+
-			current_space+"_gen"+string(era_string)+".pareto.exp");
+		save_simulations(current_sims,file_name+"_"+to_string(era)+".exp");
+		save_simulations(new_pareto_set,file_name+"_"+to_string(era)+".pareto.exp");
 
 		stats.end_time = time(NULL);
 		stats.n_sim = get_sim_counter();
-		save_stats(stats, file_name+"_era"+to_string(era)+".stat");
+		save_stats(stats, file_name+"_"+to_string(era)+".stat");
 	}
 
 	fclose(region_logfile);
