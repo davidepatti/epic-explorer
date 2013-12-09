@@ -11,7 +11,6 @@
 #include <values.h>
 #include <list>
 #include <vector>
-#include <cstdlib> //for rand()
 
 #include <iostream>
 
@@ -41,9 +40,17 @@ const string Region::tostring()
 {
 	string s= to_string(id);
 	for (int i=0; i<N_PARAMS; i++)
+	{
+	    if (i==5 || i==10 || i==13 || i==16 || i==19) s+="\t";
 		s = s+" "+ to_string(edges[i].a)+ ":"+ to_string( edges[i].b);
+	}
 
 	return s;
+}
+
+string Edges::tostring() const
+{
+	return "["+to_string(a)+","+to_string(b)+"]";
 }
 
 EraDescriptor::EraDescriptor(){
@@ -60,6 +67,9 @@ void RegionHandler::add_region_to_next_era(Region *r)
 		// This region has never seen before and has no id assigned. Assign a new id
 		// and print it
 		r->id = ++last_region_id;
+
+                string msg = " Creating new region with id " + to_string(r->id)+ ", see regions list";
+		write_to_log(myrank,logfile,msg);
 		fprintf(region_logfile, "%s\n", r->tostring().c_str() );
 	}
 
@@ -69,6 +79,9 @@ void RegionHandler::add_region_to_next_era(Region *r)
 void RegionHandler::new_era_initialization()
 {
 	//TODO: find a more efficient way without swapping.
+	string msg = " Inizialiting new era";
+	write_to_log(myrank,logfile,msg);
+
 	current_era_regions.swap(next_era_regions);
 	
 	next_era_regions.clear();
@@ -77,7 +90,8 @@ void RegionHandler::new_era_initialization()
 
 	for(int i=0; i<ndel; i++)
 	{
-	    write_to_log(myrank,logfile,string("deleting region"));
+                string msg = " Deleting region with id " + to_string(regions_to_be_deleted[0]->id);
+		write_to_log(myrank,logfile,msg);
 	    delete regions_to_be_deleted[0];
 	    regions_to_be_deleted.erase(regions_to_be_deleted.begin());
 	}
@@ -86,6 +100,7 @@ void RegionHandler::new_era_initialization()
 
 void RegionHandler::new_run_initialization()
 {
+	write_to_log(myrank,logfile,"Initializing for new run");
 	last_region_id = 0;
 	next_era_regions.clear();
 	current_era_regions.clear();
@@ -105,19 +120,21 @@ void RegionHandler::annotate_for_deletion(const Region* r)
 		regions_to_be_deleted.push_back( (Region*)r);
 }
 
-#ifdef SEVERE_DEBUG
 void RegionHandler::check_regions(Explorer* expl)
 {
 		//Check if all regions are well formed
 		for (int j=0; j<current_era_regions.size(); j++)
 			well_formed( *(current_era_regions[j]), expl);
 }
-#endif
 
 void EraDescriptor::reinitialize(int era_id_)
 {
+	string msg = " Re-Inizialiting new era, setting id from "+to_string(era_id) + " to " + to_string(era_id_);
+	write_to_log(myrank,logfile,msg);
 	era_id = era_id_;
 	
+
+	write_to_log(myrank,logfile,"Clearing innovation scores");
 	high_innovation_region_descriptors.clear();
 	no_innovation_region_descriptors.clear();
 	low_innovation_region_descriptors.clear();
@@ -126,24 +143,30 @@ void EraDescriptor::reinitialize(int era_id_)
 void EraDescriptor::add_region_descriptor(
 	unsigned region_id, double innovation_score, region_category category)
 {
-	#ifdef SEVERE_DEBUG
+    string msg;
+
 	if (era_id < 0){
 		printf("\nalg_paramspace.cpp %d: FATAL ERROR: maybe you forgot to call reinitialize(..) and the era id is not initialized\n", __LINE__);
 		exit(EXIT_FAILURE);
 	}
-	#endif
 	
 	switch(category)
 	{
 		case HIGH_INNOVATION:	
-					high_innovation_region_descriptors[region_id] = innovation_score;
-					break;
+			msg = "Adding region descriptor id "+to_string(region_id) +" for high innovation with score "+to_string(innovation_score);
+			write_to_log(myrank,logfile,msg);
+			high_innovation_region_descriptors[region_id] = innovation_score;
+			break;
 							
 		case NO_INNOVATION:		
+			msg = "Adding region descriptor id "+to_string(region_id) + " for NO innovation with score "+to_string(innovation_score);
+			write_to_log(myrank,logfile,msg);
 					no_innovation_region_descriptors[region_id] = innovation_score;
 					break;
 							
 		case LOW_INNOVATION:		
+			msg = "Adding region descriptor id "+to_string(region_id) + " for LOW innovation with score "+to_string(innovation_score);
+			write_to_log(myrank,logfile,msg);
 					low_innovation_region_descriptors[region_id] = innovation_score;
 					break;
 
@@ -180,8 +203,6 @@ const string EraDescriptor::tostring()
 
 
 
-// TODO: sistemare correttamente la questione del seed
-unsigned long paramspace_seed = 1;
 
 bool edges_equality(const Edges& e1, const Edges& e2)
 {
@@ -190,15 +211,22 @@ bool edges_equality(const Edges& e1, const Edges& e2)
 
 bool edges_contiguity(const Edges& e1,const Edges& e2)
 {
+	string msg = "Checking contiguiti of "+e1.tostring()+" and "+ e2.tostring();
+	write_to_log(myrank,logfile,msg);
+
 	if (e1.b <= e2.a){
+	    
+	write_to_log(myrank,logfile," ok! ");
 	    return true;
 	    // first_edges = e1; second_edges = e2;
 	} 
 	else if (e2.b <= e1.a){
+	write_to_log(myrank,logfile," ok! ");
 	    return true;
 	    // first_edges = e2; second_edges = e1;
 	}
 
+	write_to_log(myrank,logfile," No contiguity!");
 	return false;
 
 }
@@ -227,13 +255,17 @@ Edges merge_intervals(Edges e1, Edges e2)
 	}
 
 	Edges return_edges;
+	string msg = "Mergin intervals "+first_edges.tostring()+" and "+ second_edges.tostring();
+	write_to_log(myrank,logfile,msg);
 	
 	if (second_edges.a == (first_edges.b + 1) )
 	{
+	    write_to_log(myrank,logfile," ok, since they are contiguos" );
 		// The intervals are continguous
 		return_edges.a = (first_edges.a);
 		return_edges.b = (second_edges.b);
 	}else{
+	    write_to_log(myrank,logfile," Impossible, since they are NOT contiguos" );
 		return_edges.a = -1;
 		return_edges.b = -1;
 	}		
@@ -248,6 +280,8 @@ Edges merge_intervals(Edges e1, Edges e2)
 // returned parameter
 EParameterType get_splitting_parameter(const Region* region)
 {
+	string msg = "Getting splitting parameter for Region "+ to_string(region->id);
+	write_to_log(myrank,logfile,msg);
 	// Find the parameters along which we can split the region
 	vector<int> splitting_parameters;
 	for (int i = 0; i < N_PARAMS; i++)
@@ -273,7 +307,6 @@ EParameterType get_splitting_parameter(const Region* region)
 void transform_to_root_region(Region* r, Explorer* expl)
 {
 	vector<pair<int,int> > ranges = expl->getParameterRanges();
-	#ifdef SEVERE_DEBUG
 	if (ranges.size() != N_PARAMS)
 	{
 		string message = "alg_paramspace.cpp:"+ to_string(__LINE__) +": ERROR: N_PARAMS=" + 
@@ -282,7 +315,6 @@ void transform_to_root_region(Region* r, Explorer* expl)
 		write_to_log(myrank,logfile,message);
 		exit(-716);
 	}
-	#endif
 	
 	for(int i=0; i<N_PARAMS; i++)
 	{
@@ -350,7 +382,6 @@ void split_region(unsigned region_index)
 	int interval_size = (interval->b) - (interval->a) +1;
     
     if (interval_size == 1){
-    	#ifdef SEVERE_DEBUG
     	if(splitting_parameter != (EParameterType)0 ){
     		printf("\nalg_paramspace.cpp %d: FATAL ERROR: The only case when \
 				get_splitting_parameter(..) can return a parameter along which the \
@@ -360,7 +391,6 @@ void split_region(unsigned region_index)
 				 __LINE__, (int)splitting_parameter);
     		 exit(654319);
     	}
-    	#endif
     
     	// The selected interval cannot be split. Therefore, the region cannot 
     	// be split.
@@ -492,12 +522,10 @@ Region* merge_regions(const Region* r1, const Region* r2)
     else
     { 
     
-    	#ifdef SEVERE_DEBUG
     	if (num_equal_edges == N_PARAMS){
     		printf("\nalg_paramspace.cpp %d: FATAL ERROR: Two identical regions have been found\n",__LINE__);
     		exit(EXIT_FAILURE);
     	}
-    	#endif
     }
 
     return NULL;
@@ -565,12 +593,10 @@ double RegionHandler::update_innovation_scores_of_current_era_regions(
 	   		// We thought that this region was useless, whereas it has a configuration 
 	   		// in the new pareto set. Before updating the innovation score of this region,
 	   		// its penalty (i.e. the negative innovation_score) must be removed
-	   		#ifdef DEBUG_LEVEL_DEBUG
 			    string message = "Region ("+to_string_region_concise(era,i)+" had innovation score "
 			    	+to_string(region->innovation_score)+" in previous era, but now a pareto config "
 			    	+ "was found in it. Its innovation score is put to 0";
 			    write_to_log(myrank,logfile,message);
-	   		#endif
    			region->innovation_score=0;	
 	   	}
 		
@@ -580,14 +606,12 @@ double RegionHandler::update_innovation_scores_of_current_era_regions(
    		total_innovation_score += config_innovation_score;
     }	
 
-	#ifdef DEBUG_LEVEL_DEBUG
 		for (int i=0; i<regions.size(); i++){
 			string message = "Era "+to_string(era)+": Innovation score of region " +
 					to_string( regions[i]->id ) +
 					": "+to_string(regions[i]->innovation_score) ;
 		    write_to_log(myrank,logfile,message);
    		}
-	#endif
     
     return total_innovation_score;
 }
@@ -679,9 +703,7 @@ void update_era_logfile()
 
 Configuration fix_random_configuration(Region* region, Explorer* expl)
 {
-			#ifdef SEVERE_DEBUG
-				well_formed(*region,expl);
-			#endif
+			well_formed(*region,expl);
 				
 			Configuration conf;
 			for (int j=0; j<N_PARAMS; j++)
@@ -694,10 +716,8 @@ Configuration fix_random_configuration(Region* region, Explorer* expl)
 			}
 			conf.pointer = region;
 			
-			#ifdef DEBUG_LEVEL_DEBUG
 			    string message = "Random configuration " + conf.configuration_to_string();
 			    write_to_log(myrank,logfile,message);
-			#endif
 			
 			return conf;
 }
@@ -718,10 +738,10 @@ void Explorer::start_PARAMSPACE(double alpha, int k, int max_eras)
 
     // setup some not-algorithm-related stuff before starting
     current_algo="PARAMSPACE";
-    logfile = get_base_dir()+string(EE_LOG_PATH);
-    string region_logfile_name = logfile + "-region";
+    logfile = get_base_dir()+string(EE_LOG_PATH)+"_PARAMSPACE";
+    string region_logfile_name = logfile + "_PARAMSPACE_regions";
     region_logfile = fopen(region_logfile_name.c_str(), "w+");
-    string era_logfile_name = logfile + "-era";
+    string era_logfile_name = logfile + "_PARAMSPACE_era";
     era_logfile = fopen(era_logfile_name.c_str(), "w+");
     cout << "logfile: " << logfile << endl;
 
@@ -766,7 +786,6 @@ void Explorer::start_PARAMSPACE(double alpha, int k, int max_eras)
     transform_to_root_region(root_region, this);
     region_handler.add_region_to_next_era(root_region);
     
-    #ifdef SEVERE_DEBUG
     for (int u=0; u<N_PARAMS; u++){
     	Edges edges = root_region->edges[u];
     	if (edges.a == edges.b){
@@ -776,7 +795,6 @@ void Explorer::start_PARAMSPACE(double alpha, int k, int max_eras)
     		exit(65431);
     	}
     }	
-    #endif
     
     //In every era, new configurations to simulate will be added. Notice that the configurations
     //are simulated every era invoking simulate_space(configs_to_simulate) but if a configuration

@@ -76,6 +76,7 @@ private:
 	inline string status_string(bool b);
 	string word;
 	string base_path;
+	unsigned int seed;
 
         int myrank;
 	int mysize;

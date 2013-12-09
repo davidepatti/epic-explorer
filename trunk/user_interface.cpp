@@ -151,11 +151,11 @@ int User_interface::show_menu()
 		cout << "\n\n GA based approach ";
 		cout << "\n-------------------------------";
 		cout << "\n\n Enter random seed (0 = auto): ";
-		cin >> ga_parameters.random_seed;
-		if (ga_parameters.random_seed == 0)
-		    ga_parameters.random_seed = rand()*rand(); //G this is not random
+		cin >> seed;
+		if (seed == 0)
+		    srand((unsigned int)time((time_t*)NULL));
 		else
-		    srand(ga_parameters.random_seed);
+		    srand(seed);
 		do 
 		{
 		    cout << "\n Please enter a value (divisible by 2) for Population size: ";
@@ -258,7 +258,6 @@ int User_interface::show_menu()
 	    if (myrank == 0) {
 		start_exploration_message();
 		int n;
-		unsigned int seed;
 		cout << "\n Number of  random simulations:";
 		//G	    n = 10000;
 		cin >> n;
@@ -312,7 +311,6 @@ int User_interface::show_menu()
 		start_exploration_message();
 		int k,max_eras;
 		double alpha;
-		unsigned int seed;
 		cout << "\n Size of simulation budget (k) :";
 		cin >> k;
 		cout  << "\n Max number of eras: ";
@@ -1024,7 +1022,6 @@ void User_interface::schedule_explorations()
 
     if (random_pos!=string::npos)
     {
-	unsigned int seed;
 
 	cout << "\n Schedule sequence contains RANDOM exploration.  ";
 	cout << "\n How many random configuration must be explored ?";
