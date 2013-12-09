@@ -55,7 +55,7 @@ We will refer to the chosen dir as <TRDIR>.
 STEP 3: 
 
 If not yet done, download Epic Explorer source from
-http://epic-explorer.sourceforge.net and unpack the archive:
+https://code.google.com/p/epic-explorer/
 
 tar xvfz epic-VERSION.tar.gz 
 
@@ -90,15 +90,14 @@ command:
 
     source ~/trimaran/scripts/envrc.bash
 
-in every shell where you want to use trimaran. In order to avoid to
-retype this command in every new shell opened, add
-the 'source...' command to the .bashrc, as suggested in the same
-section of the manual.  So, in most cases, if you installed trimaran
-in you home directory, simply add the line:
+in every shell where you want to use trimaran. In order to avoid to retype this
+command in every new shell opened, add the 'source...' command to the .bashrc,
+as suggested in the same section of the manual.  So, in most cases, if you
+installed trimaran in you home directory, simply add that line at the end of
+your .bashrc file inside your home.
+A simple way to accomplish this is typing the command:
 
-    source ~/trimaran/scripts/envrc.bash
-
-    at the end of your .bashrc file inside your home.
+echo "source ~/trimaran/scripts/envrc.bash" >> .bashrc
 
 IMPORTANT FOR UBUNTU USERS: 
 
