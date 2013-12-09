@@ -27,11 +27,13 @@ using namespace std;
 
 typedef enum {HIGH_INNOVATION=1, NO_INNOVATION=2, LOW_INNOVATION=3} region_category;
 
-typedef struct 
+class Edges
 {
 	//These are indexes of the values vector of a parameter
+public:
     int a,b;
-} Edges;
+    string tostring() const;
+};
 
 
 
