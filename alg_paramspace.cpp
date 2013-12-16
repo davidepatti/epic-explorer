@@ -628,6 +628,9 @@ void build_next_era_regions(
 	//vector<Region*> regions, 
 	double old_average_innovation_score, int era)
 {
+		string message = "Era "+to_string(era)+": AVG score " + to_string(old_average_innovation_score);
+		write_to_log(myrank,logfile,message);
+
 	vector<Region*> regions_to_merge;
 	for (int i=0; i<region_handler.get_current_era_regions().size(); i++ )
 	{
@@ -640,7 +643,7 @@ void build_next_era_regions(
 						region->id, region->innovation_score, HIGH_INNOVATION);
 			split_region(i);
 		}
-		else if (region->innovation_score == 0)
+		else if (region->innovation_score <= 0)
 		{
 			//no innovation region
 			current_era_descriptor.add_region_descriptor(
@@ -691,6 +694,8 @@ void build_next_era_regions(
 		{
 			// regions_to_merge[i] can not be merged with any other region
 			regions_to_merge[i]->innovation_score += -1;
+			string message = "Decreasing score of unmergeable region " + to_string(regions_to_merge[i]->id);
+			write_to_log(myrank,logfile,message);
 			region_handler.add_region_to_next_era(regions_to_merge[i]);
 		}
 	}
