@@ -452,6 +452,9 @@ void split_region(unsigned region_index)
 // Else, return NULL.
 Region* merge_regions(const Region* r1, const Region* r2)
 {
+    string message = "Trying to merge regions "+to_string(r1->id)+" and "+to_string(r2->id);
+    write_to_log(myrank,logfile,message);
+
     // TBD: what returns when merging is not possible ?
     Region* r=NULL;
     Edges merged_interval;
@@ -721,8 +724,8 @@ Configuration fix_random_configuration(Region* region, Explorer* expl)
 			}
 			conf.pointer = region;
 			
-			    string message = "Random configuration " + conf.configuration_to_string();
-			    write_to_log(myrank,logfile,message);
+			    //string message = "Random configuration " + conf.configuration_to_string();
+			    //write_to_log(myrank,logfile,message);
 			
 			return conf;
 }
